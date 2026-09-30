@@ -1,3 +1,4 @@
+export { ApexChart } from "./apex-chart";
 export { DataTable, type DataTableColumn } from "./data-table";
 export { EmptyState } from "./empty-state";
 export { PageHeader } from "./page-header";
