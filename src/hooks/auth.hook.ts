@@ -33,15 +33,14 @@ export interface MeUser {
 }
 
 // Where each role lands after logging in
-export function getHomePath(role: string): string {
+export const getHomePath = (role: string): string => {
   if (role === "ADMIN") return "/admin";
   if (role === "HR_MANAGER" || role === "FINANCE_MANAGER") return "/manager";
   return "/dashboard";
-}
+};
 
-function errorMessage(error: Error, fallback: string) {
-  return error instanceof ApiError ? error.message : fallback;
-}
+const errorMessage = (error: Error, fallback: string) =>
+  error instanceof ApiError ? error.message : fallback;
 
 export function useLogin() {
   const router = useRouter();
