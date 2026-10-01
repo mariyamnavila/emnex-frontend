@@ -211,7 +211,7 @@ export function LoginForm() {
         </div>
 
         {/* Centered Form Body */}
-        <div className="mx-auto w-full max-w-[420px] py-8">
+        <div className="mx-auto w-full max-w-105 py-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] dark:text-white">
               Sign in to your account
