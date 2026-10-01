@@ -44,50 +44,72 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (!isLoading && rows.length === 0) {
     return (
-      <div className="rounded-md border border-border bg-card">
-        {empty ?? <EmptyState title="No results found" description="Try adjusting your filters." />}
+      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
+        {empty ?? <EmptyState title="No records found" description="Try adjusting your search or filters." />}
       </div>
     );
   }
 
   return (
-    <div className={cn("rounded-md border border-border bg-card", className)}>
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/60 hover:bg-muted/60">
-            {columns.map((column) => (
-              <TableHead key={column.key} className={cn("text-muted-foreground", column.headerClassName)}>
-                {column.header}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading
-            ? Array.from({ length: skeletonRows }).map((_, rowIndex) => (
-                <TableRow key={`skeleton-${rowIndex}`}>
-                  {columns.map((column) => (
-                    <TableCell key={column.key}>
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            : rows.map((row) => (
-                <TableRow
-                  key={rowKey(row)}
-                  className={cn(onRowClick && "cursor-pointer")}
-                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]",
+        className
+      )}
+    >
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-[#E2E8F0] bg-[#F8FAFC] hover:bg-[#F8FAFC] dark:border-[#1E293B] dark:bg-[#0F172A]">
+              {columns.map((column) => (
+                <TableHead
+                  key={column.key}
+                  className={cn(
+                    "h-10 text-xs font-semibold tracking-wider text-[#64748B] uppercase dark:text-[#94A3B8]",
+                    column.headerClassName
+                  )}
                 >
-                  {columns.map((column) => (
-                    <TableCell key={column.key} className={column.className}>
-                      {column.cell(row)}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                  {column.header}
+                </TableHead>
               ))}
-        </TableBody>
-      </Table>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading
+              ? Array.from({ length: skeletonRows }).map((_, rowIndex) => (
+                  <TableRow
+                    key={`skeleton-${rowIndex}`}
+                    className="border-b border-[#F1F5F9] dark:border-[#1E293B]"
+                  >
+                    {columns.map((column) => (
+                      <TableCell key={column.key} className="py-3.5">
+                        <Skeleton className="h-4 w-full bg-[#F1F5F9] dark:bg-[#1E293B]" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : rows.map((row) => (
+                  <TableRow
+                    key={rowKey(row)}
+                    className={cn(
+                      "border-b border-[#F1F5F9] transition-colors hover:bg-[#F8FAFC] dark:border-[#1E293B] dark:hover:bg-[#1E293B]/50",
+                      onRowClick && "cursor-pointer"
+                    )}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  >
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.key}
+                        className={cn("py-3.5 text-sm text-[#334155] dark:text-[#CBD5E1]", column.className)}
+                      >
+                        {column.cell(row)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

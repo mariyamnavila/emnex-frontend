@@ -1,17 +1,32 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
-      <p className="text-sm font-medium text-primary">404</p>
-      <h1 className="text-2xl font-semibold text-foreground">Page not found</h1>
-      <p className="max-w-md text-sm text-muted-foreground">
-        The page you are looking for doesn&apos;t exist or has been moved.
+    <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-16 text-center">
+      <div className="inline-flex items-center rounded-full border border-[#2563EB]/20 bg-[#EFF6FF] px-3 py-1 text-xs font-semibold text-[#2563EB] dark:bg-[#2563EB]/10 dark:text-[#60A5FA]">
+        404 — Resource Not Found
+      </div>
+
+      <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#0F172A] sm:text-4xl dark:text-white">
+        Page not found
+      </h1>
+      <p className="mt-2 max-w-md text-sm text-[#64748B] dark:text-[#94A3B8]">
+        The URL or resource you requested does not exist or may have been archived. Please verify the navigation path or return to the overview.
       </p>
-      <Button asChild className="mt-2">
-        <Link href="/">Back to home</Link>
-      </Button>
+
+      <div className="mt-6">
+        <Button
+          asChild
+          className="h-9 bg-[#2563EB] text-xs font-semibold text-white shadow-none transition-colors hover:bg-[#1D4ED8]"
+        >
+          <Link href="/" className="inline-flex items-center gap-1.5">
+            <ArrowLeft className="size-3.5" />
+            <span>Back to overview</span>
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }

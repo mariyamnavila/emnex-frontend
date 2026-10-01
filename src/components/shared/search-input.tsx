@@ -44,7 +44,7 @@ export function SearchInput({
   return (
     <div className={cn("relative w-full sm:w-64", className)}>
       <Search
-        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+        className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#64748B] dark:text-[#94A3B8]"
         aria-hidden="true"
       />
       <Input
@@ -53,7 +53,7 @@ export function SearchInput({
         onChange={(event) => setValue(event.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="pl-9"
+        className="h-9 border-[#CBD5E1] bg-white pl-9 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white"
       />
     </div>
   );

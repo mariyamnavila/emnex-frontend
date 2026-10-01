@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type Tone = "success" | "warning" | "destructive" | "info" | "muted";
@@ -45,12 +44,27 @@ const STATUS_TONES: Record<string, Tone> = {
   URGENT: "destructive",
 };
 
-const TONE_CLASSES: Record<Tone, string> = {
-  success: "border-success/25 bg-success/10 text-success",
-  warning: "border-warning/25 bg-warning/10 text-warning",
-  destructive: "border-destructive/25 bg-destructive/10 text-destructive",
-  info: "border-info/25 bg-info/10 text-info",
-  muted: "border-border bg-muted text-muted-foreground",
+const TONE_CONFIG: Record<Tone, { badge: string; dot: string }> = {
+  success: {
+    badge: "bg-[#F0FDF4] text-[#16A34A] border-[#16A34A]/20 dark:bg-[#16A34A]/10 dark:text-[#4ADE80] dark:border-[#4ADE80]/20",
+    dot: "bg-[#16A34A] dark:bg-[#4ADE80]",
+  },
+  warning: {
+    badge: "bg-[#FFFBEB] text-[#D97706] border-[#D97706]/20 dark:bg-[#D97706]/10 dark:text-[#FBBF24] dark:border-[#FBBF24]/20",
+    dot: "bg-[#D97706] dark:bg-[#FBBF24]",
+  },
+  destructive: {
+    badge: "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20 dark:bg-[#DC2626]/10 dark:text-[#F87171] dark:border-[#F87171]/20",
+    dot: "bg-[#DC2626] dark:bg-[#F87171]",
+  },
+  info: {
+    badge: "bg-[#EFF6FF] text-[#2563EB] border-[#2563EB]/20 dark:bg-[#2563EB]/10 dark:text-[#60A5FA] dark:border-[#60A5FA]/20",
+    dot: "bg-[#2563EB] dark:bg-[#60A5FA]",
+  },
+  muted: {
+    badge: "bg-[#F1F5F9] text-[#64748B] border-[#64748B]/20 dark:bg-[#1E293B] dark:text-[#94A3B8] dark:border-[#94A3B8]/20",
+    dot: "bg-[#64748B] dark:bg-[#94A3B8]",
+  },
 };
 
 export function statusTone(status: string): Tone {
@@ -67,18 +81,24 @@ function formatStatus(status: string): string {
 
 interface StatusBadgeProps {
   status: string;
+  showDot?: boolean;
   className?: string;
 }
 
-export function StatusBadge({ status, className }: StatusBadgeProps) {
+export function StatusBadge({ status, showDot = true, className }: StatusBadgeProps) {
   const tone = statusTone(status);
+  const config = TONE_CONFIG[tone];
 
   return (
-    <Badge
-      variant="outline"
-      className={cn(TONE_CLASSES[tone], "font-medium whitespace-nowrap", className)}
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+        config.badge,
+        className
+      )}
     >
-      {formatStatus(status)}
-    </Badge>
+      {showDot && <span className={cn("size-1.5 rounded-full shrink-0", config.dot)} />}
+      <span>{formatStatus(status)}</span>
+    </span>
   );
 }
