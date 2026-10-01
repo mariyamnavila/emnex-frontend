@@ -35,7 +35,8 @@ export interface MeUser {
 // Where each role lands after logging in
 export const getHomePath = (role: string): string => {
   if (role === "ADMIN") return "/admin";
-  if (role === "HR_MANAGER" || role === "FINANCE_MANAGER") return "/manager";
+  if (role === "HR_MANAGER") return "/manager";
+  if (role === "FINANCE_MANAGER") return "/finance";
   return "/dashboard";
 };
 

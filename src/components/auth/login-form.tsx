@@ -36,13 +36,22 @@ const DEMO_ACCOUNTS = [
     badge: "Admin",
   },
   {
-    role: "MANAGER",
-    title: "Operations Manager",
-    subtitle: "Task dispatch & review",
+    role: "HR_MANAGER",
+    title: "HR Manager",
+    subtitle: "Tasks & workforce review",
     icon: Briefcase,
     email: process.env.NEXT_PUBLIC_DEMO_MANAGER_EMAIL || "manager@emnex.com",
     password: process.env.NEXT_PUBLIC_DEMO_MANAGER_PASSWORD || "EmnexManager123!",
-    badge: "Manager",
+    badge: "HR",
+  },
+  {
+    role: "FINANCE_MANAGER",
+    title: "Finance Manager",
+    subtitle: "Payroll & payments",
+    icon: Banknote,
+    email: process.env.NEXT_PUBLIC_DEMO_FINANCE_EMAIL || "finance@emnex.com",
+    password: process.env.NEXT_PUBLIC_DEMO_FINANCE_PASSWORD || "EmnexFinance123!",
+    badge: "Finance",
   },
   {
     role: "EMPLOYEE",
@@ -217,7 +226,7 @@ export function LoginForm() {
             <span className="text-[11px] font-semibold tracking-wider text-[#64748B] uppercase dark:text-[#94A3B8]">
               1-Click Demo Logins
             </span>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {DEMO_ACCOUNTS.map((account) => {
                 const Icon = account.icon;
                 const isSelected = activeRole === account.role && login.isPending;
@@ -240,11 +249,7 @@ export function LoginForm() {
                       {account.badge}
                     </span>
                     <span className="text-[10px] text-[#64748B] dark:text-[#94A3B8]">
-                      {account.role === "ADMIN"
-                        ? "Full Access"
-                        : account.role === "MANAGER"
-                        ? "Dispatch"
-                        : "Field Staff"}
+                      {account.subtitle}
                     </span>
                   </button>
                 );
