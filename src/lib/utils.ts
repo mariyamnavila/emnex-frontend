@@ -13,6 +13,16 @@ export function getInitials(name: string): string {
 		.toUpperCase();
 }
 
+/** "Jan 1, 2026" for date-only fields stored as UTC midnight (never shifts a day) */
+export function formatDay(value: string | Date): string {
+	return new Date(value).toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+		timeZone: "UTC",
+	});
+}
+
 /** "October 5, 2026" — shared date format for every table/sheet/detail view. */
 export function formatDate(value: string | Date): string {
 	return new Date(value).toLocaleDateString("en-US", {
