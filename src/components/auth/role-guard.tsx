@@ -2,9 +2,10 @@
 
 import { useEffect, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useGetMe, getHomePath } from "@/hooks/auth.hook";
+import { getHomePath, isSessionInvalid, useGetMe } from "@/hooks/auth.hook";
 import AuthLoading from "./auth-loading";
 import AccessDenied from "./access-denied";
+import SessionError from "./session-error";
 
 interface RoleGuardProps {
   children: ReactNode;
@@ -21,7 +22,8 @@ export default function RoleGuard({
 }: RoleGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data, isPending, isError } = useGetMe();
+  const { data, isPending, error, refetch, isFetching } = useGetMe();
+  const loggedOut = isSessionInvalid(error);
 
   const role = data?.role?.name;
   const userPermissions = data?.permissions ?? [];
@@ -32,22 +34,28 @@ export default function RoleGuard({
     : true;
 
   useEffect(() => {
-    if (isPending) return;
-
-    // Not logged in → login page, then come back here
-    if (isError || !data) {
+    if (loggedOut) {
       router.replace(`/login?redirectTo=${encodeURIComponent(pathname)}`);
       return;
     }
 
     // Wrong role for this section → their home
-    if (!roleMatch) {
+    if (data && !roleMatch) {
       router.replace(getHomePath(data.role.name));
     }
-  }, [isPending, isError, data, roleMatch, router, pathname]);
+  }, [loggedOut, data, roleMatch, router, pathname]);
 
   if (isPending) return <AuthLoading />;
-  if (isError || !data) return <AuthLoading label="Redirecting..." />;
+  if (loggedOut) return <AuthLoading label="Redirecting..." />;
+  if (!data) {
+    return (
+      <SessionError
+        message={error?.message}
+        onRetry={() => void refetch()}
+        isRetrying={isFetching}
+      />
+    );
+  }
 
   // Role mismatch → already redirecting, show loading briefly
   if (!roleMatch) return <AuthLoading label="Redirecting..." />;

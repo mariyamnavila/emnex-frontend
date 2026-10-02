@@ -9,6 +9,23 @@ export const EMNEX_CHART_COLORS = [
   "#64748B", // muted
 ] as const;
 
+// Same meaning as StatusBadge tones, so a status has one color everywhere
+export const STATUS_CHART_COLORS: Record<string, string> = {
+  ACTIVE: "#2563EB",
+  PLANNED: "#94A3B8",
+  ON_HOLD: "#D97706",
+  COMPLETED: "#16A34A",
+  CANCELLED: "#DC2626",
+  DRAFT: "#94A3B8",
+  GENERATED: "#D97706",
+  APPROVED: "#2563EB",
+  PROCESSING: "#60A5FA",
+  PAID: "#16A34A",
+  REJECTED: "#DC2626",
+};
+
+export const chartAxisLabelStyle = { colors: "#64748B", fontSize: "12px" };
+
 /**
  * Default ApexCharts options themed with EmNex design tokens.
  * Pages can spread this and override individual keys.

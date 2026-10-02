@@ -95,6 +95,9 @@ const request = async <T>(
   }
 
   if (!json) {
+    if (response.status === 429) {
+      throw new ApiError("Too many requests. Please wait a few minutes and try again.", 429);
+    }
     throw new ApiError(`Server error (HTTP ${response.status})`, response.status);
   }
 

@@ -27,6 +27,18 @@ export function formatCurrency(amount: number): string {
 	return usd.format(amount);
 }
 
+const usdCompact = new Intl.NumberFormat("en-US", {
+	style: "currency",
+	currency: "USD",
+	notation: "compact",
+	maximumFractionDigits: 1,
+});
+
+/** 12500 → "$12.5K" (chart axes) */
+export function formatCompactCurrency(amount: number): string {
+	return usdCompact.format(amount);
+}
+
 export interface PaySummary {
 	/** The amount the employee is set up with (salary or hourly rate) */
 	rate: number;

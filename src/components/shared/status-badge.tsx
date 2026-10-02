@@ -71,7 +71,7 @@ export function statusTone(status: string): Tone {
   return STATUS_TONES[status.toUpperCase()] ?? "muted";
 }
 
-function formatStatus(status: string): string {
+export function formatStatus(status: string): string {
   return status
     .toLowerCase()
     .split("_")

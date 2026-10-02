@@ -45,6 +45,12 @@ export const getHomePath = (role: string): string => {
 const errorMessage = (error: Error, fallback: string) =>
   error instanceof ApiError ? error.message : fallback;
 
+// Only these mean "logged out" (no/expired session, blocked or terminated user).
+// Network errors, 429 and 5xx must NOT log the user out.
+export const isSessionInvalid = (error: Error | null): boolean =>
+  error instanceof ApiError &&
+  (error.statusCode === 401 || error.statusCode === 403);
+
 // Page to open after login: the ?redirectTo= set by proxy.ts, else the role home.
 // Only same-site paths are allowed ("/x", never "//evil.com" or "/\evil.com").
 // If redirectTo belongs to another role, proxy.ts bounces to the right home.
