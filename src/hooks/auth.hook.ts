@@ -19,7 +19,7 @@ export interface AuthUser {
   mustChangePassword: boolean;
 }
 
-// The full user returned by /auth/me (includes role + organization objects)
+// The full user returned by /auth/me (includes role + organization + permissions)
 export interface MeUser {
   id: string;
   name: string;
@@ -30,6 +30,7 @@ export interface MeUser {
   mustChangePassword: boolean;
   role: { id: string; name: string; description: string | null };
   organization: { id: string; name: string; slug: string };
+  permissions: string[];
 }
 
 // Where each role lands after logging in
