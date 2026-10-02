@@ -33,6 +33,7 @@ export interface MeUser {
 }
 
 // Where each role lands after logging in
+// Custom/unknown roles default to /dashboard (safe entry point)
 export const getHomePath = (role: string): string => {
   if (role === "ADMIN") return "/admin";
   if (role === "HR_MANAGER") return "/manager";
