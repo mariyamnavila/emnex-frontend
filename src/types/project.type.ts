@@ -1,3 +1,5 @@
+import type { ApiTask, Task } from "./task.type";
+
 export type ProjectStatus = "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
 
 export interface Project {
@@ -14,3 +16,9 @@ export interface Project {
 
 // As sent by the API: budget is a Prisma Decimal string
 export type ApiProject = Omit<Project, "budget"> & { budget: string | number | null };
+
+export interface ProjectDetail extends Project {
+	tasks: Task[];
+}
+
+export type ApiProjectDetail = ApiProject & { tasks: ApiTask[] };

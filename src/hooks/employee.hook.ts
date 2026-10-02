@@ -78,6 +78,18 @@ export function useEmployees(params: EmployeeListParams) {
 	});
 }
 
+// Only ACTIVE employees can be given tasks
+export function useActiveEmployees() {
+	return useQuery({
+		queryKey: ["employees", "active-options"],
+		queryFn: async () => {
+			const { data } = await api.get<ApiEmployee[]>("/employees?status=ACTIVE&limit=100");
+			return data.map(normalizePay);
+		},
+		staleTime: 60 * 1000,
+	});
+}
+
 export function useEmployee(id: string) {
 	return useQuery({
 		queryKey: ["employees", "detail", id],

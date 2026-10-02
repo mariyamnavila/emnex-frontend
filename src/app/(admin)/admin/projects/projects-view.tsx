@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
 	CheckCircle2,
+	ChevronRight,
+	Eye,
 	FolderKanban,
 	MoreHorizontal,
 	PauseCircle,
@@ -89,6 +93,7 @@ export function ProjectsView() {
 	const { data, isLoading } = useProjects({ page, search, status });
 	const { data: analytics, isLoading: analyticsLoading } = useProjectAnalytics();
 	const deleteProject = useDeleteProject();
+	const router = useRouter();
 
 	const [formOpen, setFormOpen] = useState(false);
 	const [editing, setEditing] = useState<Project | null>(null);
@@ -117,7 +122,13 @@ export function ProjectsView() {
 			header: "Project",
 			cell: (row) => (
 				<div className="min-w-48 max-w-sm">
-					<p className="truncate font-medium text-[#0F172A] dark:text-white">{row.name}</p>
+					<Link
+						href={`/admin/projects/${row.id}`}
+						onClick={(event) => event.stopPropagation()}
+						className="block truncate font-medium text-[#0F172A] underline-offset-4 group-hover:text-[#2563EB] hover:underline dark:text-white dark:group-hover:text-[#60A5FA]"
+					>
+						{row.name}
+					</Link>
 					<p className="truncate text-xs text-[#64748B] dark:text-[#94A3B8]">
 						{row.description || "No description"}
 					</p>
@@ -162,8 +173,8 @@ export function ProjectsView() {
 			header: <span className="sr-only">Actions</span>,
 			headerClassName: "w-12",
 			className: "w-12 text-right",
-			cell: (row) =>
-				can("project.update") || can("project.delete") ? (
+			cell: (row) => (
+				<div onClick={(event) => event.stopPropagation()}>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button
@@ -179,6 +190,15 @@ export function ProjectsView() {
 							align="end"
 							className="w-44 border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]"
 						>
+							<DropdownMenuItem
+								asChild
+								className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
+							>
+								<Link href={`/admin/projects/${row.id}`}>
+									<Eye className="size-4" />
+									View project
+								</Link>
+							</DropdownMenuItem>
 							{can("project.update") ? (
 								<DropdownMenuItem
 									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
@@ -202,7 +222,20 @@ export function ProjectsView() {
 							) : null}
 						</DropdownMenuContent>
 					</DropdownMenu>
-				) : null,
+				</div>
+			),
+		},
+		{
+			key: "open",
+			header: <span className="sr-only">Open</span>,
+			headerClassName: "w-8 pl-0",
+			className: "w-8 pl-0",
+			cell: () => (
+				<ChevronRight
+					aria-hidden="true"
+					className="size-4 text-[#94A3B8] transition-transform group-hover:translate-x-0.5 group-hover:text-[#2563EB]"
+				/>
+			),
 		},
 	];
 
@@ -288,6 +321,7 @@ export function ProjectsView() {
 					rows={rows}
 					rowKey={(row) => row.id}
 					isLoading={isLoading}
+					onRowClick={(row) => router.push(`/admin/projects/${row.id}`)}
 					className="rounded-none border-0 shadow-none"
 					empty={
 						<EmptyState

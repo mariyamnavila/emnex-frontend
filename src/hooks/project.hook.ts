@@ -4,7 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
-import type { ApiProject, Project } from "@/types/project.type";
+import type {
+	ApiProject,
+	ApiProjectDetail,
+	Project,
+	ProjectDetail,
+} from "@/types/project.type";
 import type { ProjectFormValues } from "@/validation/project.validation";
 
 export interface ProjectListParams {
@@ -48,6 +53,22 @@ export function useProjects(params: ProjectListParams) {
 			return { rows: res.data.map(normalizeProject), meta: res.meta };
 		},
 		placeholderData: (prev) => prev,
+	});
+}
+
+export function useProject(id: string) {
+	return useQuery({
+		queryKey: ["projects", "detail", id],
+		queryFn: async (): Promise<ProjectDetail> => {
+			const { data } = await api.get<ApiProjectDetail>(`/projects/${id}`);
+			return {
+				...normalizeProject(data),
+				// The API also returns soft-deleted tasks
+				tasks: data.tasks
+					.filter((task) => task.deletedAt === null)
+					.map((task) => ({ ...task, estimatedHours: toAmount(task.estimatedHours) })),
+			};
+		},
 	});
 }
 
