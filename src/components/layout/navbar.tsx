@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getHomePath, useGetMe, useLogout } from "@/hooks/auth.hook";
 import {
   Sheet,
   SheetContent,
@@ -25,6 +27,11 @@ const NAV_LINKS = [
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  // Logged in? (/auth/me fails with 401 for visitors → user stays undefined)
+  const { data: user, isPending } = useGetMe();
+  const logout = useLogout();
+  const dashboardHref = user ? getHomePath(user.role.name) : "/login";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
@@ -70,22 +77,49 @@ export function Navbar() {
 
         {/* CTAs */}
         <div className="flex items-center gap-3">
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="hidden text-sm font-medium text-[#334155] hover:bg-[#F8FAFC] hover:text-[#0F172A] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white md:inline-flex"
-          >
-            <Link href="/login">Log in</Link>
-          </Button>
+          {isPending ? (
+            // Checking session — reserve the space so buttons don't jump
+            <Skeleton className="h-9 w-28 rounded-md bg-[#F1F5F9] dark:bg-[#1E293B]" />
+          ) : user ? (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={logout.isPending}
+                onClick={() => logout.mutate()}
+                className="hidden text-sm font-medium text-[#334155] hover:bg-[#F8FAFC] hover:text-[#0F172A] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white md:inline-flex"
+              >
+                {logout.isPending ? "Logging out..." : "Log out"}
+              </Button>
 
-          <Button
-            asChild
-            size="sm"
-            className="h-9 rounded-md bg-[#2563EB] px-4 text-sm font-medium text-white shadow-none transition-colors hover:bg-[#1D4ED8]"
-          >
-            <Link href="/register">Get started</Link>
-          </Button>
+              <Button
+                asChild
+                size="sm"
+                className="h-9 rounded-md bg-[#2563EB] px-4 text-sm font-medium text-white shadow-none transition-colors hover:bg-[#1D4ED8]"
+              >
+                <Link href={dashboardHref}>Dashboard</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="hidden text-sm font-medium text-[#334155] hover:bg-[#F8FAFC] hover:text-[#0F172A] dark:text-[#CBD5E1] dark:hover:bg-[#1E293B] dark:hover:text-white md:inline-flex"
+              >
+                <Link href="/login">Log in</Link>
+              </Button>
+
+              <Button
+                asChild
+                size="sm"
+                className="h-9 rounded-md bg-[#2563EB] px-4 text-sm font-medium text-white shadow-none transition-colors hover:bg-[#1D4ED8]"
+              >
+                <Link href="/register">Get started</Link>
+              </Button>
+            </>
+          )}
 
           {/* Mobile Menu Trigger */}
           <Sheet open={open} onOpenChange={setOpen}>
@@ -139,16 +173,39 @@ export function Navbar() {
 
               <div className="space-y-3 pt-6">
                 <Separator className="bg-[#E2E8F0] dark:bg-[#1E293B]" />
-                <Button asChild variant="outline" className="w-full justify-center border-[#E2E8F0] text-[#334155]">
-                  <Link href="/login" onClick={() => setOpen(false)}>
-                    Log in
-                  </Link>
-                </Button>
-                <Button asChild className="w-full justify-center bg-[#2563EB] text-white hover:bg-[#1D4ED8]">
-                  <Link href="/register" onClick={() => setOpen(false)}>
-                    Get started
-                  </Link>
-                </Button>
+                {user ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      disabled={logout.isPending}
+                      onClick={() => {
+                        setOpen(false);
+                        logout.mutate();
+                      }}
+                      className="w-full justify-center border-[#E2E8F0] text-[#334155]"
+                    >
+                      {logout.isPending ? "Logging out..." : "Log out"}
+                    </Button>
+                    <Button asChild className="w-full justify-center bg-[#2563EB] text-white hover:bg-[#1D4ED8]">
+                      <Link href={dashboardHref} onClick={() => setOpen(false)}>
+                        Dashboard
+                      </Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild variant="outline" className="w-full justify-center border-[#E2E8F0] text-[#334155]">
+                      <Link href="/login" onClick={() => setOpen(false)}>
+                        Log in
+                      </Link>
+                    </Button>
+                    <Button asChild className="w-full justify-center bg-[#2563EB] text-white hover:bg-[#1D4ED8]">
+                      <Link href="/register" onClick={() => setOpen(false)}>
+                        Get started
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </SheetContent>
           </Sheet>

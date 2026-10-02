@@ -15,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { getSidebarRoutes } from "@/config/sidebar-routes";
 import { useGetMe } from "@/hooks/auth.hook";
@@ -30,6 +31,7 @@ function canView(item: SidebarItem, permissions: string[]): boolean {
 
 export function DashboardSidebar({ role }: { role: string }) {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
   const { data: user } = useGetMe();
   const permissions = user?.permissions ?? [];
 
@@ -43,7 +45,7 @@ export function DashboardSidebar({ role }: { role: string }) {
   return (
     <Sidebar>
       <SidebarHeader>
-        <Link href="/" className="flex items-center gap-2 px-2 py-1.5">
+        <Link href="/" className="flex items-center gap-2.5 px-2 py-1.5">
           <Image
             src="/logo.png"
             alt="EmNex"
@@ -51,7 +53,8 @@ export function DashboardSidebar({ role }: { role: string }) {
             height={28}
             className="size-7 object-contain"
           />
-          <span className="text-lg font-bold tracking-tight text-[#0F172A] dark:text-white">
+          {/* Sidebar is navy in both themes → white "Em" (theme.md §1) */}
+          <span className="text-lg font-bold tracking-tight text-white">
             Em<span className="text-[#2563EB]">Nex</span>
           </span>
         </Link>
@@ -74,8 +77,14 @@ export function DashboardSidebar({ role }: { role: string }) {
                       pathname.startsWith(item.url));
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive}>
-                        <Link href={item.url}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        // Active route: solid blue + white (theme.md §6 Command Sidebar)
+                        className="data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground"
+                      >
+                        {/* Close the mobile drawer once a link is tapped */}
+                        <Link href={item.url} onClick={() => setOpenMobile(false)}>
                           <Icon className="size-4" />
                           <span>{item.title}</span>
                         </Link>

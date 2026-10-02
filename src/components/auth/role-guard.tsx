@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useGetMe, getHomePath } from "@/hooks/auth.hook";
 import AuthLoading from "./auth-loading";
 import AccessDenied from "./access-denied";
@@ -20,6 +20,7 @@ export default function RoleGuard({
   permissions,
 }: RoleGuardProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { data, isPending, isError } = useGetMe();
 
   const role = data?.role?.name;
@@ -33,9 +34,9 @@ export default function RoleGuard({
   useEffect(() => {
     if (isPending) return;
 
-    // Not logged in → login page
+    // Not logged in → login page, then come back here
     if (isError || !data) {
-      router.replace("/login");
+      router.replace(`/login?redirectTo=${encodeURIComponent(pathname)}`);
       return;
     }
 
@@ -43,7 +44,7 @@ export default function RoleGuard({
     if (!roleMatch) {
       router.replace(getHomePath(data.role.name));
     }
-  }, [isPending, isError, data, roleMatch, router]);
+  }, [isPending, isError, data, roleMatch, router, pathname]);
 
   if (isPending) return <AuthLoading />;
   if (isError || !data) return <AuthLoading label="Redirecting..." />;
@@ -52,7 +53,9 @@ export default function RoleGuard({
   if (!roleMatch) return <AuthLoading label="Redirecting..." />;
 
   // Permission gate failed (same role, insufficient perms) → AccessDenied
-  if (!permissionMatch) return <AccessDenied />;
+  if (!permissionMatch) {
+    return <AccessDenied homeHref={getHomePath(data.role.name)} />;
+  }
 
   return <>{children}</>;
 }

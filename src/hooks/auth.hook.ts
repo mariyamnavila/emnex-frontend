@@ -45,6 +45,15 @@ export const getHomePath = (role: string): string => {
 const errorMessage = (error: Error, fallback: string) =>
   error instanceof ApiError ? error.message : fallback;
 
+// Page to open after login: the ?redirectTo= set by proxy.ts, else the role home.
+// Only same-site paths are allowed ("/x", never "//evil.com" or "/\evil.com").
+// If redirectTo belongs to another role, proxy.ts bounces to the right home.
+const getPostLoginPath = (role: string): string => {
+  const redirectTo = new URLSearchParams(window.location.search).get("redirectTo");
+  if (redirectTo && /^\/(?![/\\])/.test(redirectTo)) return redirectTo;
+  return getHomePath(role);
+};
+
 export function useLogin() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -53,9 +62,11 @@ export function useLogin() {
     mutationFn: (values: LoginFormValues) =>
       api.post<{ accessToken: string; user: AuthUser }>("/auth/login", values),
     onSuccess: ({ data }) => {
-      queryClient.setQueryData(["auth", "me"], data.user);
+      // Login returns a slimmer user than /auth/me (no permissions, role is a string),
+      // so drop any cached user and let the guards fetch the full profile.
+      queryClient.removeQueries({ queryKey: ["auth", "me"] });
       toast.success(`Welcome back, ${data.user.name}`);
-      router.push(getHomePath(data.user.role));
+      router.push(getPostLoginPath(data.user.role));
     },
     onError: (error) => toast.error(errorMessage(error, "Login failed")),
   });
@@ -69,7 +80,7 @@ export function useRegister() {
     mutationFn: (values: RegisterFormValues) =>
       api.post<{ accessToken: string; user: AuthUser }>("/auth/register", values),
     onSuccess: ({ data }) => {
-      queryClient.setQueryData(["auth", "me"], data.user);
+      queryClient.removeQueries({ queryKey: ["auth", "me"] });
       toast.success("Organization created successfully");
       router.push(getHomePath(data.user.role));
     },
@@ -84,6 +95,9 @@ export function useGetMe() {
       const { data } = await api.get<MeUser>("/auth/me");
       return data;
     },
+    // Profile/permissions rarely change, and /auth/* is rate limited
+    // (20 req / 15 min) — don't refetch on every page change.
+    staleTime: 5 * 60 * 1000,
     retry: false,
   });
 }
@@ -94,15 +108,12 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: () => api.post("/auth/logout"),
-    onSuccess: () => {
+    onSuccess: () => toast.success("Logged out"),
+    onError: (error) => toast.error(errorMessage(error, "Logout failed")),
+    // Success or not, the user wants out: leave and forget all cached data
+    onSettled: () => {
+      router.replace("/login");
       queryClient.clear();
-      toast.success("Logged out");
-      router.push("/login");
-    },
-    onError: (error) => {
-      queryClient.clear();
-      toast.error(errorMessage(error, "Logout failed"));
-      router.push("/login");
     },
   });
 }

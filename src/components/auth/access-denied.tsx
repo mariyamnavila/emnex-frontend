@@ -2,7 +2,12 @@ import Link from "next/link";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function AccessDenied() {
+/** `homeHref` = the viewer's role home (e.g. /admin) — defaults to /dashboard */
+export default function AccessDenied({
+  homeHref = "/dashboard",
+}: {
+  homeHref?: string;
+}) {
   return (
     <div className="flex h-screen w-full items-center justify-center px-4">
       <div className="flex flex-col items-center gap-4 text-center">
@@ -18,7 +23,7 @@ export default function AccessDenied() {
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2">
-          <Link href="/dashboard">
+          <Link href={homeHref}>
             <ArrowLeft className="size-4" />
             Back to Dashboard
           </Link>
