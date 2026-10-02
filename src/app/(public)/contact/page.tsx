@@ -95,7 +95,7 @@ export default function ContactPage() {
           {/* Right Column: Channels, SLAs & Global Presence */}
           <div className="space-y-6 lg:col-span-5">
             {/* Direct Channels */}
-            <div className="rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-xs dark:border-[#1E293B] dark:bg-[#0F172A]">
+            {/* <div className="rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-xs dark:border-[#1E293B] dark:bg-[#0F172A]">
               <h3 className="text-xs font-bold tracking-wider text-[#0F172A] uppercase dark:text-white">
                 Direct Inbound Channels
               </h3>
@@ -125,7 +125,7 @@ export default function ContactPage() {
                   );
                 })}
               </div>
-            </div>
+            </div> */}
 
             {/* Response Time Standards */}
             <div className="rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-xs dark:border-[#1E293B] dark:bg-[#0F172A]">
