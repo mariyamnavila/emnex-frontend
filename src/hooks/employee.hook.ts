@@ -1,10 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
-import type { Department, Employee, EmployeeDetail } from "@/types/employee.type";
+import { toAmount } from "@/lib/pay";
+import type {
+	ApiEmployee,
+	Department,
+	Employee,
+	EmployeeAnalytics,
+	EmployeeDetail,
+} from "@/types/employee.type";
 
 export interface RoleOption {
 	id: string;
@@ -22,6 +28,13 @@ export interface CreateEmployeePayload {
 	salary?: number;
 	hourlyRate?: number;
 	joiningDate: string;
+}
+
+// POST /employees returns the new employee + a one-time password
+// (also emailed, but the email can fail silently on the backend)
+export interface CreateEmployeeResult {
+	employee: Employee;
+	temporaryPassword: string;
 }
 
 export interface EmployeeListParams {
@@ -44,14 +57,22 @@ const buildQuery = (params: EmployeeListParams) => {
 const errorMessage = (error: Error, fallback: string) =>
 	error instanceof ApiError ? error.message : fallback;
 
+// Decimal strings ("4000") → numbers, once, so every screen can do math/formatting
+const normalizePay = <T extends Employee>(raw: ApiEmployee<T>): T =>
+	({
+		...raw,
+		salary: toAmount(raw.salary),
+		hourlyRate: toAmount(raw.hourlyRate),
+	}) as T;
+
 export function useEmployees(params: EmployeeListParams) {
 	return useQuery({
 		queryKey: ["employees", params],
 		queryFn: async () => {
-			const res = await api.get<Employee[]>(
+			const res = await api.get<ApiEmployee[]>(
 				`/employees${buildQuery(params)}`,
 			);
-			return { rows: res.data, meta: res.meta };
+			return { rows: res.data.map(normalizePay), meta: res.meta };
 		},
 		placeholderData: (prev) => prev,
 	});
@@ -59,26 +80,41 @@ export function useEmployees(params: EmployeeListParams) {
 
 export function useEmployee(id: string) {
 	return useQuery({
-		queryKey: ["employee", id],
+		queryKey: ["employees", "detail", id],
 		queryFn: async () => {
-			const { data } = await api.get<EmployeeDetail>(`/employees/${id}`);
-			return data;
+			const { data } = await api.get<ApiEmployee<EmployeeDetail>>(
+				`/employees/${id}`,
+			);
+			return normalizePay(data);
 		},
 		enabled: Boolean(id),
 	});
 }
 
-export function useDeleteEmployee() {
+// Headcount by status — feeds the stat cards on the employees page.
+// Key starts with "employees" so creating/terminating refreshes it too.
+export function useEmployeeAnalytics() {
+	return useQuery({
+		queryKey: ["employees", "analytics"],
+		queryFn: async () => {
+			const { data } = await api.get<EmployeeAnalytics>("/analytics/employees");
+			return data;
+		},
+	});
+}
+
+// Backend "delete" is a soft delete: status → TERMINATED, records are kept
+export function useTerminateEmployee() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: (id: string) => api.delete(`/employees/${id}`),
 		onSuccess: () => {
-			toast.success("Employee deleted");
+			toast.success("Employee terminated");
 			void queryClient.invalidateQueries({ queryKey: ["employees"] });
 		},
 		onError: (error) =>
-			toast.error(errorMessage(error, "Failed to delete employee")),
+			toast.error(errorMessage(error, "Failed to terminate employee")),
 	});
 }
 
@@ -104,19 +140,24 @@ export function useRoles() {
 	});
 }
 
+// The caller decides what to do after success (the wizard shows the password first)
 export function useCreateEmployee() {
-	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (payload: CreateEmployeePayload) =>
-			api.post<Employee>("/employees", payload),
-		onSuccess: ({ data: employee }) => {
-			toast.success(
-				`${employee.user.name} created — credentials sent to ${employee.user.email}`,
-			);
+		mutationFn: async (payload: CreateEmployeePayload) => {
+			const res = await api.post<
+				Omit<CreateEmployeeResult, "employee"> & { employee: ApiEmployee }
+			>("/employees", payload);
+			const data: CreateEmployeeResult = {
+				...res.data,
+				employee: normalizePay(res.data.employee),
+			};
+			return { ...res, data };
+		},
+		onSuccess: ({ data }) => {
+			toast.success(`${data.employee.user.name} created`);
 			void queryClient.invalidateQueries({ queryKey: ["employees"] });
-			router.push("/admin/employees");
 		},
 		onError: (error) =>
 			toast.error(errorMessage(error, "Failed to create employee")),

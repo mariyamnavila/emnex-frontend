@@ -8,10 +8,20 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Check,
+	Copy,
 	Loader2,
 	Send,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -30,15 +40,23 @@ import {
 	type EmployeeCreateValues,
 } from "@/validation/employee.validation";
 import {
+	type CreateEmployeeResult,
 	useCreateEmployee,
 	useDepartments,
 	useRoles,
 } from "@/hooks/employee.hook";
+import {
+	ESTIMATED_HOURS_PER_MONTH,
+	formatCurrency,
+	getPaySummary,
+	toAmount,
+} from "@/lib/pay";
+import { formatDate } from "@/lib/utils";
 
 const STEPS = [
-	{ number: 1, label: "Personal" },
-	{ number: 2, label: "Job" },
-	{ number: 3, label: "Salary" },
+	{ number: 1, label: "Personal", hint: "Name & login email" },
+	{ number: 2, label: "Position", hint: "Role, team & start date" },
+	{ number: 3, label: "Pay & review", hint: "Compensation & summary" },
 ] as const;
 
 const STEP_FIELDS: Record<number, string[]> = {
@@ -58,6 +76,28 @@ const NO_DEPARTMENT = "__none__";
 const inputClass =
 	"h-10 border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";
 
+// "HR_MANAGER" → "HR Manager"; custom role names pass through readable
+function formatRoleName(name: string): string {
+	if (name !== name.toUpperCase()) return name;
+	return name
+		.split("_")
+		.map((word) =>
+			word.length <= 2 ? word : word.charAt(0) + word.slice(1).toLowerCase(),
+		)
+		.join(" ");
+}
+
+function ReviewRow({ label, value }: { label: string; value: React.ReactNode }) {
+	return (
+		<div className="flex justify-between gap-4 py-2">
+			<dt className="text-[#64748B] dark:text-[#94A3B8]">{label}</dt>
+			<dd className="min-w-0 truncate text-right font-medium text-[#0F172A] dark:text-white">
+				{value}
+			</dd>
+		</div>
+	);
+}
+
 function FieldError({ message }: { message?: unknown }) {
 	if (typeof message !== "string" || !message) return null;
 	return <p className="text-xs text-[#DC2626]">{message}</p>;
@@ -66,6 +106,8 @@ function FieldError({ message }: { message?: unknown }) {
 export function EmployeeWizard() {
 	const router = useRouter();
 	const [step, setStep] = useState(1);
+	// Set after a successful create → opens the credentials dialog
+	const [created, setCreated] = useState<CreateEmployeeResult | null>(null);
 	const createEmployee = useCreateEmployee();
 	const { data: departments = [] } = useDepartments();
 	const { data: roles = [] } = useRoles();
@@ -94,7 +136,19 @@ export function EmployeeWizard() {
 		mode: "onTouched",
 	});
 
-	const salaryType = watch("salaryType");
+	// watch() (no args) re-renders on every keystroke, so the pay preview and
+	// review update live. getValues() does NOT re-render — that was the old bug.
+	const values = watch();
+	const salaryType = values.salaryType;
+	const pay = getPaySummary(
+		salaryType,
+		toAmount(values.salary),
+		toAmount(values.hourlyRate),
+	);
+	const roleName = roles.find((role) => role.id === values.roleId)?.name;
+	const departmentName = departments.find(
+		(department) => department.id === values.departmentId,
+	)?.name;
 
 	async function goTo(nextStep: number) {
 		if (nextStep > step) {
@@ -110,64 +164,89 @@ export function EmployeeWizard() {
 		setStep(nextStep);
 	}
 
+	async function copyPassword(password: string) {
+		try {
+			await navigator.clipboard.writeText(password);
+			toast.success("Password copied");
+		} catch {
+			toast.error("Couldn't copy — select the password and copy it manually");
+		}
+	}
+
+	// Leaving the dialog (Done / Esc / outside click) returns to the list
+	function finish() {
+		setCreated(null);
+		router.push("/admin/employees");
+	}
+
 	function onSubmit(values: EmployeeCreateValues) {
-		createEmployee.mutate({
-			name: values.name,
-			email: values.email,
-			roleId: values.roleId,
-			departmentId:
-				values.departmentId && values.departmentId !== NO_DEPARTMENT
-					? values.departmentId
-					: undefined,
-			jobTitle: values.jobTitle,
-			salaryType: values.salaryType,
-			salary:
-				values.salaryType === "MONTHLY"
-					? Number(values.salary)
-					: undefined,
-			hourlyRate:
-				values.salaryType === "HOURLY"
-					? Number(values.hourlyRate)
-					: undefined,
-			joiningDate: new Date(values.joiningDate).toISOString(),
-		});
+		createEmployee.mutate(
+			{
+				name: values.name,
+				email: values.email,
+				roleId: values.roleId,
+				departmentId:
+					values.departmentId && values.departmentId !== NO_DEPARTMENT
+						? values.departmentId
+						: undefined,
+				jobTitle: values.jobTitle,
+				salaryType: values.salaryType,
+				salary:
+					values.salaryType === "MONTHLY"
+						? Number(values.salary)
+						: undefined,
+				hourlyRate:
+					values.salaryType === "HOURLY"
+						? Number(values.hourlyRate)
+						: undefined,
+				joiningDate: new Date(values.joiningDate).toISOString(),
+			},
+			{ onSuccess: ({ data }) => setCreated(data) },
+		);
 	}
 
 	return (
 		<div className="mx-auto max-w-2xl">
 			{/* Stepper */}
-			<ol className="flex items-center gap-2">
+			<ol className="flex items-start gap-2" aria-label="Progress">
 				{STEPS.map((item, index) => {
 					const isDone = step > item.number;
 					const isCurrent = step === item.number;
 					return (
 						<li
 							key={item.number}
-							className={`flex flex-1 items-center gap-2 ${index < STEPS.length - 1 ? "" : ""}`}
+							aria-current={isCurrent ? "step" : undefined}
+							className="flex flex-1 items-start gap-2.5"
 						>
 							<span
-								className={`flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
+								className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors ${
 									isDone
 										? "border-[#16A34A] bg-[#16A34A] text-white"
 										: isCurrent
-											? "border-[#2563EB] bg-[#2563EB] text-white"
+											? "border-[#2563EB] bg-[#2563EB] text-white ring-4 ring-[#DBEAFE] dark:ring-[#1E3A5F]"
 											: "border-[#CBD5E1] bg-white text-[#64748B] dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-[#94A3B8]"
 								}`}
 							>
-								{isDone ? <Check className="size-3.5" /> : item.number}
+								{isDone ? <Check className="size-4" /> : item.number}
 							</span>
-							<span
-								className={`text-xs font-medium ${
-									isCurrent || isDone
-										? "text-[#0F172A] dark:text-white"
-										: "text-[#94A3B8]"
-								}`}
-							>
-								{item.label}
-							</span>
+							<div className="min-w-0 pt-0.5">
+								<p
+									className={`text-sm font-medium ${
+										isCurrent || isDone
+											? "text-[#0F172A] dark:text-white"
+											: "text-[#94A3B8]"
+									}`}
+								>
+									{item.label}
+								</p>
+								<p className="hidden text-xs text-[#64748B] sm:block dark:text-[#94A3B8]">
+									{item.hint}
+								</p>
+							</div>
 							{index < STEPS.length - 1 ? (
 								<span
-									className={`h-px flex-1 ${step > item.number ? "bg-[#16A34A]" : "bg-[#E2E8F0] dark:bg-[#1E293B]"}`}
+									aria-hidden="true"
+									className={`mt-4 hidden h-px flex-1 sm:block ${step > item.number ? "bg-[#16A34A]" : "bg-[#E2E8F0] dark:bg-[#1E293B]"}`}
 								/>
 							) : null}
 						</li>
@@ -186,7 +265,7 @@ export function EmployeeWizard() {
 								Personal information
 							</h2>
 							<p className="mt-1 text-xs text-[#64748B] dark:text-[#94A3B8]">
-								The employee's identity and login email.
+								The employee&apos;s identity and login email.
 							</p>
 						</div>
 						<div className="space-y-1.5">
@@ -221,10 +300,10 @@ export function EmployeeWizard() {
 					<div className="space-y-4">
 						<div>
 							<h2 className="text-base font-semibold text-[#0F172A] dark:text-white">
-								Job details
+								Position
 							</h2>
 							<p className="mt-1 text-xs text-[#64748B] dark:text-[#94A3B8]">
-								Role, department and start date.
+								Job title, access role, team and start date.
 							</p>
 						</div>
 						<div className="space-y-1.5">
@@ -243,7 +322,7 @@ export function EmployeeWizard() {
 							<div className="space-y-1.5">
 								<Label className="text-xs font-semibold">Role</Label>
 								<Select
-									value={watch("roleId") || undefined}
+									value={values.roleId || undefined}
 									onValueChange={(value) =>
 										setValue("roleId", value, { shouldValidate: true })
 									}
@@ -254,7 +333,7 @@ export function EmployeeWizard() {
 									<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
 										{roles.map((role) => (
 											<SelectItem key={role.id} value={role.id}>
-												{role.name}
+												{formatRoleName(role.name)}
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -264,7 +343,7 @@ export function EmployeeWizard() {
 							<div className="space-y-1.5">
 								<Label className="text-xs font-semibold">Department</Label>
 								<Select
-									value={watch("departmentId") || NO_DEPARTMENT}
+									value={values.departmentId || NO_DEPARTMENT}
 									onValueChange={(value) =>
 										setValue("departmentId", value, { shouldValidate: true })
 									}
@@ -305,10 +384,11 @@ export function EmployeeWizard() {
 					<div className="space-y-4">
 						<div>
 							<h2 className="text-base font-semibold text-[#0F172A] dark:text-white">
-								Salary & review
+								Pay & review
 							</h2>
 							<p className="mt-1 text-xs text-[#64748B] dark:text-[#94A3B8]">
-								Choose a pay structure, then review everything.
+								How this person is paid — payroll is generated from it
+								automatically. Then check the summary.
 							</p>
 						</div>
 
@@ -324,8 +404,16 @@ export function EmployeeWizard() {
 							className="grid gap-3 sm:grid-cols-2"
 						>
 							{[
-								{ value: "MONTHLY", label: "Monthly salary", hint: "Fixed monthly pay" },
-								{ value: "HOURLY", label: "Hourly rate", hint: "Paid per hour worked" },
+								{
+									value: "MONTHLY",
+									label: "Monthly salary",
+									hint: "Same fixed amount every month",
+								},
+								{
+									value: "HOURLY",
+									label: "Hourly rate",
+									hint: "Approved work hours × rate",
+								},
 							].map((option) => (
 								<label
 									key={option.value}
@@ -352,73 +440,131 @@ export function EmployeeWizard() {
 							))}
 						</RadioGroup>
 
-						{salaryType === "MONTHLY" ? (
-							<div className="space-y-1.5">
-								<Label htmlFor="salary" className="text-xs font-semibold">
-									Monthly salary (USD)
-								</Label>
-								<Input
-									id="salary"
-									type="number"
-									min="1"
-									step="0.01"
-									placeholder="5000"
-									{...register("salary")}
-									className={inputClass}
-								/>
-								<FieldError message={errors.salary?.message} />
+						{/* Amount — "$" prefix and unit suffix make the expected value obvious */}
+						<div className="space-y-1.5">
+							<Label
+								htmlFor={salaryType === "MONTHLY" ? "salary" : "hourlyRate"}
+								className="text-xs font-semibold"
+							>
+								{salaryType === "MONTHLY" ? "Monthly salary" : "Hourly rate"}
+							</Label>
+							<div className="relative">
+								<span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-[#64748B] dark:text-[#94A3B8]">
+									$
+								</span>
+								{salaryType === "MONTHLY" ? (
+									<Input
+										key="salary"
+										id="salary"
+										type="number"
+										inputMode="decimal"
+										min="1"
+										step="0.01"
+										placeholder="5,000.00"
+										{...register("salary")}
+										className={`${inputClass} pr-20 pl-7 tabular-nums`}
+									/>
+								) : (
+									<Input
+										key="hourlyRate"
+										id="hourlyRate"
+										type="number"
+										inputMode="decimal"
+										min="1"
+										step="0.01"
+										placeholder="45.00"
+										{...register("hourlyRate")}
+										className={`${inputClass} pr-20 pl-7 tabular-nums`}
+									/>
+								)}
+								<span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs text-[#64748B] dark:text-[#94A3B8]">
+									USD / {salaryType === "MONTHLY" ? "month" : "hour"}
+								</span>
 							</div>
-						) : (
-							<div className="space-y-1.5">
-								<Label htmlFor="hourlyRate" className="text-xs font-semibold">
-									Hourly rate (USD)
-								</Label>
-								<Input
-									id="hourlyRate"
-									type="number"
-									min="1"
-									step="0.01"
-									placeholder="45"
-									{...register("hourlyRate")}
-									className={inputClass}
-								/>
-								<FieldError message={errors.hourlyRate?.message} />
-							</div>
-						)}
+							<FieldError
+								message={
+									salaryType === "MONTHLY"
+										? errors.salary?.message
+										: errors.hourlyRate?.message
+								}
+							/>
+						</div>
 
-						<div className="rounded-md border border-[#E2E8F0] bg-[#F8FAFC] p-4 dark:border-[#1E293B] dark:bg-[#0B1120]">
+						{/* Live pay breakdown — updates as you type */}
+						<div
+							aria-live="polite"
+							className="rounded-md border border-[#DBEAFE] bg-[#EFF6FF] p-4 dark:border-[#1E3A5F] dark:bg-[#0B1120]"
+						>
+							{pay ? (
+								<>
+									<dl className="grid grid-cols-2 gap-4">
+										<div>
+											<dt className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+												{pay.isEstimate ? "Est. monthly" : "Monthly"}
+											</dt>
+											<dd className="mt-0.5 text-xl font-bold tracking-tight text-[#0F172A] tabular-nums dark:text-white">
+												{formatCurrency(pay.monthly)}
+											</dd>
+										</div>
+										<div>
+											<dt className="text-xs font-medium text-[#64748B] dark:text-[#94A3B8]">
+												{pay.isEstimate ? "Est. annual" : "Annual"}
+											</dt>
+											<dd className="mt-0.5 text-xl font-bold tracking-tight text-[#0F172A] tabular-nums dark:text-white">
+												{formatCurrency(pay.annual)}
+											</dd>
+										</div>
+									</dl>
+									<p className="mt-3 text-xs text-[#334155] dark:text-[#CBD5E1]">
+										{pay.isEstimate
+											? `${formatCurrency(pay.rate)} × ${ESTIMATED_HOURS_PER_MONTH} h. Actual payroll = approved work hours × rate.`
+											: "Payroll pays this fixed amount for each monthly period."}
+									</p>
+								</>
+							) : (
+								<p className="text-sm text-[#64748B] dark:text-[#94A3B8]">
+									Enter an amount to see the monthly and annual pay.
+								</p>
+							)}
+						</div>
+
+						<div>
 							<h3 className="text-xs font-semibold tracking-wider text-[#64748B] uppercase dark:text-[#94A3B8]">
 								Review
 							</h3>
-							<dl className="mt-2 space-y-1.5 text-sm">
-								<div className="flex justify-between gap-4">
-									<dt className="text-[#64748B] dark:text-[#94A3B8]">Name</dt>
-									<dd className="font-medium text-[#0F172A] dark:text-white">
-										{getValues("name") || "—"}
-									</dd>
-								</div>
-								<div className="flex justify-between gap-4">
-									<dt className="text-[#64748B] dark:text-[#94A3B8]">Email</dt>
-									<dd className="truncate font-medium text-[#0F172A] dark:text-white">
-										{getValues("email") || "—"}
-									</dd>
-								</div>
-								<div className="flex justify-between gap-4">
-									<dt className="text-[#64748B] dark:text-[#94A3B8]">
-										Job title
-									</dt>
-									<dd className="font-medium text-[#0F172A] dark:text-white">
-										{getValues("jobTitle") || "—"}
-									</dd>
-								</div>
-								<div className="flex justify-between gap-4">
-									<dt className="text-[#64748B] dark:text-[#94A3B8]">Pay</dt>
-									<dd className="font-medium text-[#0F172A] dark:text-white">
-										{salaryType === "MONTHLY"
-											? `$${Number(getValues("salary") || 0).toLocaleString()} / month`
-											: `$${Number(getValues("hourlyRate") || 0).toFixed(2)} / hour`}
-									</dd>
-								</div>
+							<dl className="mt-1 divide-y divide-[#F1F5F9] text-sm dark:divide-[#1E293B]">
+								<ReviewRow label="Name" value={values.name || "—"} />
+								<ReviewRow label="Email" value={values.email || "—"} />
+								<ReviewRow label="Job title" value={values.jobTitle || "—"} />
+								<ReviewRow
+									label="Role"
+									value={roleName ? formatRoleName(roleName) : "—"}
+								/>
+								<ReviewRow
+									label="Department"
+									value={departmentName ?? "No department"}
+								/>
+								<ReviewRow
+									label="Joining date"
+									// "T00:00:00" = read the picked date as local time, not UTC
+									value={
+										values.joiningDate
+											? formatDate(`${values.joiningDate}T00:00:00`)
+											: "—"
+									}
+								/>
+								<ReviewRow
+									label="Pay"
+									value={
+										pay ? (
+											<span className="tabular-nums">
+												{formatCurrency(pay.rate)} / {pay.unit}
+											</span>
+										) : (
+											"—"
+										)
+									}
+								/>
 							</dl>
 						</div>
 					</div>
@@ -477,6 +623,70 @@ export function EmployeeWizard() {
 					Cancel
 				</Button>
 			</div>
+
+			{/* Shown once after creation — the password is never retrievable again */}
+			<Dialog
+				open={created !== null}
+				onOpenChange={(open) => {
+					if (!open) finish();
+				}}
+			>
+				<DialogContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
+					<DialogHeader>
+						<DialogTitle className="text-[#0F172A] dark:text-white">
+							Employee created
+						</DialogTitle>
+						<DialogDescription>
+							{created
+								? `${created.employee.user.name} (${created.employee.employeeCode}) can now log in. The credentials were also emailed — if it doesn't arrive, share this password securely. It won't be shown again.`
+								: null}
+						</DialogDescription>
+					</DialogHeader>
+
+					{created ? (
+						<dl className="space-y-3 text-sm">
+							<div className="space-y-1">
+								<dt className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8]">
+									Email
+								</dt>
+								<dd className="font-medium text-[#0F172A] dark:text-white">
+									{created.employee.user.email}
+								</dd>
+							</div>
+							<div className="space-y-1">
+								<dt className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8]">
+									Temporary password
+								</dt>
+								<dd className="flex items-center gap-2">
+									<code className="flex-1 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 font-mono text-sm text-[#0F172A] select-all dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white">
+										{created.temporaryPassword}
+									</code>
+									<Button
+										type="button"
+										variant="outline"
+										size="icon"
+										aria-label="Copy temporary password"
+										className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
+										onClick={() => void copyPassword(created.temporaryPassword)}
+									>
+										<Copy className="size-4" />
+									</Button>
+								</dd>
+							</div>
+						</dl>
+					) : null}
+
+					<DialogFooter>
+						<Button
+							type="button"
+							className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
+							onClick={finish}
+						>
+							Done
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

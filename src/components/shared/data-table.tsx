@@ -44,7 +44,12 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (!isLoading && rows.length === 0) {
     return (
-      <div className="rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
+      <div
+        className={cn(
+          "rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]",
+          className
+        )}
+      >
         {empty ?? <EmptyState title="No records found" description="Try adjusting your search or filters." />}
       </div>
     );

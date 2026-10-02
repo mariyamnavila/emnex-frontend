@@ -9,7 +9,7 @@ export default function NewEmployeePage() {
 		<div className="space-y-6">
 			<PageHeader
 				title="New employee"
-				description="A 3-step wizard: personal info, job details, then salary"
+				description="Add a team member — they get login credentials by email."
 				actions={
 					<Button
 						asChild
