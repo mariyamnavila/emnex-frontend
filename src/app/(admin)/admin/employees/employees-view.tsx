@@ -9,6 +9,7 @@ import {
 	UserCheck,
 	UserMinus,
 	Users,
+	UserCog,
 	UserX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,8 @@ import { formatCurrency } from "@/lib/pay";
 import { cn, formatDate } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";
 import { EmployeeDetailSheet } from "@/components/employees/employee-detail-sheet";
+import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
+import { useGetMe } from "@/hooks/auth.hook";
 
 const STATUS_TABS: { value: EmployeeStatus | ""; label: string }[] = [
 	{ value: "", label: "All" },
@@ -95,6 +98,11 @@ export function EmployeesView() {
 	const [pendingTerminate, setPendingTerminate] = useState<Employee | null>(
 		null,
 	);
+	const [statusTarget, setStatusTarget] = useState<Employee | null>(null);
+	const [statusOpen, setStatusOpen] = useState(false);
+
+	const { data: me } = useGetMe();
+	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
 
 	const search = get("search");
 	const status = get("status");
@@ -128,6 +136,11 @@ export function EmployeesView() {
 	function openDetails(employee: Employee) {
 		setSelected(employee);
 		setSheetOpen(true);
+	}
+
+	function openStatus(employee: Employee) {
+		setStatusTarget(employee);
+		setStatusOpen(true);
 	}
 
 	const columns: DataTableColumn<Employee>[] = [
@@ -223,7 +236,16 @@ export function EmployeesView() {
 								<Eye className="size-4" />
 								View profile
 							</DropdownMenuItem>
-							{row.status !== "TERMINATED" ? (
+							{can("employee.update") ? (
+								<DropdownMenuItem
+									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
+									onSelect={() => openStatus(row)}
+								>
+									<UserCog className="size-4" />
+									Change status
+								</DropdownMenuItem>
+							) : null}
+							{row.status !== "TERMINATED" && can("employee.delete") ? (
 								<>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem
@@ -420,6 +442,13 @@ export function EmployeesView() {
 				employee={selected}
 				open={sheetOpen}
 				onOpenChange={setSheetOpen}
+				onChangeStatus={can("employee.update") ? openStatus : undefined}
+			/>
+
+			<EmployeeStatusDialog
+				employee={statusTarget}
+				open={statusOpen}
+				onOpenChange={setStatusOpen}
 			/>
 
 			<Dialog

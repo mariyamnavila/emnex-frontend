@@ -9,6 +9,7 @@ import type {
 	Employee,
 	EmployeeAnalytics,
 	EmployeeDetail,
+	EmployeeStatus,
 } from "@/types/employee.type";
 
 export interface RoleOption {
@@ -99,6 +100,21 @@ export function useEmployeeAnalytics() {
 			const { data } = await api.get<EmployeeAnalytics>("/analytics/employees");
 			return data;
 		},
+	});
+}
+
+export function useUpdateEmployeeStatus() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, status }: { id: string; status: EmployeeStatus }) =>
+			api.patch<ApiEmployee>(`/employees/${id}`, { status }),
+		onSuccess: ({ data }) => {
+			toast.success(`${data.user.name} is now ${data.status.toLowerCase()}`);
+			void queryClient.invalidateQueries({ queryKey: ["employees"] });
+		},
+		onError: (error) =>
+			toast.error(errorMessage(error, "Failed to change status")),
 	});
 }
 

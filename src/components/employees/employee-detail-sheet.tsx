@@ -1,7 +1,8 @@
 "use client";
 
 import { formatDistanceToNowStrict } from "date-fns";
-import { ClipboardCheck, CreditCard, ListTodo, Wallet } from "lucide-react";
+import { ClipboardCheck, CreditCard, ListTodo, UserCog, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge, UserAvatar } from "@/components/shared";
 import { formatDate } from "@/lib/utils";
@@ -20,6 +21,8 @@ interface EmployeeDetailSheetProps {
 	employee: Employee | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	/** Omit to hide the button (no employee.update permission) */
+	onChangeStatus?: (employee: Employee) => void;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -49,12 +52,14 @@ function joinedLabel(joiningDate: string): string {
 }
 
 export function EmployeeDetailSheet({
-	employee,
+	employee: listRow,
 	open,
 	onOpenChange,
+	onChangeStatus,
 }: EmployeeDetailSheetProps) {
-	// The list row is shown instantly; the detail call adds activity counts
-	const { data: detail, isLoading } = useEmployee(employee?.id ?? "");
+	const { data: detail, isLoading } = useEmployee(listRow?.id ?? "");
+	// List row shows instantly; the fresh record replaces it (e.g. after a status change)
+	const employee = detail ?? listRow;
 
 	const pay = employee
 		? getPaySummary(employee.salaryType, employee.salary, employee.hourlyRate)
@@ -91,11 +96,23 @@ export function EmployeeDetailSheet({
 								<p className="truncate text-sm text-[#64748B] dark:text-[#94A3B8]">
 									{employee.jobTitle}
 								</p>
-								<div className="mt-2 flex items-center gap-2">
+								<div className="mt-2 flex flex-wrap items-center gap-2">
 									<StatusBadge status={employee.status} />
 									<span className="font-mono text-xs text-[#64748B] tabular-nums dark:text-[#94A3B8]">
 										{employee.employeeCode}
 									</span>
+									{onChangeStatus ? (
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={() => onChangeStatus(employee)}
+											className="ml-auto h-7 gap-1.5 border-[#E2E8F0] px-2.5 text-xs text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
+										>
+											<UserCog className="size-3.5" />
+											Change status
+										</Button>
+									) : null}
 								</div>
 							</div>
 						</div>
