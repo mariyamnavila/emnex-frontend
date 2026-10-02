@@ -1,1 +1,23 @@
-export { cn } from "cn"
+export { cn } from "cn";
+
+/**
+ * First letter of the first two words, uppercased — e.g. "Demo Admin" → "DA".
+ * Shared by every avatar fallback in the app.
+ */
+export function getInitials(name: string): string {
+	return name
+		.split(" ")
+		.map((part) => part.charAt(0))
+		.slice(0, 2)
+		.join("")
+		.toUpperCase();
+}
+
+/** "October 5, 2026" — shared date format for every table/sheet/detail view. */
+export function formatDate(value: string | Date): string {
+	return new Date(value).toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
+}

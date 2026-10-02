@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useGetMe, useLogout } from "@/hooks/auth.hook";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,13 +18,6 @@ export function UserMenu() {
   const { data: user } = useGetMe();
   const logout = useLogout();
 
-  const initials = user?.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -32,12 +25,7 @@ export function UserMenu() {
           variant="ghost"
           className="h-12 w-full justify-start gap-2 px-2"
         >
-          <Avatar className="size-8">
-            <AvatarImage src={user?.avatar ?? undefined} alt={user?.name} />
-            <AvatarFallback className="bg-[#EFF6FF] text-xs font-semibold text-[#2563EB] dark:bg-[#1E293B] dark:text-[#60A5FA]">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar name={user?.name ?? ""} src={user?.avatar} />
           <div className="flex flex-col items-start overflow-hidden">
             <span className="truncate text-sm font-medium text-[#0F172A] dark:text-white">
               {user?.name}
