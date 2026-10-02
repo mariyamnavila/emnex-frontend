@@ -6,7 +6,6 @@ import { api, ApiError } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type {
 	ApiEmployee,
-	Department,
 	Employee,
 	EmployeeAnalytics,
 	EmployeeDetail,
@@ -115,17 +114,6 @@ export function useTerminateEmployee() {
 		},
 		onError: (error) =>
 			toast.error(errorMessage(error, "Failed to terminate employee")),
-	});
-}
-
-export function useDepartments() {
-	return useQuery({
-		queryKey: ["departments"],
-		queryFn: async () => {
-			const { data } = await api.get<Department[]>("/departments");
-			return data;
-		},
-		staleTime: 5 * 60 * 1000,
 	});
 }
 

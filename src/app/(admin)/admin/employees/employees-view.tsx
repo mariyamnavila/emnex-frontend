@@ -47,11 +47,11 @@ import {
 } from "@/components/shared";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import {
-	useDepartments,
 	useEmployeeAnalytics,
 	useEmployees,
 	useTerminateEmployee,
 } from "@/hooks/employee.hook";
+import { useDepartments } from "@/hooks/department.hook";
 import { formatCurrency } from "@/lib/pay";
 import { cn, formatDate } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";

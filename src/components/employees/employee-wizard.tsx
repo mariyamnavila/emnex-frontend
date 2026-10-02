@@ -42,9 +42,9 @@ import {
 import {
 	type CreateEmployeeResult,
 	useCreateEmployee,
-	useDepartments,
 	useRoles,
 } from "@/hooks/employee.hook";
+import { useDepartments } from "@/hooks/department.hook";
 import {
 	ESTIMATED_HOURS_PER_MONTH,
 	formatCurrency,
