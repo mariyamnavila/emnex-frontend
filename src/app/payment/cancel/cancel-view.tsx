@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Loader2, RotateCcw, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useGetMe } from "@/hooks/auth.hook";
-import { usePendingCheckout, useStartCheckout } from "@/hooks/payment.hook";
+import { usePendingCheckout, useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { formatCurrency } from "@/lib/pay";
 import { PaymentCard, payrollHref } from "../payment-card";
 
@@ -40,7 +40,10 @@ export function CancelView() {
 					<Button
 						className="w-full bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8] sm:flex-1"
 						disabled={isRedirecting}
-						onClick={() => startCheckout.mutate(pending)}
+						onClick={() => {
+							warmUpStripe();
+							startCheckout.mutate(pending);
+						}}
 					>
 						{isRedirecting ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
 						{isRedirecting ? "Opening Stripe..." : "Try again"}

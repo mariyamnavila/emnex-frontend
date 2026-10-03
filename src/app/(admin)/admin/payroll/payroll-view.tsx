@@ -50,7 +50,7 @@ import { usePayrollAnalytics } from "@/hooks/analytics.hook";
 import { useGetMe } from "@/hooks/auth.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useApprovePayroll, usePayrolls, useRejectPayroll } from "@/hooks/payroll.hook";
-import { useStartCheckout } from "@/hooks/payment.hook";
+import { useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
 import { formatDay } from "@/lib/utils";
@@ -247,7 +247,10 @@ export function PayrollView() {
 							{canPay ? (
 								<DropdownMenuItem
 									className="gap-2 text-[#2563EB] focus:bg-[#EFF6FF] focus:text-[#2563EB]"
-									onSelect={() => setPending({ payroll: row, action: "pay" })}
+									onSelect={() => {
+										warmUpStripe();
+										setPending({ payroll: row, action: "pay" });
+									}}
 								>
 									<CreditCard className="size-4" />
 									{row.payment ? "Retry payment" : "Pay with Stripe"}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { preconnect } from "react-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
@@ -34,6 +35,22 @@ export function clearPendingCheckout() {
 		sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
 	} catch {
 		// storage unavailable (private mode) — nothing to clear
+	}
+}
+
+const STRIPE_HOSTS = [
+	"https://checkout.stripe.com",
+	"https://js.stripe.com",
+	"https://api.stripe.com",
+	"https://merchant-ui-api.stripe.com",
+	"https://r.stripe.com",
+];
+
+// Opens DNS + TLS connections to Stripe early, so Checkout loads faster after the redirect
+export function warmUpStripe() {
+	for (const host of STRIPE_HOSTS) {
+		preconnect(host);
+		preconnect(host, { crossOrigin: "anonymous" });
 	}
 }
 
