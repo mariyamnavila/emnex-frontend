@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-type Tone = "success" | "warning" | "destructive" | "info" | "muted";
+export type Tone = "success" | "warning" | "destructive" | "info" | "muted";
 
 const STATUS_TONES: Record<string, Tone> = {
   // Employee / user status
@@ -81,13 +81,16 @@ export function formatStatus(status: string): string {
 
 interface StatusBadgeProps {
   status: string;
+  /** Override the color picked from the status */
+  tone?: Tone;
+  /** Override the text (defaults to the formatted status) */
+  label?: string;
   showDot?: boolean;
   className?: string;
 }
 
-export function StatusBadge({ status, showDot = true, className }: StatusBadgeProps) {
-  const tone = statusTone(status);
-  const config = TONE_CONFIG[tone];
+export function StatusBadge({ status, tone, label, showDot = true, className }: StatusBadgeProps) {
+  const config = TONE_CONFIG[tone ?? statusTone(status)];
 
   return (
     <span
@@ -98,7 +101,7 @@ export function StatusBadge({ status, showDot = true, className }: StatusBadgePr
       )}
     >
       {showDot && <span className={cn("size-1.5 rounded-full shrink-0", config.dot)} />}
-      <span>{formatStatus(status)}</span>
+      <span>{label ?? formatStatus(status)}</span>
     </span>
   );
 }

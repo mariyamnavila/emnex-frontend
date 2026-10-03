@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
+import { formatRoleName } from "@/lib/utils";
 import type { Permission, Role, RoleDetail } from "@/types/role.type";
 import type { RoleFormValues } from "@/validation/role.validation";
 
@@ -58,7 +59,7 @@ export function useCreateRole() {
 				description: values.description || undefined,
 			}),
 		onSuccess: ({ data }) => {
-			toast.success(`${data.name} role created`);
+			toast.success(`${formatRoleName(data.name)} role created`);
 			invalidate();
 		},
 		onError: (error) => toast.error(errorMessage(error, "Failed to create role")),
@@ -72,7 +73,7 @@ export function useUpdateRole() {
 		mutationFn: ({ id, values }: { id: string; values: RoleFormValues }) =>
 			api.patch<Role>(`/roles/${id}`, values),
 		onSuccess: ({ data }) => {
-			toast.success(`${data.name} updated`);
+			toast.success(`${formatRoleName(data.name)} updated`);
 			invalidate();
 		},
 		onError: (error) => toast.error(errorMessage(error, "Failed to update role")),
@@ -100,7 +101,7 @@ export function useAssignPermissions() {
 		mutationFn: ({ roleId, permissionIds }: { roleId: string; permissionIds: string[] }) =>
 			api.post<RoleDetail>(`/roles/${roleId}/permissions`, { permissionIds }),
 		onSuccess: ({ data }) => {
-			toast.success(`Permissions saved for ${data.name}`);
+			toast.success(`Permissions saved for ${formatRoleName(data.name)}`);
 			void queryClient.invalidateQueries({ queryKey: ["roles"] });
 		},
 		onError: (error) => toast.error(errorMessage(error, "Failed to save permissions")),

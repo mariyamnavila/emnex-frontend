@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
 	AdminDashboardStats,
-	AuditLog,
 	PayrollAnalytics,
 	ProjectAnalytics,
 } from "@/types/analytics.type";
+import type { AuditLog } from "@/types/audit-log.type";
 
 export function useAdminDashboard() {
 	return useQuery({

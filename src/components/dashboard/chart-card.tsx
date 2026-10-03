@@ -11,6 +11,8 @@ interface ChartCardProps {
 	isEmpty?: boolean;
 	emptyText?: string;
 	className?: string;
+	/** Shown at the right of the header, e.g. a "View all" link */
+	action?: ReactNode;
 	children: ReactNode;
 }
 
@@ -22,6 +24,7 @@ export function ChartCard({
 	isEmpty = false,
 	emptyText = "No data yet.",
 	className,
+	action,
 	children,
 }: ChartCardProps) {
 	let body = children;
@@ -49,13 +52,16 @@ export function ChartCard({
 				className,
 			)}
 		>
-			<header className="mb-4">
-				<h2 className="text-sm font-semibold text-[#0F172A] dark:text-white">{title}</h2>
-				{description ? (
-					<p className="mt-0.5 text-xs text-[#64748B] dark:text-[#94A3B8]">
-						{description}
-					</p>
-				) : null}
+			<header className="mb-4 flex items-start justify-between gap-3">
+				<div className="min-w-0">
+					<h2 className="text-sm font-semibold text-[#0F172A] dark:text-white">{title}</h2>
+					{description ? (
+						<p className="mt-0.5 text-xs text-[#64748B] dark:text-[#94A3B8]">
+							{description}
+						</p>
+					) : null}
+				</div>
+				{action ? <div className="shrink-0">{action}</div> : null}
 			</header>
 			<div className="flex-1">{body}</div>
 		</section>

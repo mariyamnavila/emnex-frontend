@@ -1,12 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { formatDistanceToNowStrict } from "date-fns";
+import { describeAction, entityLabel } from "@/lib/audit";
 import { UserAvatar } from "@/components/shared";
 import { useRecentActivity } from "@/hooks/analytics.hook";
 import { ChartCard } from "./chart-card";
-
-// "GENERATE_PAYROLL" → "generate payroll"
-const describeAction = (action: string) => action.toLowerCase().replace(/_/g, " ");
 
 export function RecentActivity({ className }: { className?: string }) {
 	const { data: logs = [], isLoading, isError } = useRecentActivity();
@@ -20,6 +19,14 @@ export function RecentActivity({ className }: { className?: string }) {
 			isEmpty={logs.length === 0}
 			emptyText="No activity recorded yet."
 			className={className}
+			action={
+				<Link
+					href="/admin/audit-logs"
+					className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]"
+				>
+					View all
+				</Link>
+			}
 		>
 			<ul className="divide-y divide-[#F1F5F9] dark:divide-[#1E293B]">
 				{logs.map((log) => (
@@ -30,10 +37,10 @@ export function RecentActivity({ className }: { className?: string }) {
 								<span className="font-medium text-[#0F172A] dark:text-white">
 									{log.user.name}
 								</span>{" "}
-								{describeAction(log.action)}
+								{describeAction(log.action).label.toLowerCase()}
 							</p>
 							<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
-								{log.entity} ·{" "}
+								{entityLabel(log.entity)} ·{" "}
 								<time dateTime={log.createdAt}>
 									{formatDistanceToNowStrict(new Date(log.createdAt), {
 										addSuffix: true,
