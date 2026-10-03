@@ -19,7 +19,7 @@ const shouldRetry = (failureCount: number, error: Error) => {
 
 const createQueryClient = () => {
   // A 401 here means the token refresh in lib/api.ts also failed → session is over.
-  // Re-checking /auth/me makes AuthGuard/RoleGuard send the user to /login.
+  // Re-checking /auth/me makes RoleGuard send the user to /login.
   const onError = (error: Error, queryKey?: readonly unknown[]) => {
     const isAuthQuery = queryKey?.[0] === "auth";
     if (error instanceof ApiError && error.statusCode === 401 && !isAuthQuery) {

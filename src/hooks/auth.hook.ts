@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
+import { useSession } from "@/providers/session.provider";
 import type {
   LoginFormValues,
   RegisterFormValues,
@@ -106,6 +107,22 @@ export function useGetMe() {
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
+}
+
+// /auth/me once loaded, the server-decoded JWT until then (instant first paint)
+export function useCurrentUser() {
+  const session = useSession();
+  const { data: me } = useGetMe();
+
+  return {
+    name: me?.name ?? session?.name ?? "",
+    email: me?.email ?? session?.email ?? "",
+    role: me?.role.name ?? session?.role ?? "",
+    avatar: me?.avatar ?? null,
+    organizationName: me?.organization.name ?? null,
+    /** null until /auth/me answers */
+    permissions: me?.permissions ?? null,
+  };
 }
 
 export function useLogout() {

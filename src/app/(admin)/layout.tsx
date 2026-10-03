@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import RoleGuard from "@/components/auth/role-guard";
 import DashboardShell from "@/components/dashboard/dashboard-shell";
+import { getSessionUser, getSidebarOpen } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: { template: "%s | Admin | EmNex", default: "Admin | EmNex" },
 };
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [session, sidebarOpen] = await Promise.all([getSessionUser(), getSidebarOpen()]);
+
   return (
-    <RoleGuard roles={["ADMIN"]}>
-      <DashboardShell title="Admin">{children}</DashboardShell>
-    </RoleGuard>
+    <DashboardShell session={session} sidebarOpen={sidebarOpen} title="Admin" roles={["ADMIN"]}>
+      {children}
+    </DashboardShell>
   );
 }
