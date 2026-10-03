@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronsUpDown, Globe, LogOut, User } from "lucide-react";
 import { getHomePath, useCurrentUser, useLogout } from "@/hooks/auth.hook";
 import { UserAvatar } from "@/components/shared";
+import { formatRoleName } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +19,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-
-// "HR_MANAGER" → "HR Manager"
-const roleLabel = (role: string) =>
-  role
-    .split("_")
-    .map((word) => (word.length <= 2 ? word : word.charAt(0) + word.slice(1).toLowerCase()))
-    .join(" ");
 
 export function UserMenu() {
   const { isMobile } = useSidebar();
@@ -47,7 +41,7 @@ export function UserMenu() {
                 <span className="truncate text-[13px] font-semibold text-white">{user.name}</span>
                 {user.role ? (
                   <span className="w-fit rounded-full bg-white/8 px-1.5 py-px text-[10px] font-semibold tracking-wider text-[#94A3B8] uppercase">
-                    {roleLabel(user.role)}
+                    {formatRoleName(user.role)}
                   </span>
                 ) : null}
               </span>

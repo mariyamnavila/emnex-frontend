@@ -31,3 +31,12 @@ export function formatDate(value: string | Date): string {
 		day: "numeric",
 	});
 }
+
+/** "HR_MANAGER" → "HR Manager"; custom role names (not ALL_CAPS) are kept as typed */
+export function formatRoleName(name: string): string {
+	if (name !== name.toUpperCase()) return name;
+	return name
+		.split("_")
+		.map((word) => (word.length <= 2 ? word : word.charAt(0) + word.slice(1).toLowerCase()))
+		.join(" ");
+}

@@ -12,12 +12,6 @@ import type {
 	EmployeeStatus,
 } from "@/types/employee.type";
 
-export interface RoleOption {
-	id: string;
-	name: string;
-	description: string | null;
-}
-
 export interface CreateEmployeePayload {
 	name: string;
 	email: string;
@@ -154,17 +148,6 @@ export function useTerminateEmployee() {
 		},
 		onError: (error) =>
 			toast.error(errorMessage(error, "Failed to terminate employee")),
-	});
-}
-
-export function useRoles() {
-	return useQuery({
-		queryKey: ["roles"],
-		queryFn: async () => {
-			const { data } = await api.get<RoleOption[]>("/roles");
-			return data;
-		},
-		staleTime: 5 * 60 * 1000,
 	});
 }
 

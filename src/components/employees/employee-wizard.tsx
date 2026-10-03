@@ -42,8 +42,8 @@ import {
 import {
 	type CreateEmployeeResult,
 	useCreateEmployee,
-	useRoles,
 } from "@/hooks/employee.hook";
+import { useRoles } from "@/hooks/role.hook";
 import { useDepartments } from "@/hooks/department.hook";
 import {
 	ESTIMATED_HOURS_PER_MONTH,
@@ -51,7 +51,7 @@ import {
 	getPaySummary,
 	toAmount,
 } from "@/lib/pay";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatRoleName } from "@/lib/utils";
 
 const STEPS = [
 	{ number: 1, label: "Personal", hint: "Name & login email" },
@@ -75,17 +75,6 @@ const NO_DEPARTMENT = "__none__";
 
 const inputClass =
 	"h-10 border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";
-
-// "HR_MANAGER" → "HR Manager"; custom role names pass through readable
-function formatRoleName(name: string): string {
-	if (name !== name.toUpperCase()) return name;
-	return name
-		.split("_")
-		.map((word) =>
-			word.length <= 2 ? word : word.charAt(0) + word.slice(1).toLowerCase(),
-		)
-		.join(" ");
-}
 
 function ReviewRow({ label, value }: { label: string; value: React.ReactNode }) {
 	return (
