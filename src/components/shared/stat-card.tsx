@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -10,6 +11,7 @@ interface StatCardProps {
     value: string;
     isPositive?: boolean;
   };
+  isLoading?: boolean;
   className?: string;
 }
 
@@ -19,12 +21,13 @@ export function StatCard({
   icon: Icon,
   hint,
   trend,
+  isLoading = false,
   className,
 }: StatCardProps) {
   return (
     <div
       className={cn(
-        "flex flex-col justify-between rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]",
+        "flex flex-col rounded-lg border border-[#E2E8F0] bg-white p-5 shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]",
         className
       )}
     >
@@ -37,29 +40,36 @@ export function StatCard({
         </div>
       </div>
 
-      <div className="mt-4 space-y-1.5">
-        <p className="text-2xl font-bold tracking-tight text-[#0F172A] tabular-nums sm:text-3xl dark:text-white">
-          {value}
-        </p>
+      {isLoading ? (
+        <div className="mt-4 space-y-2.5" aria-busy="true" aria-label={`Loading ${title}`}>
+          <Skeleton className="h-8 w-24 bg-[#F1F5F9] dark:bg-[#1E293B]" />
+          <Skeleton className="h-3 w-32 bg-[#F1F5F9] dark:bg-[#1E293B]" />
+        </div>
+      ) : (
+        <div className="mt-4 space-y-1.5">
+          <p className="text-2xl font-bold tracking-tight text-[#0F172A] tabular-nums sm:text-3xl dark:text-white">
+            {value}
+          </p>
 
-        {(hint || trend) && (
-          <div className="flex items-center gap-2 text-xs">
-            {trend && (
-              <span
-                className={cn(
-                  "font-semibold",
-                  trend.isPositive ? "text-[#16A34A]" : "text-[#DC2626]"
-                )}
-              >
-                {trend.value}
-              </span>
-            )}
-            {hint && (
-              <span className="text-[#64748B] dark:text-[#94A3B8]">{hint}</span>
-            )}
-          </div>
-        )}
-      </div>
+          {(hint || trend) && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+              {trend && (
+                <span
+                  className={cn(
+                    "font-semibold",
+                    trend.isPositive ? "text-[#16A34A]" : "text-[#DC2626]"
+                  )}
+                >
+                  {trend.value}
+                </span>
+              )}
+              {hint && (
+                <span className="text-[#64748B] dark:text-[#94A3B8]">{hint}</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

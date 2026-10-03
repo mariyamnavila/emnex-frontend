@@ -117,24 +117,28 @@ export function AdminOverview() {
 			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 				<StatCard
 					title="Active employees"
+					isLoading={dashboard.isLoading}
 					value={statValue(stats?.activeEmployees)}
 					icon={Users}
 					hint={stats ? `of ${stats.totalEmployees} total` : undefined}
 				/>
 				<StatCard
 					title="Active projects"
+					isLoading={dashboard.isLoading}
 					value={statValue(stats?.activeProjects)}
 					icon={FolderKanban}
 					hint="Currently in progress"
 				/>
 				<StatCard
 					title="Pending reviews"
+					isLoading={dashboard.isLoading}
 					value={statValue(stats?.pendingSubmissions)}
 					icon={ClipboardCheck}
 					hint="Work submissions to approve"
 				/>
 				<StatCard
 					title="Total payroll"
+					isLoading={dashboard.isLoading}
 					value={statValue(stats?.totalPayroll, formatCurrency)}
 					icon={Wallet}
 					hint={stats ? `${stats.pendingPayroll} awaiting approval` : undefined}

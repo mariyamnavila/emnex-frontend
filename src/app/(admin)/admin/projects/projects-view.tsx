@@ -104,7 +104,6 @@ export function ProjectsView() {
 
 	const countOf = (value: ProjectStatus) =>
 		analytics?.byStatus.find((item) => item.status === value)?._count ?? 0;
-	const statValue = (value: number) => (analyticsLoading ? "—" : value);
 
 	function openCreate() {
 		setEditing(null);
@@ -260,25 +259,29 @@ export function ProjectsView() {
 			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 				<StatCard
 					title="Total projects"
-					value={statValue(analytics?.totalProjects ?? 0)}
+					isLoading={analyticsLoading}
+					value={analytics?.totalProjects ?? 0}
 					icon={FolderKanban}
 					hint={analytics ? `~${analytics.avgTasksPerProject} tasks per project` : undefined}
 				/>
 				<StatCard
 					title="Active"
-					value={statValue(countOf("ACTIVE"))}
+					isLoading={analyticsLoading}
+					value={countOf("ACTIVE")}
 					icon={PlayCircle}
 					hint={`${countOf("PLANNED")} planned`}
 				/>
 				<StatCard
 					title="On hold"
-					value={statValue(countOf("ON_HOLD"))}
+					isLoading={analyticsLoading}
+					value={countOf("ON_HOLD")}
 					icon={PauseCircle}
 					hint="Paused for now"
 				/>
 				<StatCard
 					title="Completed"
-					value={statValue(countOf("COMPLETED"))}
+					isLoading={analyticsLoading}
+					value={countOf("COMPLETED")}
 					icon={CheckCircle2}
 					hint={`${countOf("CANCELLED")} cancelled`}
 				/>

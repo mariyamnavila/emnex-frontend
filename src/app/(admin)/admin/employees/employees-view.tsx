@@ -131,7 +131,6 @@ export function EmployeesView() {
 	const active = countOf("ACTIVE");
 	const onHold = countOf("INACTIVE") + countOf("SUSPENDED");
 	const terminated = countOf("TERMINATED");
-	const statValue = (value: number) => (analyticsLoading ? "—" : value);
 
 	function openDetails(employee: Employee) {
 		setSelected(employee);
@@ -286,13 +285,15 @@ export function EmployeesView() {
 			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
 				<StatCard
 					title="Total employees"
-					value={statValue(total)}
+					isLoading={analyticsLoading}
+					value={total}
 					icon={Users}
 					hint={`Across ${departments.length} department${departments.length === 1 ? "" : "s"}`}
 				/>
 				<StatCard
 					title="Active"
-					value={statValue(active)}
+					isLoading={analyticsLoading}
+					value={active}
 					icon={UserCheck}
 					hint={
 						total > 0
@@ -302,13 +303,15 @@ export function EmployeesView() {
 				/>
 				<StatCard
 					title="Inactive & suspended"
-					value={statValue(onHold)}
+					isLoading={analyticsLoading}
+					value={onHold}
 					icon={UserMinus}
 					hint="Can't be assigned new tasks"
 				/>
 				<StatCard
 					title="Terminated"
-					value={statValue(terminated)}
+					isLoading={analyticsLoading}
+					value={terminated}
 					icon={UserX}
 					hint="Access revoked, records kept"
 				/>

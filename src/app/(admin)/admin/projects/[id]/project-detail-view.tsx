@@ -317,6 +317,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 					title="Budget"
 					value={project.budget !== null ? formatCurrency(project.budget) : "Not set"}
 					icon={CircleDollarSign}
+					hint={project.budget !== null ? "Allocated for this project" : "Add one with Edit"}
 				/>
 				<StatCard
 					title="Timeline"
