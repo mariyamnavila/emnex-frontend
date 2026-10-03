@@ -15,7 +15,7 @@ function EmployeesSkeleton() {
 				<Skeleton className={`h-8 w-40 ${bone}`} />
 				<Skeleton className={`h-4 w-72 ${bone}`} />
 			</div>
-			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				{Array.from({ length: 4 }).map((_, i) => (
 					<Skeleton key={`card-${i}`} className={`h-32 rounded-lg ${bone}`} />
 				))}

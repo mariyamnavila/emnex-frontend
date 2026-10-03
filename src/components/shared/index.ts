@@ -1,6 +1,7 @@
 export { ApexChart } from "./apex-chart";
 export { DataTable, type DataTableColumn } from "./data-table";
 export { EmptyState } from "./empty-state";
+export { FilterTabs, type FilterTab } from "./filter-tabs";
 export { PageHeader } from "./page-header";
 export { SearchInput } from "./search-input";
 export { StatCard } from "./stat-card";

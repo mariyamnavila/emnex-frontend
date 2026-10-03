@@ -7,7 +7,7 @@ export default function EmployeeOverviewPage() {
         title="My Dashboard"
         description="My tasks, submissions and payroll at a glance"
       />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {["Active Tasks", "Pending Submissions", "Payroll Status", "Payments"].map(
           (label) => (
             <div

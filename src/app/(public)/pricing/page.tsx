@@ -188,6 +188,9 @@ export default function PricingPage() {
             <p className="mx-auto mt-2 max-w-xl text-sm text-[#64748B] dark:text-[#94A3B8]">
               Detailed breakdown of functionality, quotas, and governance across all tiers.
             </p>
+            <p className="mt-3 text-xs font-medium text-[#2563EB] sm:hidden">
+              Swipe the tables sideways to compare all plans →
+            </p>
           </div>
 
           <div className="mt-12 space-y-10">
@@ -201,7 +204,16 @@ export default function PricingPage() {
                     {category.category}
                   </h3>
                 </div>
-                <table className="w-full text-left text-xs">
+                <div className="overflow-x-auto">
+                <table className="w-full min-w-xl text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-[#E2E8F0] text-[11px] font-semibold tracking-wider text-[#64748B] uppercase dark:border-[#1E293B] dark:text-[#94A3B8]">
+                      <th scope="col" className="px-5 py-2.5 font-semibold">Feature</th>
+                      <th scope="col" className="px-5 py-2.5 font-semibold">Starter</th>
+                      <th scope="col" className="px-5 py-2.5 font-semibold text-[#2563EB]">Professional</th>
+                      <th scope="col" className="px-5 py-2.5 font-semibold">Enterprise</th>
+                    </tr>
+                  </thead>
                   <tbody className="divide-y divide-[#E2E8F0] dark:divide-[#1E293B]">
                     {category.rows.map((row) => (
                       <tr key={row.name} className="hover:bg-[#F8FAFC] dark:hover:bg-[#1E293B]/40">
@@ -221,6 +233,7 @@ export default function PricingPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             ))}
           </div>

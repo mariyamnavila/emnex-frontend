@@ -72,7 +72,7 @@ function Breadcrumbs({ section }: { section: string }) {
   if (match) {
     const isDeeper = pathname !== match.url;
     crumbs.push({ label: match.title, href: isDeeper ? match.url : undefined });
-    if (isDeeper) crumbs.push({ label: "Details" });
+    if (isDeeper) crumbs.push({ label: pathname.endsWith("/new") ? "New" : "Details" });
   }
 
   return (

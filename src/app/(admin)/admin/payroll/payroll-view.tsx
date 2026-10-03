@@ -36,6 +36,7 @@ import {
 	DataTable,
 	type DataTableColumn,
 	EmptyState,
+	FilterTabs,
 	formatStatus,
 	PageHeader,
 	StatCard,
@@ -50,7 +51,7 @@ import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useApprovePayroll, usePayrolls, useRejectPayroll } from "@/hooks/payroll.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
-import { cn, formatDay } from "@/lib/utils";
+import { formatDay } from "@/lib/utils";
 import type { Payroll, PayrollStatus } from "@/types/payroll.type";
 
 const STATUS_TABS: { value: PayrollStatus | ""; label: string }[] = [
@@ -114,7 +115,7 @@ export function PayrollView() {
 			key: "employee",
 			header: "Employee",
 			cell: (row) => (
-				<div className="flex min-w-44 items-center gap-3">
+				<div className="flex items-center gap-3 @lg:min-w-44">
 					<UserAvatar name={row.employee.user.name} src={row.employee.user.avatar} />
 					<div className="min-w-0">
 						<p className="truncate font-medium text-[#0F172A] dark:text-white">
@@ -123,6 +124,9 @@ export function PayrollView() {
 						<p className="truncate font-mono text-xs text-[#64748B] dark:text-[#94A3B8]">
 							{row.employee.employeeCode}
 						</p>
+						<div className="mt-1.5 @lg:hidden">
+							<StatusBadge status={row.status} />
+						</div>
 					</div>
 				</div>
 			),
@@ -130,22 +134,22 @@ export function PayrollView() {
 		{
 			key: "period",
 			header: "Period",
-			headerClassName: "hidden md:table-cell",
-			className: "hidden md:table-cell whitespace-nowrap tabular-nums",
+			headerClassName: "hidden @2xl:table-cell",
+			className: "hidden @2xl:table-cell whitespace-nowrap tabular-nums",
 			cell: (row) => `${formatDay(row.periodStart)} – ${formatDay(row.periodEnd)}`,
 		},
 		{
 			key: "gross",
 			header: "Gross",
-			headerClassName: "hidden lg:table-cell text-right",
-			className: "hidden lg:table-cell text-right tabular-nums",
+			headerClassName: "hidden @4xl:table-cell text-right",
+			className: "hidden @4xl:table-cell text-right tabular-nums",
 			cell: (row) => formatCurrency(row.grossAmount),
 		},
 		{
 			key: "deductions",
 			header: "Deductions",
-			headerClassName: "hidden lg:table-cell text-right",
-			className: "hidden lg:table-cell text-right tabular-nums text-[#64748B] dark:text-[#94A3B8]",
+			headerClassName: "hidden @4xl:table-cell text-right",
+			className: "hidden @4xl:table-cell text-right tabular-nums text-[#64748B] dark:text-[#94A3B8]",
 			cell: (row) => (row.deductions > 0 ? `− ${formatCurrency(row.deductions)}` : "—"),
 		},
 		{
@@ -162,6 +166,8 @@ export function PayrollView() {
 		{
 			key: "status",
 			header: "Status",
+			headerClassName: "hidden @lg:table-cell",
+			className: "hidden @lg:table-cell",
 			cell: (row) => (
 				<div>
 					<StatusBadge status={row.status} />
@@ -241,7 +247,7 @@ export function PayrollView() {
 				}
 			/>
 
-			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				<StatCard
 					title="Total net payroll"
 					isLoading={analyticsLoading}
@@ -272,35 +278,14 @@ export function PayrollView() {
 				/>
 			</div>
 
-			<section className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
-				<div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 lg:flex-row lg:items-center lg:justify-between dark:border-[#1E293B]">
-					<div className="-mx-1 overflow-x-auto px-1">
-						<div
-							role="group"
-							aria-label="Filter by status"
-							className="inline-flex rounded-md border border-[#E2E8F0] bg-[#F8FAFC] p-0.5 dark:border-[#1E293B] dark:bg-[#0B1120]"
-						>
-							{STATUS_TABS.map((tab) => {
-								const isActive = status === tab.value;
-								return (
-									<button
-										key={tab.label}
-										type="button"
-										aria-pressed={isActive}
-										onClick={() => apply({ status: tab.value || null })}
-										className={cn(
-											"h-8 rounded px-3 text-xs font-medium whitespace-nowrap transition-colors",
-											isActive
-												? "bg-white text-[#0F172A] shadow-2xs dark:bg-[#1E293B] dark:text-white"
-												: "text-[#64748B] hover:text-[#0F172A] dark:text-[#94A3B8] dark:hover:text-white",
-										)}
-									>
-										{tab.label}
-									</button>
-								);
-							})}
-						</div>
-					</div>
+			<section className="@container overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
+				<div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 @2xl:flex-row @2xl:items-center @2xl:justify-between dark:border-[#1E293B]">
+					<FilterTabs
+						label="Filter by status"
+						tabs={STATUS_TABS}
+						value={status}
+						onChange={(value) => apply({ status: value || null })}
+					/>
 					<Select
 						value={employeeId || ALL_EMPLOYEES}
 						onValueChange={(value) =>

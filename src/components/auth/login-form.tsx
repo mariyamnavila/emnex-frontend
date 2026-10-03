@@ -226,7 +226,7 @@ export function LoginForm() {
             <span className="text-[11px] font-semibold tracking-wider text-[#64748B] uppercase dark:text-[#94A3B8]">
               1-Click Demo Logins
             </span>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {DEMO_ACCOUNTS.map((account) => {
                 const Icon = account.icon;
                 const isSelected = activeRole === account.role && login.isPending;

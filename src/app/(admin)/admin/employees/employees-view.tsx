@@ -39,6 +39,7 @@ import {
 	DataTable,
 	type DataTableColumn,
 	EmptyState,
+	FilterTabs,
 	PageHeader,
 	SearchInput,
 	StatCard,
@@ -54,7 +55,7 @@ import {
 } from "@/hooks/employee.hook";
 import { useDepartments } from "@/hooks/department.hook";
 import { formatCurrency } from "@/lib/pay";
-import { cn, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";
 import { EmployeeDetailSheet } from "@/components/employees/employee-detail-sheet";
 import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
@@ -147,7 +148,7 @@ export function EmployeesView() {
 			key: "employee",
 			header: "Employee",
 			cell: (row) => (
-				<div className="flex min-w-48 items-center gap-3">
+				<div className="flex items-center gap-3 @lg:min-w-48">
 					<UserAvatar name={row.user.name} src={row.user.avatar} />
 					<div className="min-w-0">
 						<p className="truncate font-medium text-[#0F172A] dark:text-white">
@@ -156,6 +157,11 @@ export function EmployeesView() {
 						<p className="truncate text-xs text-[#64748B] dark:text-[#94A3B8]">
 							{row.user.email}
 						</p>
+						{/* Phones: status + pay here instead of their own columns */}
+						<div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs @lg:hidden">
+							<StatusBadge status={row.status} />
+							<PayCell employee={row} />
+						</div>
 					</div>
 				</div>
 			),
@@ -163,8 +169,8 @@ export function EmployeesView() {
 		{
 			key: "position",
 			header: "Position",
-			headerClassName: "hidden md:table-cell",
-			className: "hidden md:table-cell",
+			headerClassName: "hidden @3xl:table-cell",
+			className: "hidden @3xl:table-cell",
 			cell: (row) => (
 				<div className="min-w-0">
 					<p className="truncate text-[#0F172A] dark:text-white">
@@ -179,8 +185,8 @@ export function EmployeesView() {
 		{
 			key: "code",
 			header: "Code",
-			headerClassName: "hidden lg:table-cell",
-			className: "hidden lg:table-cell",
+			headerClassName: "hidden @4xl:table-cell",
+			className: "hidden @4xl:table-cell",
 			cell: (row) => (
 				<span className="font-mono text-xs text-[#64748B] tabular-nums dark:text-[#94A3B8]">
 					{row.employeeCode}
@@ -190,20 +196,22 @@ export function EmployeesView() {
 		{
 			key: "pay",
 			header: "Pay",
-			headerClassName: "text-right",
-			className: "text-right",
+			headerClassName: "hidden @lg:table-cell text-right",
+			className: "hidden @lg:table-cell text-right",
 			cell: (row) => <PayCell employee={row} />,
 		},
 		{
 			key: "joined",
 			header: "Joined",
-			headerClassName: "hidden xl:table-cell",
-			className: "hidden xl:table-cell whitespace-nowrap tabular-nums",
+			headerClassName: "hidden @5xl:table-cell",
+			className: "hidden @5xl:table-cell whitespace-nowrap tabular-nums",
 			cell: (row) => formatDate(row.joiningDate),
 		},
 		{
 			key: "status",
 			header: "Status",
+			headerClassName: "hidden @lg:table-cell",
+			className: "hidden @lg:table-cell",
 			cell: (row) => <StatusBadge status={row.status} />,
 		},
 		{
@@ -282,7 +290,7 @@ export function EmployeesView() {
 			/>
 
 			{/* Headcount summary */}
-			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				<StatCard
 					title="Total employees"
 					isLoading={analyticsLoading}
@@ -318,36 +326,15 @@ export function EmployeesView() {
 			</div>
 
 			{/* Directory: toolbar + table + pagination in one card */}
-			<section className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
-				<div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 lg:flex-row lg:items-center lg:justify-between dark:border-[#1E293B]">
+			<section className="@container overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
+				<div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 @4xl:flex-row @4xl:items-center @4xl:justify-between dark:border-[#1E293B]">
 					{/* Status segmented control (scrolls sideways on small screens) */}
-					<div className="-mx-1 overflow-x-auto px-1">
-						<div
-							role="group"
-							aria-label="Filter by status"
-							className="inline-flex rounded-md border border-[#E2E8F0] bg-[#F8FAFC] p-0.5 dark:border-[#1E293B] dark:bg-[#0B1120]"
-						>
-							{STATUS_TABS.map((tab) => {
-								const isActive = status === tab.value;
-								return (
-									<button
-										key={tab.label}
-										type="button"
-										aria-pressed={isActive}
-										onClick={() => apply({ status: tab.value || null })}
-										className={cn(
-											"h-8 rounded px-3 text-xs font-medium whitespace-nowrap transition-colors",
-											isActive
-												? "bg-white text-[#0F172A] shadow-2xs dark:bg-[#1E293B] dark:text-white"
-												: "text-[#64748B] hover:text-[#0F172A] dark:text-[#94A3B8] dark:hover:text-white",
-										)}
-									>
-										{tab.label}
-									</button>
-								);
-							})}
-						</div>
-					</div>
+					<FilterTabs
+						label="Filter by status"
+						tabs={STATUS_TABS}
+						value={status}
+						onChange={(value) => apply({ status: value || null })}
+					/>
 
 					<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
 						<SearchInput placeholder="Search name, email, code..." />

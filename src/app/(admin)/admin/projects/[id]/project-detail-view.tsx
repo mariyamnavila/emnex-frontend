@@ -39,6 +39,7 @@ import {
 	DataTable,
 	type DataTableColumn,
 	EmptyState,
+	FilterTabs,
 	formatStatus,
 	StatCard,
 	StatusBadge,
@@ -53,7 +54,7 @@ import { useDeleteTask, useUpdateTaskStatus } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/pay";
-import { cn, formatDay } from "@/lib/utils";
+import { formatDay } from "@/lib/utils";
 import { type Task, TASK_TRANSITIONS, type TaskStatus } from "@/types/task.type";
 
 const STATUS_TABS: { value: TaskStatus | ""; label: string }[] = [
@@ -101,7 +102,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 			<div className="space-y-6">
 				<Skeleton className="h-5 w-24 bg-[#F1F5F9] dark:bg-[#1E293B]" />
 				<Skeleton className="h-16 w-full max-w-xl bg-[#F1F5F9] dark:bg-[#1E293B]" />
-				<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+				<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 					{Array.from({ length: 4 }).map((_, i) => (
 						<Skeleton key={`stat-${i}`} className="h-32 rounded-lg bg-[#F1F5F9] dark:bg-[#1E293B]" />
 					))}
@@ -146,19 +147,26 @@ export function ProjectDetailView({ id }: { id: string }) {
 			key: "task",
 			header: "Task",
 			cell: (row) => (
-				<div className="min-w-48 max-w-sm">
-					<p className="truncate font-medium text-[#0F172A] dark:text-white">{row.title}</p>
-					<p className="truncate text-xs text-[#64748B] dark:text-[#94A3B8]">
+				<div className="max-w-sm @lg:min-w-48">
+					<p className="font-medium text-[#0F172A] @lg:truncate dark:text-white">{row.title}</p>
+					<p className="hidden truncate text-xs text-[#64748B] @lg:block dark:text-[#94A3B8]">
 						{row.description || "No description"}
 					</p>
+					{/* Phones: status + assignee here instead of their own columns */}
+					<div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs @3xl:hidden">
+						<span className="@lg:hidden">
+							<StatusBadge status={row.status} />
+						</span>
+						<span className="text-[#64748B] dark:text-[#94A3B8]">{row.employee.user.name}</span>
+					</div>
 				</div>
 			),
 		},
 		{
 			key: "assignee",
 			header: "Assignee",
-			headerClassName: "hidden md:table-cell",
-			className: "hidden md:table-cell",
+			headerClassName: "hidden @3xl:table-cell",
+			className: "hidden @3xl:table-cell",
 			cell: (row) => (
 				<div className="flex items-center gap-2">
 					<UserAvatar name={row.employee.user.name} src={row.employee.user.avatar} size="sm" />
@@ -169,15 +177,15 @@ export function ProjectDetailView({ id }: { id: string }) {
 		{
 			key: "priority",
 			header: "Priority",
-			headerClassName: "hidden sm:table-cell",
-			className: "hidden sm:table-cell",
+			headerClassName: "hidden @xl:table-cell",
+			className: "hidden @xl:table-cell",
 			cell: (row) => <StatusBadge status={row.priority} showDot={false} />,
 		},
 		{
 			key: "due",
 			header: "Due",
-			headerClassName: "hidden lg:table-cell",
-			className: "hidden lg:table-cell whitespace-nowrap tabular-nums",
+			headerClassName: "hidden @4xl:table-cell",
+			className: "hidden @4xl:table-cell whitespace-nowrap tabular-nums",
 			cell: (row) =>
 				row.dueDate ? (
 					<span className={isTaskOverdue(row) ? "font-medium text-[#DC2626]" : undefined}>
@@ -190,6 +198,8 @@ export function ProjectDetailView({ id }: { id: string }) {
 		{
 			key: "status",
 			header: "Status",
+			headerClassName: "hidden @lg:table-cell",
+			className: "hidden @lg:table-cell",
 			cell: (row) => <StatusBadge status={row.status} />,
 		},
 		{
@@ -306,7 +316,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 				</div>
 			</div>
 
-			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				<StatCard
 					title="Progress"
 					value={`${progress}%`}
@@ -337,40 +347,20 @@ export function ProjectDetailView({ id }: { id: string }) {
 				/>
 			</div>
 
-			<section className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
+			<section className="@container overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
 				<div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 dark:border-[#1E293B]">
 					<h2 className="text-sm font-semibold text-[#0F172A] dark:text-white">
 						Tasks <span className="font-normal text-[#64748B] tabular-nums">({tasks.length})</span>
 					</h2>
-					<div className="-mx-1 overflow-x-auto px-1">
-						<div
-							role="group"
-							aria-label="Filter tasks by status"
-							className="inline-flex rounded-md border border-[#E2E8F0] bg-[#F8FAFC] p-0.5 dark:border-[#1E293B] dark:bg-[#0B1120]"
-						>
-							{STATUS_TABS.map((tab) => {
-								const isActive = statusFilter === tab.value;
-								const count = tab.value ? countOf(tab.value) : tasks.length;
-								return (
-									<button
-										key={tab.label}
-										type="button"
-										aria-pressed={isActive}
-										onClick={() => apply({ status: tab.value || null })}
-										className={cn(
-											"h-8 rounded px-3 text-xs font-medium whitespace-nowrap transition-colors",
-											isActive
-												? "bg-white text-[#0F172A] shadow-2xs dark:bg-[#1E293B] dark:text-white"
-												: "text-[#64748B] hover:text-[#0F172A] dark:text-[#94A3B8] dark:hover:text-white",
-										)}
-									>
-										{tab.label}
-										<span className="ml-1.5 text-[#94A3B8] tabular-nums">{count}</span>
-									</button>
-								);
-							})}
-						</div>
-					</div>
+					<FilterTabs
+						label="Filter tasks by status"
+						tabs={STATUS_TABS.map((tab) => ({
+							...tab,
+							count: tab.value ? countOf(tab.value) : tasks.length,
+						}))}
+						value={statusFilter}
+						onChange={(value) => apply({ status: value || null })}
+					/>
 				</div>
 
 				<DataTable

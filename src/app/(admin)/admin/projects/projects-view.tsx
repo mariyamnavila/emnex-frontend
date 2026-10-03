@@ -35,6 +35,7 @@ import {
 	DataTable,
 	type DataTableColumn,
 	EmptyState,
+	FilterTabs,
 	PageHeader,
 	SearchInput,
 	StatCard,
@@ -47,7 +48,7 @@ import { useGetMe } from "@/hooks/auth.hook";
 import { useDeleteProject, useProjects } from "@/hooks/project.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
-import { cn, formatDay } from "@/lib/utils";
+import { formatDay } from "@/lib/utils";
 import type { Project, ProjectStatus } from "@/types/project.type";
 
 const STATUS_TABS: { value: ProjectStatus | ""; label: string }[] = [
@@ -120,37 +121,48 @@ export function ProjectsView() {
 			key: "project",
 			header: "Project",
 			cell: (row) => (
-				<div className="min-w-48 max-w-sm">
+				<div className="max-w-sm @lg:min-w-48">
 					<Link
 						href={`/admin/projects/${row.id}`}
 						onClick={(event) => event.stopPropagation()}
-						className="block truncate font-medium text-[#0F172A] underline-offset-4 group-hover:text-[#2563EB] hover:underline dark:text-white dark:group-hover:text-[#60A5FA]"
+						className="block font-medium text-[#0F172A] underline-offset-4 group-hover:text-[#2563EB] hover:underline @lg:truncate dark:text-white dark:group-hover:text-[#60A5FA]"
 					>
 						{row.name}
 					</Link>
-					<p className="truncate text-xs text-[#64748B] dark:text-[#94A3B8]">
+					<p className="hidden truncate text-xs text-[#64748B] @lg:block dark:text-[#94A3B8]">
 						{row.description || "No description"}
 					</p>
+					{/* Phones: status + budget here instead of their own columns */}
+					<div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs @lg:hidden">
+						<StatusBadge status={row.status} />
+						{row.budget !== null ? (
+							<span className="font-medium text-[#334155] tabular-nums dark:text-[#CBD5E1]">
+								{formatCurrency(row.budget)}
+							</span>
+						) : null}
+					</div>
 				</div>
 			),
 		},
 		{
 			key: "status",
 			header: "Status",
+			headerClassName: "hidden @lg:table-cell",
+			className: "hidden @lg:table-cell",
 			cell: (row) => <StatusBadge status={row.status} />,
 		},
 		{
 			key: "timeline",
 			header: "Timeline",
-			headerClassName: "hidden md:table-cell",
-			className: "hidden md:table-cell",
+			headerClassName: "hidden @3xl:table-cell",
+			className: "hidden @3xl:table-cell",
 			cell: (row) => <Timeline project={row} />,
 		},
 		{
 			key: "budget",
 			header: "Budget",
-			headerClassName: "text-right",
-			className: "text-right tabular-nums whitespace-nowrap",
+			headerClassName: "hidden @lg:table-cell text-right",
+			className: "hidden @lg:table-cell text-right tabular-nums whitespace-nowrap",
 			cell: (row) =>
 				row.budget !== null ? (
 					<span className="font-medium text-[#0F172A] dark:text-white">
@@ -163,8 +175,8 @@ export function ProjectsView() {
 		{
 			key: "tasks",
 			header: "Tasks",
-			headerClassName: "hidden sm:table-cell text-right",
-			className: "hidden sm:table-cell text-right tabular-nums",
+			headerClassName: "hidden @xl:table-cell text-right",
+			className: "hidden @xl:table-cell text-right tabular-nums",
 			cell: (row) => row._count.tasks,
 		},
 		{
@@ -256,7 +268,7 @@ export function ProjectsView() {
 				}
 			/>
 
-			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				<StatCard
 					title="Total projects"
 					isLoading={analyticsLoading}
@@ -287,35 +299,14 @@ export function ProjectsView() {
 				/>
 			</div>
 
-			<section className="overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
-				<div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 lg:flex-row lg:items-center lg:justify-between dark:border-[#1E293B]">
-					<div className="-mx-1 overflow-x-auto px-1">
-						<div
-							role="group"
-							aria-label="Filter by status"
-							className="inline-flex rounded-md border border-[#E2E8F0] bg-[#F8FAFC] p-0.5 dark:border-[#1E293B] dark:bg-[#0B1120]"
-						>
-							{STATUS_TABS.map((tab) => {
-								const isActive = status === tab.value;
-								return (
-									<button
-										key={tab.label}
-										type="button"
-										aria-pressed={isActive}
-										onClick={() => apply({ status: tab.value || null })}
-										className={cn(
-											"h-8 rounded px-3 text-xs font-medium whitespace-nowrap transition-colors",
-											isActive
-												? "bg-white text-[#0F172A] shadow-2xs dark:bg-[#1E293B] dark:text-white"
-												: "text-[#64748B] hover:text-[#0F172A] dark:text-[#94A3B8] dark:hover:text-white",
-										)}
-									>
-										{tab.label}
-									</button>
-								);
-							})}
-						</div>
-					</div>
+			<section className="@container overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
+				<div className="flex flex-col gap-3 border-b border-[#E2E8F0] p-4 @3xl:flex-row @3xl:items-center @3xl:justify-between dark:border-[#1E293B]">
+					<FilterTabs
+						label="Filter by status"
+						tabs={STATUS_TABS}
+						value={status}
+						onChange={(value) => apply({ status: value || null })}
+					/>
 					<SearchInput placeholder="Search projects..." />
 				</div>
 

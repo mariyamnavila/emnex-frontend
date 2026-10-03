@@ -79,7 +79,7 @@ export function UserMenu() {
             <DropdownMenuItem asChild className="gap-2">
               <Link href="/">
                 <Globe className="size-4" />
-                Website
+                Home
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
