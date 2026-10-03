@@ -5,6 +5,7 @@ import {
 	BadgeCheck,
 	CheckCircle2,
 	Clock,
+	CreditCard,
 	MoreHorizontal,
 	Plus,
 	Wallet,
@@ -49,6 +50,7 @@ import { usePayrollAnalytics } from "@/hooks/analytics.hook";
 import { useGetMe } from "@/hooks/auth.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useApprovePayroll, usePayrolls, useRejectPayroll } from "@/hooks/payroll.hook";
+import { useStartCheckout } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
 import { formatDay } from "@/lib/utils";
@@ -66,7 +68,32 @@ const STATUS_TABS: { value: PayrollStatus | ""; label: string }[] = [
 const REVIEWABLE: PayrollStatus[] = ["DRAFT", "GENERATED"];
 const ALL_EMPLOYEES = "__all__";
 
-type PendingAction = { payroll: Payroll; action: "approve" | "reject" };
+type PendingAction = { payroll: Payroll; action: "approve" | "reject" | "pay" };
+
+const ACTION_COPY = {
+	approve: {
+		title: "Approve payroll?",
+		description: "Once approved, this payroll can be paid through Stripe.",
+		confirm: "Approve",
+		busy: "Approving...",
+		buttonClass: "bg-[#16A34A] text-white shadow-none hover:bg-[#15803D]",
+	},
+	reject: {
+		title: "Reject payroll?",
+		description: "The draft will be marked rejected and can't be paid. Generate a new one if needed.",
+		confirm: "Reject",
+		busy: "Rejecting...",
+		buttonClass: "",
+	},
+	pay: {
+		title: "Pay with Stripe?",
+		description:
+			"You'll be redirected to Stripe's secure checkout. Test mode: use card 4242 4242 4242 4242, any future date and any CVC.",
+		confirm: "Continue to Stripe",
+		busy: "Opening Stripe...",
+		buttonClass: "bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]",
+	},
+} as const;
 
 export function PayrollView() {
 	const { get, apply, page } = useUrlFilters();
@@ -82,6 +109,7 @@ export function PayrollView() {
 	const { data: employees = [] } = useEmployeeOptions();
 	const approve = useApprovePayroll();
 	const reject = useRejectPayroll();
+	const startCheckout = useStartCheckout();
 
 	const [generateOpen, setGenerateOpen] = useState(false);
 	const [pending, setPending] = useState<PendingAction | null>(null);
@@ -102,12 +130,22 @@ export function PayrollView() {
 	const approved = statusTotals(["APPROVED"]);
 	const paid = statusTotals(["PAID"]);
 
-	const isActing = approve.isPending || reject.isPending;
+	const isActing =
+		approve.isPending || reject.isPending || startCheckout.isPending || startCheckout.isSuccess;
 
 	function confirmPending() {
 		if (!pending) return;
-		const mutation = pending.action === "approve" ? approve : reject;
-		mutation.mutate(pending.payroll.id, { onSettled: () => setPending(null) });
+		const { payroll, action } = pending;
+		if (action === "pay") {
+			// The page navigates away on success, so only close the dialog on failure
+			startCheckout.mutate(
+				{ payrollId: payroll.id, employeeName: payroll.employee.user.name, netAmount: payroll.netAmount },
+				{ onError: () => setPending(null) },
+			);
+			return;
+		}
+		const mutation = action === "approve" ? approve : reject;
+		mutation.mutate(payroll.id, { onSettled: () => setPending(null) });
 	}
 
 	const columns: DataTableColumn<Payroll>[] = [
@@ -187,7 +225,9 @@ export function PayrollView() {
 			cell: (row) => {
 				const canApprove = can("payroll.approve") && REVIEWABLE.includes(row.status);
 				const canReject = can("payroll.reject") && REVIEWABLE.includes(row.status);
-				if (!canApprove && !canReject) return null;
+				const canPay =
+					can("payment.create") && row.status === "APPROVED" && row.payment?.status !== "COMPLETED";
+				if (!canApprove && !canReject && !canPay) return null;
 				return (
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -204,6 +244,15 @@ export function PayrollView() {
 							align="end"
 							className="w-40 border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]"
 						>
+							{canPay ? (
+								<DropdownMenuItem
+									className="gap-2 text-[#2563EB] focus:bg-[#EFF6FF] focus:text-[#2563EB]"
+									onSelect={() => setPending({ payroll: row, action: "pay" })}
+								>
+									<CreditCard className="size-4" />
+									{row.payment ? "Retry payment" : "Pay with Stripe"}
+								</DropdownMenuItem>
+							) : null}
 							{canApprove ? (
 								<DropdownMenuItem
 									className="gap-2 text-[#16A34A] focus:bg-[#F0FDF4] focus:text-[#16A34A]"
@@ -362,12 +411,10 @@ export function PayrollView() {
 						<>
 							<DialogHeader>
 								<DialogTitle className="text-[#0F172A] dark:text-white">
-									{pending.action === "approve" ? "Approve payroll?" : "Reject payroll?"}
+									{ACTION_COPY[pending.action].title}
 								</DialogTitle>
 								<DialogDescription>
-									{pending.action === "approve"
-										? "Once approved, this payroll can be paid through Stripe."
-										: "The draft will be marked rejected and can't be paid. Generate a new one if needed."}
+									{ACTION_COPY[pending.action].description}
 								</DialogDescription>
 							</DialogHeader>
 							<dl className="space-y-1.5 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-sm dark:border-[#1E293B] dark:bg-[#0B1120]">
@@ -400,20 +447,12 @@ export function PayrollView() {
 									Cancel
 								</Button>
 								<Button
-									variant={pending.action === "approve" ? "default" : "destructive"}
+									variant={pending.action === "reject" ? "destructive" : "default"}
 									disabled={isActing}
 									onClick={confirmPending}
-									className={
-										pending.action === "approve"
-											? "bg-[#16A34A] text-white shadow-none hover:bg-[#15803D]"
-											: undefined
-									}
+									className={ACTION_COPY[pending.action].buttonClass || undefined}
 								>
-									{isActing
-										? "Saving..."
-										: pending.action === "approve"
-											? "Approve"
-											: "Reject"}
+									{isActing ? ACTION_COPY[pending.action].busy : ACTION_COPY[pending.action].confirm}
 								</Button>
 							</DialogFooter>
 						</>
