@@ -146,6 +146,16 @@ export function useUpdateEmployee() {
 	});
 }
 
+// Resets the employee's password to a new temporary one and emails it
+// (the password isn't returned — it's only sent to their inbox)
+export function useResendCredentials() {
+	return useMutation({
+		mutationFn: (id: string) => api.post<null>(`/employees/${id}/resend-credentials`),
+		onSuccess: () => toast.success("New credentials emailed to the employee"),
+		onError: (error) => toast.error(errorMessage(error, "Failed to resend credentials")),
+	});
+}
+
 // Backend "delete" is a soft delete: status → TERMINATED, records are kept
 export function useTerminateEmployee() {
 	const queryClient = useQueryClient();

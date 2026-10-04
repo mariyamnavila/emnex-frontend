@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
 	Eye,
+	KeyRound,
 	MoreHorizontal,
 	Pencil,
 	Plus,
@@ -30,6 +31,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+	ConfirmDialog,
 	DataTable,
 	type DataTableColumn,
 	EmptyState,
@@ -46,6 +48,7 @@ import { useUrlFilters } from "@/hooks/use-url-filters";
 import {
 	useEmployeeAnalytics,
 	useEmployees,
+	useResendCredentials,
 	useTerminateEmployee,
 } from "@/hooks/employee.hook";
 import { useDepartments } from "@/hooks/department.hook";
@@ -98,6 +101,7 @@ export function EmployeesView() {
 	const [statusOpen, setStatusOpen] = useState(false);
 	const [editTarget, setEditTarget] = useState<Employee | null>(null);
 	const [editOpen, setEditOpen] = useState(false);
+	const [pendingResend, setPendingResend] = useState<Employee | null>(null);
 
 	const can = useCan();
 
@@ -115,6 +119,7 @@ export function EmployeesView() {
 		useEmployeeAnalytics();
 	const { data: departments = [] } = useDepartments();
 	const terminateEmployee = useTerminateEmployee();
+	const resendCredentials = useResendCredentials();
 
 	const rows = data?.rows ?? [];
 	const meta = data?.meta;
@@ -259,6 +264,15 @@ export function EmployeesView() {
 								>
 									<UserCog className="size-4" />
 									Change status
+								</DropdownMenuItem>
+							) : null}
+							{row.status !== "TERMINATED" && can("employee.create") ? (
+								<DropdownMenuItem
+									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
+									onSelect={() => setPendingResend(row)}
+								>
+									<KeyRound className="size-4" />
+									Resend credentials
 								</DropdownMenuItem>
 							) : null}
 							{row.status !== "TERMINATED" && can("employee.delete") ? (
@@ -436,6 +450,26 @@ export function EmployeesView() {
 			/>
 
 			<EmployeeEditDialog employee={editTarget} open={editOpen} onOpenChange={setEditOpen} />
+
+			<ConfirmDialog
+				open={pendingResend !== null}
+				onOpenChange={(open) => {
+					if (!open) setPendingResend(null);
+				}}
+				title="Resend credentials?"
+				description={
+					pendingResend
+						? `A new temporary password will be emailed to ${pendingResend.user.name} (${pendingResend.user.email}). Their current password stops working right away, and they'll set a new one at next login.`
+						: null
+				}
+				confirmLabel="Resend"
+				pendingLabel="Sending..."
+				isPending={resendCredentials.isPending}
+				onConfirm={() => {
+					if (!pendingResend) return;
+					resendCredentials.mutate(pendingResend.id, { onSuccess: () => setPendingResend(null) });
+				}}
+			/>
 
 			<Dialog
 				open={pendingTerminate !== null}
