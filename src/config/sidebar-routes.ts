@@ -10,6 +10,7 @@ import {
   Shield,
   ScrollText,
   User,
+  Building,
 } from "lucide-react";
 import type { SidebarItems } from "@/types/sidebar.type";
 
@@ -37,6 +38,7 @@ export const adminRoutes: SidebarItems = [
     title: "System",
     items: [
       { title: "Roles & Permissions", url: "/admin/roles", icon: Shield, permission: "role.view" },
+      { title: "Organization", url: "/admin/organization", icon: Building, anyOf: ["organization.view", "organization.update"] },
       { title: "Audit Logs", url: "/admin/audit-logs", icon: ScrollText, permission: "audit.view" },
       { title: "Profile", url: "/admin/profile", icon: User },
     ],
