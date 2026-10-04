@@ -56,6 +56,18 @@ export function useProjects(params: ProjectListParams) {
 	});
 }
 
+// Every project, for filter dropdowns
+export function useProjectOptions() {
+	return useQuery({
+		queryKey: ["projects", "options"],
+		queryFn: async () => {
+			const { data } = await api.get<ApiProject[]>("/projects?limit=100");
+			return data.map(normalizeProject);
+		},
+		staleTime: 60 * 1000,
+	});
+}
+
 export function useProject(id: string) {
 	return useQuery({
 		queryKey: ["projects", "detail", id],

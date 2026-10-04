@@ -1,14 +1,59 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatStatus } from "@/components/shared";
 import { api, ApiError } from "@/lib/api";
-import type { ApiTask, TaskStatus } from "@/types/task.type";
+import { toAmount } from "@/lib/pay";
+import type { ApiSubmission, Submission } from "@/types/submission.type";
+import type { ApiBoardTask, ApiTask, BoardTask, TaskStatus } from "@/types/task.type";
 import type { TaskFormValues } from "@/validation/task.validation";
 
 const errorMessage = (error: Error, fallback: string) =>
 	error instanceof ApiError ? error.message : fallback;
+
+export interface TaskBoardParams {
+	search?: string;
+	projectId?: string;
+	employeeId?: string;
+	priority?: string;
+}
+
+export const BOARD_LIMIT = 200;
+
+// The board groups by status itself, so it loads every matching task at once
+export function useTaskBoard(params: TaskBoardParams) {
+	return useQuery({
+		queryKey: ["tasks", "board", params],
+		queryFn: async () => {
+			const query = new URLSearchParams({ limit: String(BOARD_LIMIT) });
+			for (const [key, value] of Object.entries(params)) if (value) query.set(key, value);
+			const res = await api.get<ApiBoardTask[]>(`/tasks?${query}`);
+			const tasks: BoardTask[] = res.data.map((task) => ({
+				...task,
+				estimatedHours: toAmount(task.estimatedHours),
+			}));
+			return { tasks, total: res.meta?.total ?? tasks.length };
+		},
+		placeholderData: (prev) => prev,
+	});
+}
+
+export function useTaskSubmissions(taskId: string | null) {
+	return useQuery({
+		queryKey: ["submissions", "task", taskId],
+		queryFn: async () => {
+			const { data } = await api.get<Omit<ApiSubmission, "task">[]>(`/tasks/${taskId}/submissions`);
+			return data.map(
+				(submission): Omit<Submission, "task"> => ({
+					...submission,
+					hoursWorked: toAmount(submission.hoursWorked) ?? 0,
+				}),
+			);
+		},
+		enabled: Boolean(taskId),
+	});
+}
 
 // Tasks live inside the project detail; counts feed project lists and analytics
 function useInvalidateTasks() {

@@ -20,7 +20,7 @@ const STATUS_TONES: Record<string, Tone> = {
   // Task status
   TODO: "muted",
   IN_PROGRESS: "info",
-  SUBMITTED: "info",
+  SUBMITTED: "warning",
   APPROVED: "success",
   REJECTED: "destructive",
 

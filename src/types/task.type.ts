@@ -44,3 +44,14 @@ export const TASK_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
 	APPROVED: ["COMPLETED"],
 	COMPLETED: [],
 };
+
+// GET /tasks row: the board needs the project and how many work logs exist
+export type ApiBoardTask = ApiTask & {
+	project: { id: string; name: string; status: string };
+	_count: { submissions: number };
+};
+
+export type BoardTask = Task & {
+	project: { id: string; name: string; status: string };
+	_count: { submissions: number };
+};
