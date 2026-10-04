@@ -35,7 +35,7 @@ export function PaymentCard({ icon: Icon, tone, title, description, spin, childr
 // Where "Back to payroll" goes for the signed-in role
 export function payrollHref(role: string | undefined) {
 	if (role === "ADMIN") return "/admin/payroll";
-	if (role === "FINANCE_MANAGER") return "/finance";
+	if (role === "FINANCE_MANAGER") return "/finance/payroll";
 	if (role === "HR_MANAGER") return "/manager";
 	return "/dashboard";
 }

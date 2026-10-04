@@ -103,6 +103,8 @@ export function PayrollView() {
 
 	const { data: me } = useGetMe();
 	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+	// Finance managers are employees too; nobody approves or pays their own payroll
+	const isOwn = (payroll: Payroll) => payroll.employee.user.id === me?.id;
 
 	const { data, isLoading } = usePayrolls({ page, status, employeeId });
 	const { data: analytics, isLoading: analyticsLoading } = usePayrollAnalytics();
@@ -158,6 +160,7 @@ export function PayrollView() {
 					<div className="min-w-0">
 						<p className="truncate font-medium text-[#0F172A] dark:text-white">
 							{row.employee.user.name}
+							{isOwn(row) ? <span className="ml-1.5 text-xs font-normal text-[#64748B]">(you)</span> : null}
 						</p>
 						<p className="truncate font-mono text-xs text-[#64748B] dark:text-[#94A3B8]">
 							{row.employee.employeeCode}
@@ -223,6 +226,7 @@ export function PayrollView() {
 			headerClassName: "w-12",
 			className: "w-12 text-right",
 			cell: (row) => {
+				if (isOwn(row)) return null;
 				const canApprove = can("payroll.approve") && REVIEWABLE.includes(row.status);
 				const canReject = can("payroll.reject") && REVIEWABLE.includes(row.status);
 				const canPay =

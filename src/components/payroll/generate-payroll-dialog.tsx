@@ -21,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useCurrentUser } from "@/hooks/auth.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { monthToRange, useGeneratePayroll } from "@/hooks/payroll.hook";
 import { useApprovedSubmissions } from "@/hooks/submission.hook";
@@ -87,7 +88,11 @@ export function GeneratePayrollDialog({ open, onOpenChange }: GeneratePayrollDia
 function GenerateForm({ onDone }: { onDone: () => void }) {
 	const generate = useGeneratePayroll();
 	const { data: allEmployees = [], isLoading } = useEmployeeOptions();
-	const employees = allEmployees.filter((employee) => employee.status !== "TERMINATED");
+	const currentUser = useCurrentUser();
+	// The backend refuses payroll for yourself, so don't offer it
+	const employees = allEmployees.filter(
+		(employee) => employee.status !== "TERMINATED" && employee.user.id !== currentUser.id,
+	);
 
 	const {
 		register,
