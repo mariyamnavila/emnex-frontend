@@ -1,9 +1,11 @@
 "use client";
 
-import { AlertTriangle, CalendarClock, Clock, Hourglass, ListTodo, Wallet } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, Clock, Hourglass, ListTodo, Wallet } from "lucide-react";
 import { ApexChart, DetailFigure, PageHeader, StatCard, StatusBadge } from "@/components/shared";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { PayBreakdown } from "@/components/payroll/pay-breakdown";
+import { TaskDue } from "@/components/tasks/task-due";
 import { useCurrentUser } from "@/hooks/auth.hook";
 import { useMyPayments } from "@/hooks/payment.hook";
 import { useMyPayrolls } from "@/hooks/payroll.hook";
@@ -12,8 +14,8 @@ import { useMyTasks } from "@/hooks/task.hook";
 import { errorMessage } from "@/lib/api";
 import { baseChartOptions, chartAxisLabelStyle } from "@/lib/chart-theme";
 import { formatCurrency } from "@/lib/pay";
-import { isTaskOverdue, OPEN_TASK_STATUSES } from "@/lib/task";
-import { cn, formatDay, formatMonth, timeAgo } from "@/lib/utils";
+import { compareByUrgency, isTaskOverdue, OPEN_TASK_STATUSES } from "@/lib/task";
+import { formatDay, formatMonth, timeAgo } from "@/lib/utils";
 import type { MySubmission } from "@/types/submission.type";
 
 const round = (value: number) => Math.round(value * 100) / 100;
@@ -30,14 +32,7 @@ export function EmployeeOverview() {
 	const myTasks = tasks.data ?? [];
 	const myLogs = logs.data ?? [];
 
-	// Overdue first, then by due date; tasks without a due date last
-	const openTasks = myTasks
-		.filter((task) => OPEN_TASK_STATUSES.includes(task.status))
-		.sort((a, b) => {
-			const overdue = Number(isTaskOverdue(b)) - Number(isTaskOverdue(a));
-			if (overdue !== 0) return overdue;
-			return (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999");
-		});
+	const openTasks = myTasks.filter((task) => OPEN_TASK_STATUSES.includes(task.status)).sort(compareByUrgency);
 	const overdueCount = openTasks.filter(isTaskOverdue).length;
 
 	const pendingLogs = myLogs.filter((log) => log.status === "PENDING");
@@ -81,7 +76,10 @@ export function EmployeeOverview() {
 			{blocked ? (
 				<div className="flex items-start gap-3 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#92400E] dark:border-[#78350F] dark:bg-[#451A03]/40 dark:text-[#FCD34D]">
 					<AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-					<p>{errorMessage(blocked, "Some of your work couldn't be loaded.")} Contact your HR manager if this looks wrong.</p>
+					<p>
+						{errorMessage(blocked, "Some of your work couldn't be loaded.")} Contact your HR manager if this looks
+						wrong.
+					</p>
 				</div>
 			) : null}
 
@@ -125,28 +123,21 @@ export function EmployeeOverview() {
 					isEmpty={openTasks.length === 0}
 					emptyText="Nothing on your plate right now."
 					className="lg:col-span-2"
+					action={
+						<Link href="/dashboard/tasks" className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]">
+							View all
+						</Link>
+					}
 				>
 					<ul className="divide-y divide-[#F1F5F9] dark:divide-[#1E293B]">
 						{openTasks.slice(0, 5).map((task) => {
-							const overdue = isTaskOverdue(task);
 							return (
 								<li key={task.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
 									<div className="min-w-0 flex-1">
 										<p className="truncate text-sm font-medium text-[#0F172A] dark:text-white">{task.title}</p>
 										<p className="flex flex-wrap items-center gap-x-2 text-xs text-[#64748B] dark:text-[#94A3B8]">
 											<span className="truncate">{task.project.name}</span>
-											{task.dueDate ? (
-												<span
-													className={cn(
-														"inline-flex items-center gap-1 tabular-nums",
-														overdue && "font-medium text-[#DC2626]",
-													)}
-												>
-													<CalendarClock className="size-3.5" aria-hidden="true" />
-													{overdue ? "Overdue · " : "Due "}
-													{formatDay(task.dueDate)}
-												</span>
-											) : null}
+											<TaskDue task={task} verbose />
 										</p>
 									</div>
 									<StatusBadge status={task.status} />
@@ -161,7 +152,9 @@ export function EmployeeOverview() {
 
 				<ChartCard
 					title="Latest payroll"
-					description={latestPayroll ? `${formatMonth(latestPayroll.periodStart)} pay period` : "Your most recent payslip"}
+					description={
+						latestPayroll ? `${formatMonth(latestPayroll.periodStart)} pay period` : "Your most recent payslip"
+					}
 					isLoading={payrolls.isLoading}
 					isError={payrolls.isError}
 					isEmpty={!latestPayroll}
@@ -229,7 +222,9 @@ export function EmployeeOverview() {
 						{myLogs.slice(0, 5).map((log) => (
 							<li key={log.id} className="space-y-1 py-2.5 first:pt-0 last:pb-0">
 								<div className="flex items-center justify-between gap-3">
-									<p className="min-w-0 truncate text-sm font-medium text-[#0F172A] dark:text-white">{log.task.title}</p>
+									<p className="min-w-0 truncate text-sm font-medium text-[#0F172A] dark:text-white">
+										{log.task.title}
+									</p>
 									<span className="shrink-0 text-sm font-semibold text-[#0F172A] tabular-nums dark:text-white">
 										{log.hoursWorked} h
 									</span>

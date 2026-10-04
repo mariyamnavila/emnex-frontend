@@ -27,10 +27,10 @@ import { monthToRange, useGeneratePayroll } from "@/hooks/payroll.hook";
 import { useApprovedSubmissions } from "@/hooks/submission.hook";
 import { formatCurrency, toAmount } from "@/lib/pay";
 import {
-	currentMonth,
 	generatePayrollSchema,
 	type GeneratePayrollValues,
 } from "@/validation/payroll.validation";
+import { currentMonth } from "@/lib/utils";
 
 const fieldClass =
 	"border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";

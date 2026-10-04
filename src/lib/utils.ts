@@ -25,6 +25,19 @@ export function formatDay(value: string | Date): string {
 	});
 }
 
+const pad = (value: number) => String(value).padStart(2, "0");
+
+/** "2026-10" — the current month in the viewer's time zone (for <input type="month">) */
+export function currentMonth(): string {
+	const now = new Date();
+	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+}
+
+/** "2026-10-04" — today in the viewer's time zone (for <input type="date">) */
+export function today(): string {
+	return `${currentMonth()}-${pad(new Date().getDate())}`;
+}
+
 /** "Jan 2026" for payroll periods (UTC midnight, so January never shows as December) */
 export function formatMonth(value: string | Date): string {
 	return new Date(value).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });

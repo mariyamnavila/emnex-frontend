@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmployeeFilter, EmptyState, FilterSelect, FilterTabs, PageHeader, SearchInput } from "@/components/shared";
+import { EmployeeFilter, EmptyState, FilterSelect, PageHeader, SearchInput, StatusFilter } from "@/components/shared";
 import { TaskCard } from "@/components/tasks/task-card";
 import { TaskSheet } from "@/components/tasks/task-sheet";
 import { useCan } from "@/hooks/auth.hook";
@@ -60,18 +60,11 @@ export function TasksView() {
 	const inReview = tasks.filter((task) => task.status === "SUBMITTED").length;
 	const byStatus = (value: TaskStatus) => tasks.filter((task) => task.status === value);
 	const visibleColumns = status ? COLUMNS.filter((column) => column.status === status) : COLUMNS;
-	// Shared by the status tabs (wide) and the status dropdown (narrow)
 	const statusCounts = COLUMNS.map((column) => ({
 		value: column.status,
 		label: column.label,
 		count: isLoading ? undefined : byStatus(column.status).length,
 	}));
-	const withCount = (label: string, count?: number) => (
-		<>
-			{label}
-			{count === undefined ? null : <span className="text-[#94A3B8] tabular-nums"> · {count}</span>}
-		</>
-	);
 
 	function openTask(task: BoardTask) {
 		setSelectedId(task.id);
@@ -137,19 +130,10 @@ export function TasksView() {
 
 				<div className="flex flex-col gap-3 @5xl:flex-row @5xl:items-center @5xl:justify-between">
 					{/* Narrow: a dropdown, so no status is ever hidden. Wide: one row of tabs that fits */}
-					<FilterSelect
+					<StatusFilter
 						label="Filter by status"
-						allLabel={withCount("All statuses", isLoading ? undefined : tasks.length)}
 						value={status}
 						onChange={(value) => apply({ status: value })}
-						options={statusCounts.map((item) => ({ value: item.value, label: withCount(item.label, item.count) }))}
-						className="@2xl:hidden"
-					/>
-					<FilterTabs
-						label="Filter by status"
-						value={status}
-						onChange={(value) => apply({ status: value || null })}
-						className="hidden flex-nowrap @2xl:inline-flex"
 						tabs={[{ value: "", label: "All", count: isLoading ? undefined : tasks.length }, ...statusCounts]}
 					/>
 					{!isLoading && (tasks.length > 0 || hasFilters) ? (

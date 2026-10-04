@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { ArrowRight, Loader2 } from "lucide-react";
 import {
 	DetailList,
@@ -16,18 +18,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTaskSubmissions, useUpdateTaskStatus } from "@/hooks/task.hook";
 import { isTaskOverdue } from "@/lib/task";
 import { cn, formatDay } from "@/lib/utils";
-import { type BoardTask, TASK_TRANSITIONS } from "@/types/task.type";
+import { type BoardTask, type MyTask, TASK_TRANSITIONS } from "@/types/task.type";
 
 const sum = (values: number[]) => Math.round(values.reduce((total, value) => total + value, 0) * 100) / 100;
 
 interface TaskSheetProps {
-	task: BoardTask | null;
+	/** A board task (with assignee) or one of the signed-in employee's own */
+	task: BoardTask | MyTask | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	canUpdateStatus: boolean;
+	/** Reviewer buttons for the allowed next statuses */
+	canUpdateStatus?: boolean;
+	/** Replaces the footer, e.g. the assignee's own actions */
+	actions?: ReactNode;
 }
 
-export function TaskSheet({ task, open, onOpenChange, canUpdateStatus }: TaskSheetProps) {
+export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, actions }: TaskSheetProps) {
 	const { data: logs = [], isLoading: logsLoading } = useTaskSubmissions(open && task ? task.id : null);
 	const updateStatus = useUpdateTaskStatus();
 
@@ -36,7 +42,8 @@ export function TaskSheet({ task, open, onOpenChange, canUpdateStatus }: TaskShe
 	const nextStatuses = task && canUpdateStatus ? TASK_TRANSITIONS[task.status] : [];
 
 	const footer =
-		task && nextStatuses.length > 0 ? (
+		actions ??
+		(task && nextStatuses.length > 0 ? (
 			<div className="flex flex-wrap gap-2">
 				{nextStatuses.map((status) => {
 					const isMoving = updateStatus.isPending && updateStatus.variables?.status === status;
@@ -59,14 +66,18 @@ export function TaskSheet({ task, open, onOpenChange, canUpdateStatus }: TaskShe
 					);
 				})}
 			</div>
-		) : null;
+		) : null);
 
 	return (
 		<DetailSheet
 			open={open}
 			onOpenChange={onOpenChange}
 			title="Task"
-			description="Who's on it, how far along it is, and the hours logged"
+			description={
+				task && !("employee" in task)
+					? "How far along it is, and the hours you've logged"
+					: "Who's on it, how far along it is, and the hours logged"
+			}
 			footer={footer}
 		>
 			{task ? (
@@ -81,12 +92,14 @@ export function TaskSheet({ task, open, onOpenChange, canUpdateStatus }: TaskShe
 
 					<DetailList>
 						<DetailRow label="Project">{task.project.name}</DetailRow>
-						<DetailRow label="Assignee">
-							<span className="flex items-center gap-2">
-								<UserAvatar name={task.employee.user.name} src={task.employee.user.avatar} size="sm" />
-								<span className="truncate">{task.employee.user.name}</span>
-							</span>
-						</DetailRow>
+						{"employee" in task ? (
+							<DetailRow label="Assignee">
+								<span className="flex items-center gap-2">
+									<UserAvatar name={task.employee.user.name} src={task.employee.user.avatar} size="sm" />
+									<span className="truncate">{task.employee.user.name}</span>
+								</span>
+							</DetailRow>
+						) : null}
 						<DetailRow label="Due">
 							{task.dueDate ? (
 								<span className={cn("tabular-nums", isTaskOverdue(task) && "font-medium text-[#DC2626]")}>

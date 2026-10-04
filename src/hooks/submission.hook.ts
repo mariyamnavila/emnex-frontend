@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, errorMessage } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
+import type { LogHoursValues } from "@/validation/submission.validation";
 import type {
 	ApiMySubmission,
 	ApiSubmission,
@@ -106,5 +107,25 @@ export function useRejectSubmission() {
 			invalidate();
 		},
 		onError: (error) => toast.error(errorMessage(error, "Failed to reject submission")),
+	});
+}
+
+export function useLogHours() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (values: LogHoursValues) =>
+			api.post<ApiSubmission>("/submissions", {
+				taskId: values.taskId,
+				workDate: `${values.workDate}T00:00:00.000Z`,
+				hoursWorked: Number(values.hoursWorked),
+				description: values.description,
+			}),
+		onSuccess: ({ data }) => {
+			toast.success(`Logged ${toAmount(data.hoursWorked)} h on "${data.task.title}" — sent for review`);
+			void queryClient.invalidateQueries({ queryKey: ["submissions"] });
+			void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+			void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+		},
+		onError: (error) => toast.error(errorMessage(error, "Couldn't log your hours")),
 	});
 }

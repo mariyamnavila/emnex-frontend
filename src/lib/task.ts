@@ -10,3 +10,21 @@ export function isTaskOverdue(task: { dueDate: string | null; status: TaskStatus
 	if (!task.dueDate || DONE.includes(task.status)) return false;
 	return task.dueDate.slice(0, 10) < new Date().toISOString().slice(0, 10);
 }
+
+/** Sort comparator: overdue first, then by due date; tasks without a due date last */
+export function compareByUrgency(
+	a: { dueDate: string | null; status: TaskStatus },
+	b: { dueDate: string | null; status: TaskStatus },
+) {
+	const overdue = Number(isTaskOverdue(b)) - Number(isTaskOverdue(a));
+	if (overdue !== 0) return overdue;
+	return (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999");
+}
+
+/** The assignee's next move for a task, if any (same rule as the backend) */
+export function nextAssigneeStep(status: TaskStatus): { status: TaskStatus; label: string } | null {
+	if (status === "TODO") return { status: "IN_PROGRESS", label: "Start task" };
+	if (status === "REJECTED") return { status: "IN_PROGRESS", label: "Restart task" };
+	if (status === "IN_PROGRESS") return { status: "SUBMITTED", label: "Submit for review" };
+	return null;
+}

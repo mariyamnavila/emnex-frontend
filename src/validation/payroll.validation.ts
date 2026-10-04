@@ -1,10 +1,5 @@
 import { z } from "zod";
-
-/** "2026-10" for the current local month */
-export const currentMonth = () => {
-	const now = new Date();
-	return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-};
+import { currentMonth } from "@/lib/utils";
 
 // Mirrors backend GeneratePayrollZodSchema; period is "YYYY-MM" from <input type="month">
 export const generatePayrollSchema = z.object({

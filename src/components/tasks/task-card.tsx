@@ -1,14 +1,11 @@
 "use client";
 
-import { CalendarClock, ClipboardList } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { StatusBadge, UserAvatar } from "@/components/shared";
-import { isTaskOverdue } from "@/lib/task";
-import { cn, formatDay } from "@/lib/utils";
 import type { BoardTask } from "@/types/task.type";
+import { TaskDue } from "./task-due";
 
 export function TaskCard({ task, onOpen }: { task: BoardTask; onOpen: (task: BoardTask) => void }) {
-	const overdue = isTaskOverdue(task);
-
 	return (
 		<button
 			type="button"
@@ -22,19 +19,7 @@ export function TaskCard({ task, onOpen }: { task: BoardTask; onOpen: (task: Boa
 
 			<div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
 				<StatusBadge status={task.priority} />
-				{task.dueDate ? (
-					<span
-						className={cn(
-							"inline-flex items-center gap-1 text-xs tabular-nums",
-							overdue ? "font-medium text-[#DC2626]" : "text-[#64748B] dark:text-[#94A3B8]",
-						)}
-						title={overdue ? "Overdue" : "Due date"}
-					>
-						<CalendarClock className="size-3.5" aria-hidden="true" />
-						{formatDay(task.dueDate)}
-						{overdue ? <span className="sr-only">(overdue)</span> : null}
-					</span>
-				) : null}
+				<TaskDue task={task} />
 				{task._count.submissions > 0 ? (
 					<span
 						className="inline-flex items-center gap-1 text-xs text-[#64748B] tabular-nums dark:text-[#94A3B8]"
