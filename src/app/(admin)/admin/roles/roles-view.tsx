@@ -18,7 +18,7 @@ import { RoleFormDialog } from "@/components/roles/role-form-dialog";
 import { useCan, useGetMe } from "@/hooks/auth.hook";
 import { useDeleteRole, useRoles } from "@/hooks/role.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
-import { cn, formatRoleName } from "@/lib/utils";
+import { cn, formatRoleName, plural } from "@/lib/utils";
 import type { Role } from "@/types/role.type";
 
 const SYSTEM_ORDER = ["ADMIN", "HR_MANAGER", "FINANCE_MANAGER", "EMPLOYEE"];
@@ -31,7 +31,6 @@ const sortRoles = (roles: Role[]) =>
 		return a.name.localeCompare(b.name);
 	});
 
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
 export function RolesView() {
 	const { get, apply } = useUrlFilters();

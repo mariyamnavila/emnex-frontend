@@ -7,8 +7,8 @@ import { HeadcountChart } from "@/components/dashboard/headcount-chart";
 import { ReviewQueue } from "@/components/submissions/review-queue";
 import { useManagerDashboard } from "@/hooks/analytics.hook";
 import { statusDonutOptions } from "@/lib/chart-theme";
+import { plural } from "@/lib/utils";
 
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
 export function ManagerOverview() {
 	const { data: stats, isLoading, isError } = useManagerDashboard();

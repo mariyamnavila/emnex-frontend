@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAssignPermissions, usePermissions, useRole } from "@/hooks/role.hook";
-import { cn } from "@/lib/utils";
+import { cn, plural } from "@/lib/utils";
 import type { Permission } from "@/types/role.type";
 
 // Display order + names for the "<module>.<action>" permission names
@@ -205,13 +205,13 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 				<div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-lg border border-[#E2E8F0] bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-[#1E293B] dark:bg-[#0F172A]/95">
 					<p className="text-sm text-[#334155] dark:text-[#CBD5E1]">
 						<span className="font-semibold text-[#0F172A] dark:text-white">
-							{changes} unsaved change{changes === 1 ? "" : "s"}
+							{plural(changes, "unsaved change")}
 						</span>
 						{selected.size === 0 ? (
 							<span className="block text-xs text-[#DC2626]">A role needs at least one permission.</span>
 						) : (
 							<span className="block text-xs text-[#64748B] dark:text-[#94A3B8]">
-								Applies to {userCount} user{userCount === 1 ? "" : "s"} with this role immediately.
+								Applies to {plural(userCount, "user")} with this role immediately.
 							</span>
 						)}
 					</p>

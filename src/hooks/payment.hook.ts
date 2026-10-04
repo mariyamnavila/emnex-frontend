@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import { preconnect } from "react-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, toQuery } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type {
 	ApiMyPayment,
@@ -124,12 +124,7 @@ export function usePayments(params: PaymentListParams) {
 	return useQuery({
 		queryKey: ["payments", "list", params],
 		queryFn: async () => {
-			const query = new URLSearchParams();
-			if (params.page && params.page > 1) query.set("page", String(params.page));
-			if (params.limit) query.set("limit", String(params.limit));
-			if (params.status) query.set("status", params.status);
-			if (params.employeeId) query.set("employeeId", params.employeeId);
-			const res = await api.get<ApiPayment[]>(`/payments?${query}`);
+			const res = await api.get<ApiPayment[]>(`/payments${toQuery({ ...params })}`);
 			return { rows: res.data.map((payment): Payment => normalizePayment(payment)), meta: res.meta };
 		},
 		placeholderData: (prev) => prev,

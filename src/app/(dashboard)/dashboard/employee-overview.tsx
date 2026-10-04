@@ -12,14 +12,12 @@ import { useMyPayrolls } from "@/hooks/payroll.hook";
 import { useMySubmissions } from "@/hooks/submission.hook";
 import { useMyTasks } from "@/hooks/task.hook";
 import { errorMessage } from "@/lib/api";
-import { monthlyBarOptions } from "@/lib/chart-theme";
+import { monthlyBarOptions, STATUS_CHART_COLORS } from "@/lib/chart-theme";
 import { formatCurrency, payrollStatusNote } from "@/lib/pay";
-import { compareByUrgency, isTaskOverdue, OPEN_TASK_STATUSES } from "@/lib/task";
+import { compareByUrgency, isTaskOverdue, OPEN_TASK_STATUSES, sumHours } from "@/lib/task";
 import { formatDay, formatMonth, timeAgo } from "@/lib/utils";
 import type { MySubmission } from "@/types/submission.type";
 
-const round = (value: number) => Math.round(value * 100) / 100;
-const sumHours = (logs: MySubmission[]) => round(logs.reduce((total, log) => total + log.hoursWorked, 0));
 const monthKey = (iso: string) => iso.slice(0, 7);
 
 export function EmployeeOverview() {
@@ -53,7 +51,7 @@ export function EmployeeOverview() {
 			format: (value) => `${value} h`,
 			axisFormat: (value) => `${Math.round(value)} h`,
 			chart: { stacked: true },
-			colors: ["#16A34A", "#D97706"],
+			colors: [STATUS_CHART_COLORS.APPROVED, STATUS_CHART_COLORS.PENDING],
 			legend: { position: "top", horizontalAlign: "right", labels: { colors: "#64748B" }, markers: { size: 4 } },
 		},
 	);

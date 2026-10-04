@@ -3,7 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatStatus } from "@/components/shared/status-badge";
-import { api, errorMessage } from "@/lib/api";
+import { toIsoDay } from "@/lib/utils";
+import { api, errorMessage, toQuery } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type { ApiSubmission, Submission } from "@/types/submission.type";
 import type { ApiBoardTask, ApiMyTask, ApiTask, BoardTask, MyTask, TaskStatus } from "@/types/task.type";
@@ -23,9 +24,7 @@ export function useTaskBoard(params: TaskBoardParams) {
 	return useQuery({
 		queryKey: ["tasks", "board", params],
 		queryFn: async () => {
-			const query = new URLSearchParams({ limit: String(BOARD_LIMIT) });
-			for (const [key, value] of Object.entries(params)) if (value) query.set(key, value);
-			const res = await api.get<ApiBoardTask[]>(`/tasks?${query}`);
+			const res = await api.get<ApiBoardTask[]>(`/tasks${toQuery({ limit: BOARD_LIMIT, ...params })}`);
 			const tasks: BoardTask[] = res.data.map((task) => ({
 				...task,
 				estimatedHours: toAmount(task.estimatedHours),
@@ -85,7 +84,7 @@ export function useCreateTask(projectId: string) {
 				description: values.description || undefined,
 				priority: values.priority,
 				estimatedHours: values.estimatedHours ? Number(values.estimatedHours) : undefined,
-				dueDate: values.dueDate ? `${values.dueDate}T00:00:00.000Z` : undefined,
+				dueDate: values.dueDate ? toIsoDay(values.dueDate) : undefined,
 			}),
 		onSuccess: ({ data }) => {
 			toast.success(`Task assigned to ${data.employee.user.name}`);

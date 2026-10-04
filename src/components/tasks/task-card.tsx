@@ -4,6 +4,7 @@ import { ClipboardList } from "lucide-react";
 import { StatusBadge, UserAvatar } from "@/components/shared";
 import type { BoardTask } from "@/types/task.type";
 import { TaskDue } from "./task-due";
+import { plural } from "@/lib/utils";
 
 export function TaskCard({ task, onOpen }: { task: BoardTask; onOpen: (task: BoardTask) => void }) {
 	return (
@@ -23,7 +24,7 @@ export function TaskCard({ task, onOpen }: { task: BoardTask; onOpen: (task: Boa
 				{task._count.submissions > 0 ? (
 					<span
 						className="inline-flex items-center gap-1 text-xs text-[#64748B] tabular-nums dark:text-[#94A3B8]"
-						title={`${task._count.submissions} work log${task._count.submissions === 1 ? "" : "s"}`}
+						title={plural(task._count.submissions, "work log")}
 					>
 						<ClipboardList className="size-3.5" aria-hidden="true" />
 						{task._count.submissions}

@@ -17,11 +17,10 @@ import { useMyPayrolls } from "@/hooks/payroll.hook";
 import { errorMessage } from "@/lib/api";
 import { monthlyBarOptions } from "@/lib/chart-theme";
 import { formatCompactCurrency, formatCurrency } from "@/lib/pay";
-import { formatDay, formatMonth } from "@/lib/utils";
+import { formatDay, formatMonth, plural, sumBy } from "@/lib/utils";
 import type { MyPayroll, PayrollStatus } from "@/types/payroll.type";
 
-const round = (value: number) => Math.round(value * 100) / 100;
-const netOf = (payrolls: MyPayroll[]) => round(payrolls.reduce((sum, payroll) => sum + payroll.netAmount, 0));
+const netOf = (payrolls: MyPayroll[]) => sumBy(payrolls, (payroll) => payroll.netAmount);
 const withStatus = (payrolls: MyPayroll[], statuses: PayrollStatus[]) =>
 	payrolls.filter((payroll) => statuses.includes(payroll.status));
 
@@ -112,7 +111,7 @@ export function MyPayrollView() {
 					isLoading={isLoading}
 					value={formatCurrency(netOf(paid))}
 					icon={CheckCircle2}
-					hint={`${paid.length} payslip${paid.length === 1 ? "" : "s"} paid`}
+					hint={`${plural(paid.length, "payslip")} paid`}
 				/>
 				<StatCard
 					title="Awaiting payment"

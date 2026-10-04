@@ -16,11 +16,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTaskSubmissions, useUpdateTaskStatus } from "@/hooks/task.hook";
-import { isTaskOverdue } from "@/lib/task";
+import { hoursByStatus, isTaskOverdue } from "@/lib/task";
 import { cn, formatDay } from "@/lib/utils";
 import { type BoardTask, type MyTask, TASK_TRANSITIONS } from "@/types/task.type";
-
-const sum = (values: number[]) => Math.round(values.reduce((total, value) => total + value, 0) * 100) / 100;
 
 interface TaskSheetProps {
 	/** A board task (with assignee) or one of the signed-in employee's own */
@@ -37,8 +35,7 @@ export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, a
 	const { data: logs = [], isLoading: logsLoading } = useTaskSubmissions(open && task ? task.id : null);
 	const updateStatus = useUpdateTaskStatus();
 
-	const approvedHours = sum(logs.filter((log) => log.status === "APPROVED").map((log) => log.hoursWorked));
-	const pendingHours = sum(logs.filter((log) => log.status === "PENDING").map((log) => log.hoursWorked));
+	const { approved: approvedHours, pending: pendingHours } = hoursByStatus(logs);
 	const nextStatuses = task && canUpdateStatus ? TASK_TRANSITIONS[task.status] : [];
 
 	const footer =

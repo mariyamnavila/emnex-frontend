@@ -41,7 +41,7 @@ const VERBS: Record<string, { past: string; tone: Tone }> = {
 	CHANGE: { past: "Changed", tone: "info" },
 	ASSIGN: { past: "Assigned", tone: "info" },
 	GENERATE: { past: "Generated", tone: "info" },
-	APPROVE: { past: "Approved", tone: "success" },
+	APPROVE: { past: "Approved", tone: "approved" },
 	REJECT: { past: "Rejected", tone: "destructive" },
 };
 

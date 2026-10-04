@@ -38,6 +38,16 @@ export function today(): string {
 	return `${currentMonth()}-${pad(new Date().getDate())}`;
 }
 
+/** "2026-03-01" from <input type="date"> → "2026-03-01T00:00:00.000Z" (date-only fields are UTC midnight) */
+export function toIsoDay(day: string): string {
+	return `${day}T00:00:00.000Z`;
+}
+
+/** "1 task", "3 tasks" (pass the plural for irregular words) */
+export function plural(count: number, word: string, pluralWord = `${word}s`): string {
+	return `${count} ${count === 1 ? word : pluralWord}`;
+}
+
 /** "Jan 2026" for payroll periods (UTC midnight, so January never shows as December) */
 export function formatMonth(value: string | Date): string {
 	return new Date(value).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
@@ -51,6 +61,16 @@ export function formatDateTime(value: string | Date, { seconds = false } = {}): 
 /** "3 days ago" */
 export function timeAgo(value: string | Date): string {
 	return formatDistanceToNowStrict(new Date(value), { addSuffix: true });
+}
+
+/** Rounds to 2 decimals (cents, quarter hours) so float sums like 0.1 + 0.2 never leak into the UI */
+export function round2(value: number): number {
+	return Math.round(value * 100) / 100;
+}
+
+/** Sum of one numeric field across a list, rounded to 2 decimals */
+export function sumBy<T>(items: T[], pick: (item: T) => number): number {
+	return round2(items.reduce((total, item) => total + pick(item), 0));
 }
 
 interface StatusTotal {

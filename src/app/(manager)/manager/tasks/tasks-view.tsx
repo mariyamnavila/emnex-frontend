@@ -11,18 +11,19 @@ import { useCan } from "@/hooks/auth.hook";
 import { useProjectOptions } from "@/hooks/project.hook";
 import { BOARD_LIMIT, useTaskBoard } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { STATUS_CHART_COLORS } from "@/lib/chart-theme";
 import { isTaskOverdue } from "@/lib/task";
 import { cn } from "@/lib/utils";
 import type { BoardTask, TaskPriority, TaskStatus } from "@/types/task.type";
 
-// Same colors as StatusBadge; Rejected sits next to Submitted as the other outcome of a review
-const COLUMNS: { status: TaskStatus; label: string; color: string }[] = [
-	{ status: "TODO", label: "To do", color: "#64748B" },
-	{ status: "IN_PROGRESS", label: "In progress", color: "#2563EB" },
-	{ status: "SUBMITTED", label: "Submitted", color: "#D97706" },
-	{ status: "REJECTED", label: "Rejected", color: "#DC2626" },
-	{ status: "APPROVED", label: "Approved", color: "#16A34A" },
-	{ status: "COMPLETED", label: "Completed", color: "#16A34A" },
+// Rejected sits next to Submitted as the other outcome of a review
+const COLUMNS: { status: TaskStatus; label: string }[] = [
+	{ status: "TODO", label: "To do" },
+	{ status: "IN_PROGRESS", label: "In progress" },
+	{ status: "SUBMITTED", label: "Submitted" },
+	{ status: "REJECTED", label: "Rejected" },
+	{ status: "APPROVED", label: "Approved" },
+	{ status: "COMPLETED", label: "Completed" },
 ];
 
 const PRIORITIES: { value: TaskPriority; label: string }[] = [
@@ -232,7 +233,7 @@ export function TasksView() {
 										)}
 									>
 										<header className="flex items-center gap-2 px-1.5 pt-1 pb-2.5">
-											<span className="size-2 rounded-full" style={{ backgroundColor: column.color }} aria-hidden="true" />
+											<span className="size-2 rounded-full" style={{ backgroundColor: STATUS_CHART_COLORS[column.status] }} aria-hidden="true" />
 											<h2 className="text-xs font-semibold tracking-wider text-[#334155] uppercase dark:text-[#CBD5E1]">
 												{column.label}
 											</h2>

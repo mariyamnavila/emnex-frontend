@@ -26,6 +26,20 @@ export class ApiError extends Error {
   }
 }
 
+type QueryValue = string | number | boolean | null | undefined;
+
+// "?status=ACTIVE&page=2" from filters; empty values and page 1 are left out
+export function toQuery(params: Record<string, QueryValue>): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "" || value === false) continue;
+    if (key === "page" && Number(value) <= 1) continue;
+    query.set(key, String(value));
+  }
+  const str = query.toString();
+  return str ? `?${str}` : "";
+}
+
 // The API's message for toasts, or a fallback for network/unknown errors
 export const errorMessage = (error: Error, fallback: string) =>
   error instanceof ApiError ? error.message : fallback;

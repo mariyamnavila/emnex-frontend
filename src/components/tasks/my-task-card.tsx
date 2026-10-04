@@ -1,6 +1,7 @@
 "use client";
 
 import { StatusBadge } from "@/components/shared";
+import { STATUS_CHART_COLORS } from "@/lib/chart-theme";
 import type { MyTask } from "@/types/task.type";
 import { TaskDue } from "./task-due";
 
@@ -61,7 +62,10 @@ export function MyTaskCard({ task, approvedHours, pendingHours, onOpen, actions 
 							aria-valuemax={100}
 							aria-label="Approved hours against the estimate"
 						>
-							<div className="h-full rounded-full bg-[#16A34A]" style={{ width: `${progress}%` }} />
+							<div
+								className="h-full rounded-full"
+								style={{ width: `${progress}%`, backgroundColor: STATUS_CHART_COLORS.APPROVED }}
+							/>
 						</div>
 					) : null}
 				</div>

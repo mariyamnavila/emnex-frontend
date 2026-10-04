@@ -12,6 +12,9 @@ export const EMNEX_CHART_COLORS = [
 
 // Same meaning as StatusBadge tones, so a status has one color everywhere
 export const STATUS_CHART_COLORS: Record<string, string> = {
+  TODO: "#64748B",
+  IN_PROGRESS: "#2563EB",
+  SUBMITTED: "#D97706",
   ACTIVE: "#2563EB",
   PLANNED: "#94A3B8",
   ON_HOLD: "#D97706",
@@ -19,7 +22,7 @@ export const STATUS_CHART_COLORS: Record<string, string> = {
   CANCELLED: "#DC2626",
   DRAFT: "#94A3B8",
   GENERATED: "#D97706",
-  APPROVED: "#2563EB",
+  APPROVED: "#7C3AED",
   PROCESSING: "#60A5FA",
   PAID: "#16A34A",
   REJECTED: "#DC2626",

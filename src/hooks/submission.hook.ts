@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, errorMessage } from "@/lib/api";
+import { toIsoDay } from "@/lib/utils";
+import { api, errorMessage, toQuery } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type { LogHoursValues } from "@/validation/submission.validation";
 import type {
@@ -63,13 +64,10 @@ export function useSubmissions(params: SubmissionParams) {
 	return useQuery({
 		queryKey: ["submissions", "list", params],
 		queryFn: async () => {
-			const query = new URLSearchParams();
-			if (params.page && params.page > 1) query.set("page", String(params.page));
-			if (params.limit) query.set("limit", String(params.limit));
-			if (params.status) query.set("status", params.status);
-			if (params.employeeId) query.set("employeeId", params.employeeId);
-			if (params.oldestFirst) query.set("sortOrder", "asc");
-			const res = await api.get<ApiSubmission[]>(`/submissions?${query}`);
+			const { oldestFirst, ...filters } = params;
+			const res = await api.get<ApiSubmission[]>(
+				`/submissions${toQuery({ ...filters, sortOrder: oldestFirst ? "asc" : undefined })}`,
+			);
 			return { rows: res.data.map((submission): Submission => normalize(submission)), meta: res.meta };
 		},
 		placeholderData: (prev) => prev,
@@ -112,7 +110,7 @@ export function useRejectSubmission() {
 
 // Form values → API body ("YYYY-MM-DD" → UTC midnight, hours → number)
 const toWorkLog = (values: LogHoursValues) => ({
-	workDate: `${values.workDate}T00:00:00.000Z`,
+	workDate: toIsoDay(values.workDate),
 	hoursWorked: Number(values.hoursWorked),
 	description: values.description,
 });

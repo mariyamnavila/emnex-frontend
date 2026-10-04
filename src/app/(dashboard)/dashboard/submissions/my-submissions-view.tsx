@@ -20,7 +20,8 @@ import { useMySubmissions } from "@/hooks/submission.hook";
 import { useMyTasks } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { errorMessage } from "@/lib/api";
-import { formatDay, timeAgo } from "@/lib/utils";
+import { sumHours } from "@/lib/task";
+import { formatDay, plural, timeAgo } from "@/lib/utils";
 import type { MySubmission, SubmissionStatus } from "@/types/submission.type";
 import { type LogHoursValues, workLogToForm } from "@/validation/submission.validation";
 
@@ -32,8 +33,6 @@ const STATUSES: { value: SubmissionStatus; label: string }[] = [
 	{ value: "REJECTED", label: "Rejected" },
 ];
 
-const round = (value: number) => Math.round(value * 100) / 100;
-const hoursOf = (logs: MySubmission[]) => round(logs.reduce((sum, log) => sum + log.hoursWorked, 0));
 
 type DialogState = { initial?: Partial<LogHoursValues>; editing?: { id: string; taskTitle: string } } | null;
 
@@ -176,21 +175,21 @@ export function MySubmissionsView() {
 				<StatCard
 					title="Hours logged"
 					isLoading={logs.isLoading}
-					value={logs.isError ? "—" : `${hoursOf(all)} h`}
+					value={logs.isError ? "—" : `${sumHours(all)} h`}
 					icon={ClipboardList}
-					hint={`${all.length} work log${all.length === 1 ? "" : "s"}`}
+					hint={plural(all.length, "work log")}
 				/>
 				<StatCard
 					title="Approved"
 					isLoading={logs.isLoading}
-					value={logs.isError ? "—" : `${hoursOf(approved)} h`}
+					value={logs.isError ? "—" : `${sumHours(approved)} h`}
 					icon={CheckCircle2}
 					hint="Counts toward hourly pay"
 				/>
 				<StatCard
 					title="In review"
 					isLoading={logs.isLoading}
-					value={logs.isError ? "—" : `${hoursOf(pending)} h`}
+					value={logs.isError ? "—" : `${sumHours(pending)} h`}
 					icon={Hourglass}
 					hint={`${pending.length} waiting for your manager`}
 				/>

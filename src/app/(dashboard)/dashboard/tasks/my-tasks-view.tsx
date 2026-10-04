@@ -13,7 +13,8 @@ import { useMySubmissions } from "@/hooks/submission.hook";
 import { useMyTasks, useUpdateTaskStatus } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { errorMessage } from "@/lib/api";
-import { compareByUrgency, isTaskOverdue, nextAssigneeStep } from "@/lib/task";
+import { compareByUrgency, hoursByStatus, isTaskOverdue, nextAssigneeStep } from "@/lib/task";
+import { plural, round2 } from "@/lib/utils";
 import type { MyTask, TaskStatus } from "@/types/task.type";
 
 const STATUS_ORDER: { status: TaskStatus; label: string }[] = [
@@ -24,8 +25,6 @@ const STATUS_ORDER: { status: TaskStatus; label: string }[] = [
 	{ status: "APPROVED", label: "Approved" },
 	{ status: "COMPLETED", label: "Completed" },
 ];
-
-const round = (value: number) => Math.round(value * 100) / 100;
 
 export function MyTasksView() {
 	const { get, apply } = useUrlFilters();
@@ -48,14 +47,11 @@ export function MyTasksView() {
 	const overdue = all.filter(isTaskOverdue).length;
 
 	// Approved / in-review hours per task, from the employee's own work logs
-	const hours: Record<string, { approved: number; pending: number }> = {};
-	for (const log of logs.data ?? []) {
-		const entry = (hours[log.taskId] ??= { approved: 0, pending: 0 });
-		if (log.status === "APPROVED") entry.approved = round(entry.approved + log.hoursWorked);
-		if (log.status === "PENDING") entry.pending = round(entry.pending + log.hoursWorked);
-	}
+	const hours = Object.fromEntries(
+		all.map((task) => [task.id, hoursByStatus((logs.data ?? []).filter((log) => log.taskId === task.id))]),
+	);
 	const loggedHours = Object.fromEntries(
-		Object.entries(hours).map(([taskId, entry]) => [taskId, round(entry.approved + entry.pending)]),
+		Object.entries(hours).map(([taskId, entry]) => [taskId, round2(entry.approved + entry.pending)]),
 	);
 
 	function openLog(task?: MyTask) {
@@ -118,7 +114,7 @@ export function MyTasksView() {
 					/>
 					{!tasks.isLoading && overdue > 0 ? (
 						<p className="text-xs font-medium text-[#DC2626]">
-							{overdue} overdue task{overdue === 1 ? "" : "s"}
+							{plural(overdue, "overdue task")}
 						</p>
 					) : null}
 				</div>

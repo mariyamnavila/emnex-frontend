@@ -2,7 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, errorMessage } from "@/lib/api";
+import { toIsoDay } from "@/lib/utils";
+import { api, errorMessage, toQuery } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type {
 	ApiProject,
@@ -23,30 +24,21 @@ const normalizeProject = (raw: ApiProject): Project => ({
 	budget: toAmount(raw.budget),
 });
 
-// "2026-03-01" → "2026-03-01T00:00:00.000Z"; empty → omitted (backend can't clear these)
-const toIsoDay = (day: string) => (day ? `${day}T00:00:00.000Z` : undefined);
+// Empty dates are omitted (the backend can't clear them)
+const optionalDay = (day: string) => (day ? toIsoDay(day) : undefined);
 
 const toPayload = (values: ProjectFormValues) => ({
 	name: values.name,
-	startDate: toIsoDay(values.startDate),
-	endDate: toIsoDay(values.endDate),
+	startDate: optionalDay(values.startDate),
+	endDate: optionalDay(values.endDate),
 	budget: values.budget ? Number(values.budget) : undefined,
 });
-
-const buildQuery = (params: ProjectListParams) => {
-	const query = new URLSearchParams();
-	if (params.page && params.page > 1) query.set("page", String(params.page));
-	if (params.search) query.set("search", params.search);
-	if (params.status) query.set("status", params.status);
-	const str = query.toString();
-	return str ? `?${str}` : "";
-};
 
 export function useProjects(params: ProjectListParams) {
 	return useQuery({
 		queryKey: ["projects", params],
 		queryFn: async () => {
-			const res = await api.get<ApiProject[]>(`/projects${buildQuery(params)}`);
+			const res = await api.get<ApiProject[]>(`/projects${toQuery({ ...params })}`);
 			return { rows: res.data.map(normalizeProject), meta: res.meta };
 		},
 		placeholderData: (prev) => prev,

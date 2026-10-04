@@ -1,4 +1,5 @@
 import type { TaskStatus } from "@/types/task.type";
+import { sumBy } from "./utils";
 
 const DONE: TaskStatus[] = ["APPROVED", "COMPLETED"];
 
@@ -27,4 +28,19 @@ export function nextAssigneeStep(status: TaskStatus): { status: TaskStatus; labe
 	if (status === "REJECTED") return { status: "IN_PROGRESS", label: "Restart task" };
 	if (status === "IN_PROGRESS") return { status: "SUBMITTED", label: "Submit for review" };
 	return null;
+}
+
+type WorkLogHours = { status: string; hoursWorked: number };
+
+/** Total hours across some work logs */
+export function sumHours(logs: WorkLogHours[]): number {
+	return sumBy(logs, (log) => log.hoursWorked);
+}
+
+/** Approved and still-in-review hours across some work logs */
+export function hoursByStatus(logs: WorkLogHours[]) {
+	return {
+		approved: sumHours(logs.filter((log) => log.status === "APPROVED")),
+		pending: sumHours(logs.filter((log) => log.status === "PENDING")),
+	};
 }

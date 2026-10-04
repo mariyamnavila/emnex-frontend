@@ -9,7 +9,7 @@ import { usePermissions, useRoles } from "@/hooks/role.hook";
 import { useCopy } from "@/hooks/use-copy";
 import { describeAction } from "@/lib/audit";
 import { formatCurrency, toAmount } from "@/lib/pay";
-import { cn, formatDay, formatRoleName } from "@/lib/utils";
+import { cn, formatDay, formatRoleName, plural } from "@/lib/utils";
 import type { AuditLog } from "@/types/audit-log.type";
 
 type Metadata = Record<string, unknown>;
@@ -88,8 +88,8 @@ function summarize(log: AuditLog, lookups: Record<string, Lookup>): string {
 			const { length: removed } = m.removed;
 			const on = role ? ` on ${role}` : "";
 			if (added && removed) return `Added ${added} and removed ${removed} permissions${on}`;
-			if (added) return `Added ${added} permission${added === 1 ? "" : "s"}${on}`;
-			if (removed) return `Removed ${removed} permission${removed === 1 ? "" : "s"}${role ? ` from ${role}` : ""}`;
+			if (added) return `Added ${plural(added, "permission")}${on}`;
+			if (removed) return `Removed ${plural(removed, "permission")}${role ? ` from ${role}` : ""}`;
 			return `Saved permissions${on} with no changes`;
 		}
 		if (Array.isArray(m.permissionIds)) return `Set ${m.permissionIds.length} permissions on this role`;

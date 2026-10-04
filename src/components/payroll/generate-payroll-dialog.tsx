@@ -30,7 +30,7 @@ import {
 	generatePayrollSchema,
 	type GeneratePayrollValues,
 } from "@/validation/payroll.validation";
-import { currentMonth } from "@/lib/utils";
+import { currentMonth, round2 } from "@/lib/utils";
 
 const fieldClass =
 	"border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";
@@ -47,7 +47,6 @@ const monthLabel = (period: string) => {
 	});
 };
 
-const toCents = (amount: number) => Math.round(amount * 100) / 100;
 
 function FieldError({ message }: { message?: string }) {
 	return message ? <p className="text-xs text-[#DC2626]">{message}</p> : null;
@@ -124,9 +123,9 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 	}
 
 	let gross: number | null = null;
-	if (selected && !isHourly) gross = toCents(selected.salary ?? 0);
-	if (selected && isHourly && hours !== null) gross = toCents(hours * (selected.hourlyRate ?? 0));
-	const net = gross !== null ? toCents(gross - deductions) : null;
+	if (selected && !isHourly) gross = round2(selected.salary ?? 0);
+	if (selected && isHourly && hours !== null) gross = round2(hours * (selected.hourlyRate ?? 0));
+	const net = gross !== null ? round2(gross - deductions) : null;
 
 	let blockReason: string | null = null;
 	if (isFuture) {

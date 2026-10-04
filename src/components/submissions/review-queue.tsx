@@ -8,7 +8,7 @@ import { UserAvatar } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/auth.hook";
 import { useApproveSubmission, useSubmissions } from "@/hooks/submission.hook";
-import { formatDay, timeAgo } from "@/lib/utils";
+import { formatDay, plural, timeAgo } from "@/lib/utils";
 import type { Submission } from "@/types/submission.type";
 import { RejectSubmissionDialog } from "./reject-submission-dialog";
 
@@ -32,7 +32,7 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 			title="Pending approvals"
 			description={
 				total > 0
-					? `${total} work log${total === 1 ? "" : "s"} waiting · oldest first`
+					? `${plural(total, "work log")} waiting · oldest first`
 					: "Work logs your team submits show up here"
 			}
 			isLoading={isLoading}

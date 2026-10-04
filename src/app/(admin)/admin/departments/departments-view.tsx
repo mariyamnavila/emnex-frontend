@@ -33,7 +33,7 @@ import { DepartmentMembersSheet } from "@/components/departments/department-memb
 import { useCan } from "@/hooks/auth.hook";
 import { useDeleteDepartment, useDepartments } from "@/hooks/department.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
-import { formatDate } from "@/lib/utils";
+import { formatDate, plural } from "@/lib/utils";
 import type { Department } from "@/types/employee.type";
 
 const memberCount = (department: Department) => department._count?.employees ?? 0;
@@ -197,7 +197,7 @@ export function DepartmentsView() {
 															Delete
 															{count > 0 ? (
 																<span className="block text-xs text-[#64748B] dark:text-[#94A3B8]">
-																	Reassign {count} employee{count === 1 ? "" : "s"} first
+																	Reassign {plural(count, "employee")} first
 																</span>
 															) : null}
 														</span>
@@ -236,7 +236,7 @@ export function DepartmentsView() {
 				description={
 					isLoading
 						? "Teams in your organization"
-						: `${departments.length} department${departments.length === 1 ? "" : "s"} · ${assigned} employee${assigned === 1 ? "" : "s"} assigned`
+						: `${plural(departments.length, "department")} · ${plural(assigned, "employee")} assigned`
 				}
 				actions={
 					can("department.create") ? (

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, errorMessage } from "@/lib/api";
+import { api, errorMessage, toQuery } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type {
 	ApiEmployee,
@@ -38,16 +38,6 @@ export interface EmployeeListParams {
 	departmentId?: string;
 }
 
-const buildQuery = (params: EmployeeListParams) => {
-	const query = new URLSearchParams();
-	if (params.page && params.page > 1) query.set("page", String(params.page));
-	if (params.search) query.set("search", params.search);
-	if (params.status) query.set("status", params.status);
-	if (params.departmentId) query.set("departmentId", params.departmentId);
-	const str = query.toString();
-	return str ? `?${str}` : "";
-};
-
 // Decimal strings ("4000") → numbers, once, so every screen can do math/formatting
 const normalizePay = <T extends Employee>(raw: ApiEmployee<T>): T =>
 	({
@@ -61,7 +51,7 @@ export function useEmployees(params: EmployeeListParams) {
 		queryKey: ["employees", params],
 		queryFn: async () => {
 			const res = await api.get<ApiEmployee[]>(
-				`/employees${buildQuery(params)}`,
+				`/employees${toQuery({ ...params })}`,
 			);
 			return { rows: res.data.map(normalizePay), meta: res.meta };
 		},

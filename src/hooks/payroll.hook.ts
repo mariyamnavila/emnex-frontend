@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, errorMessage } from "@/lib/api";
+import { api, errorMessage, toQuery } from "@/lib/api";
 import type { MyPayroll, Payroll } from "@/types/payroll.type";
 import type { GeneratePayrollValues } from "@/validation/payroll.validation";
 
@@ -21,20 +21,11 @@ export function monthToRange(period: string) {
 	};
 }
 
-const buildQuery = (params: PayrollListParams) => {
-	const query = new URLSearchParams();
-	if (params.page && params.page > 1) query.set("page", String(params.page));
-	if (params.status) query.set("status", params.status);
-	if (params.employeeId) query.set("employeeId", params.employeeId);
-	const str = query.toString();
-	return str ? `?${str}` : "";
-};
-
 export function usePayrolls(params: PayrollListParams) {
 	return useQuery({
 		queryKey: ["payroll", params],
 		queryFn: async () => {
-			const res = await api.get<Payroll[]>(`/payroll${buildQuery(params)}`);
+			const res = await api.get<Payroll[]>(`/payroll${toQuery({ ...params })}`);
 			return { rows: res.data, meta: res.meta };
 		},
 		placeholderData: (prev) => prev,

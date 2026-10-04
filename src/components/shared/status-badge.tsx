@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type Tone = "success" | "warning" | "destructive" | "info" | "muted";
+export type Tone = "success" | "approved" | "warning" | "destructive" | "info" | "muted";
 
 const STATUS_TONES: Record<string, Tone> = {
   // Employee / user status
@@ -21,7 +21,7 @@ const STATUS_TONES: Record<string, Tone> = {
   TODO: "muted",
   IN_PROGRESS: "info",
   SUBMITTED: "warning",
-  APPROVED: "success",
+  APPROVED: "approved",
   REJECTED: "destructive",
 
   // Submission status
@@ -48,6 +48,11 @@ const TONE_CONFIG: Record<Tone, { badge: string; dot: string }> = {
   success: {
     badge: "bg-[#F0FDF4] text-[#16A34A] border-[#16A34A]/20 dark:bg-[#16A34A]/10 dark:text-[#4ADE80] dark:border-[#4ADE80]/20",
     dot: "bg-[#16A34A] dark:bg-[#4ADE80]",
+  },
+  // Signed off, final step still to come (paid / completed are "success")
+  approved: {
+    badge: "bg-[#F5F3FF] text-[#7C3AED] border-[#7C3AED]/20 dark:bg-[#7C3AED]/10 dark:text-[#A78BFA] dark:border-[#A78BFA]/20",
+    dot: "bg-[#7C3AED] dark:bg-[#A78BFA]",
   },
   warning: {
     badge: "bg-[#FFFBEB] text-[#D97706] border-[#D97706]/20 dark:bg-[#D97706]/10 dark:text-[#FBBF24] dark:border-[#FBBF24]/20",

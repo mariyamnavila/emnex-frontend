@@ -49,7 +49,7 @@ import {
 } from "@/hooks/employee.hook";
 import { useDepartments } from "@/hooks/department.hook";
 import { formatCurrency } from "@/lib/pay";
-import { formatDate, sumByStatus } from "@/lib/utils";
+import { formatDate, plural, sumByStatus } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";
 import { EmployeeDetailSheet } from "@/components/employees/employee-detail-sheet";
 import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
@@ -287,7 +287,7 @@ export function EmployeesView() {
 					isLoading={analyticsLoading}
 					value={total}
 					icon={Users}
-					hint={`Across ${departments.length} department${departments.length === 1 ? "" : "s"}`}
+					hint={`Across ${plural(departments.length, "department")}`}
 				/>
 				<StatCard
 					title="Active"
