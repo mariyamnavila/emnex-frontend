@@ -123,6 +123,29 @@ export function useUpdateEmployeeStatus() {
 	});
 }
 
+export interface UpdateEmployeePayload {
+	departmentId?: string;
+	jobTitle?: string;
+	salaryType?: "MONTHLY" | "HOURLY";
+	salary?: number;
+	hourlyRate?: number;
+}
+
+// Edit the details the backend allows (not name/email/role/joining date)
+export function useUpdateEmployee() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, ...payload }: UpdateEmployeePayload & { id: string }) =>
+			api.patch<ApiEmployee>(`/employees/${id}`, payload),
+		onSuccess: ({ data }) => {
+			toast.success(`${data.user.name} updated`);
+			void queryClient.invalidateQueries({ queryKey: ["employees"] });
+		},
+		onError: (error) => toast.error(errorMessage(error, "Failed to update employee")),
+	});
+}
+
 // Backend "delete" is a soft delete: status → TERMINATED, records are kept
 export function useTerminateEmployee() {
 	const queryClient = useQueryClient();

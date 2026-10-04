@@ -51,6 +51,15 @@ const salaryRefine = (
 
 export const employeeSalarySchema = salaryBaseSchema.superRefine(salaryRefine);
 
+// The fields the backend lets you change after creation (name/email/role/joining date are fixed)
+export const employeeEditSchema = z
+	.object({
+		jobTitle: z.string().min(2, "Job title must be at least 2 characters").max(100),
+		departmentId: z.string().optional(),
+	})
+	.merge(salaryBaseSchema)
+	.superRefine(salaryRefine);
+
 export const employeeCreateSchema = employeeBasicSchema
 	.merge(employeeJobSchema)
 	.merge(salaryBaseSchema)
@@ -59,4 +68,5 @@ export const employeeCreateSchema = employeeBasicSchema
 export type EmployeeBasicValues = z.infer<typeof employeeBasicSchema>;
 export type EmployeeJobValues = z.infer<typeof employeeJobSchema>;
 export type EmployeeSalaryValues = z.infer<typeof employeeSalarySchema>;
+export type EmployeeEditValues = z.infer<typeof employeeEditSchema>;
 export type EmployeeCreateValues = z.infer<typeof employeeCreateSchema>;

@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
 	Eye,
 	MoreHorizontal,
+	Pencil,
 	Plus,
 	UserCheck,
 	UserMinus,
@@ -53,6 +54,7 @@ import { formatDate, plural, sumByStatus } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";
 import { EmployeeDetailSheet } from "@/components/employees/employee-detail-sheet";
 import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
+import { EmployeeEditDialog } from "@/components/employees/employee-edit-dialog";
 import { useCan } from "@/hooks/auth.hook";
 
 const STATUS_TABS: { value: EmployeeStatus | ""; label: string }[] = [
@@ -94,6 +96,8 @@ export function EmployeesView() {
 	);
 	const [statusTarget, setStatusTarget] = useState<Employee | null>(null);
 	const [statusOpen, setStatusOpen] = useState(false);
+	const [editTarget, setEditTarget] = useState<Employee | null>(null);
+	const [editOpen, setEditOpen] = useState(false);
 
 	const can = useCan();
 
@@ -132,6 +136,11 @@ export function EmployeesView() {
 	function openStatus(employee: Employee) {
 		setStatusTarget(employee);
 		setStatusOpen(true);
+	}
+
+	function openEdit(employee: Employee) {
+		setEditTarget(employee);
+		setEditOpen(true);
 	}
 
 	const columns: DataTableColumn<Employee>[] = [
@@ -234,6 +243,15 @@ export function EmployeesView() {
 								<Eye className="size-4" />
 								View profile
 							</DropdownMenuItem>
+							{row.status !== "TERMINATED" && can("employee.update") ? (
+								<DropdownMenuItem
+									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
+									onSelect={() => openEdit(row)}
+								>
+									<Pencil className="size-4" />
+									Edit details
+								</DropdownMenuItem>
+							) : null}
 							{can("employee.update") ? (
 								<DropdownMenuItem
 									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
@@ -416,6 +434,8 @@ export function EmployeesView() {
 				open={statusOpen}
 				onOpenChange={setStatusOpen}
 			/>
+
+			<EmployeeEditDialog employee={editTarget} open={editOpen} onOpenChange={setEditOpen} />
 
 			<Dialog
 				open={pendingTerminate !== null}
