@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatDistanceToNowStrict } from "date-fns";
 import { Check, CheckCircle2, Loader2, X } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { UserAvatar } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/auth.hook";
 import { useApproveSubmission, useSubmissions } from "@/hooks/submission.hook";
-import { formatDay } from "@/lib/utils";
+import { formatDay, timeAgo } from "@/lib/utils";
 import type { Submission } from "@/types/submission.type";
 import { RejectSubmissionDialog } from "./reject-submission-dialog";
 
@@ -86,7 +85,7 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 									<p className="text-[11px] text-[#94A3B8] tabular-nums">
 										Worked {formatDay(new Date(submission.workDate))} · submitted{" "}
 										<time dateTime={submission.createdAt}>
-											{formatDistanceToNowStrict(new Date(submission.createdAt), { addSuffix: true })}
+											{timeAgo(submission.createdAt)}
 										</time>
 									</p>
 								</div>

@@ -30,7 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, PageHeader, SearchInput } from "@/components/shared";
 import { DepartmentFormDialog } from "@/components/departments/department-form-dialog";
 import { DepartmentMembersSheet } from "@/components/departments/department-members-sheet";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan } from "@/hooks/auth.hook";
 import { useDeleteDepartment, useDepartments } from "@/hooks/department.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatDate } from "@/lib/utils";
@@ -42,8 +42,7 @@ export function DepartmentsView() {
 	const { get, apply } = useUrlFilters();
 	const search = get("search").trim().toLowerCase();
 
-	const { data: me } = useGetMe();
-	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+	const can = useCan();
 
 	const { data: departments = [], isLoading, isError, refetch } = useDepartments();
 	const deleteDepartment = useDeleteDepartment();

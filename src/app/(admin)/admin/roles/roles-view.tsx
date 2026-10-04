@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, PageHeader } from "@/components/shared";
 import { PermissionEditor } from "@/components/roles/permission-editor";
 import { RoleFormDialog } from "@/components/roles/role-form-dialog";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan, useGetMe } from "@/hooks/auth.hook";
 import { useDeleteRole, useRoles } from "@/hooks/role.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { cn, formatRoleName } from "@/lib/utils";
@@ -36,7 +36,7 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
 export function RolesView() {
 	const { get, apply } = useUrlFilters();
 	const { data: me } = useGetMe();
-	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+	const can = useCan();
 
 	const { data: roles = [], isLoading, isError, refetch } = useRoles();
 	const deleteRole = useDeleteRole();

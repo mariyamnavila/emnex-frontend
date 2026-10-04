@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api";
+import { api, ApiError, errorMessage } from "@/lib/api";
 import { useSession } from "@/providers/session.provider";
 import type {
   LoginFormValues,
@@ -42,9 +42,6 @@ export const getHomePath = (role: string): string => {
   if (role === "FINANCE_MANAGER") return "/finance";
   return "/dashboard";
 };
-
-const errorMessage = (error: Error, fallback: string) =>
-  error instanceof ApiError ? error.message : fallback;
 
 // Only these mean "logged out" (no/expired session, blocked or terminated user).
 // Network errors, 429 and 5xx must NOT log the user out.
@@ -124,6 +121,12 @@ export function useCurrentUser() {
     /** null until /auth/me answers */
     permissions: me?.permissions ?? null,
   };
+}
+
+/** `can("payroll.approve")` — false until /auth/me answers */
+export function useCan() {
+  const { data: me } = useGetMe();
+  return (permission: string) => me?.permissions.includes(permission) ?? false;
 }
 
 export function useLogout() {

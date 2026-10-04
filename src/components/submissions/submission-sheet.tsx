@@ -1,15 +1,11 @@
 "use client";
 
-import { formatDistanceToNowStrict } from "date-fns";
 import { Check, Loader2, X } from "lucide-react";
 import { StatusBadge, UserAvatar } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { formatDay } from "@/lib/utils";
+import { formatDateTime, formatDay, timeAgo } from "@/lib/utils";
 import type { Submission } from "@/types/submission.type";
-
-const exactTime = (iso: string) =>
-	new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
@@ -88,16 +84,16 @@ export function SubmissionSheet({
 								{submission.task.project ? <Row label="Project">{submission.task.project.name}</Row> : null}
 								<Row label="Submitted">
 									<time dateTime={submission.createdAt} className="tabular-nums">
-										{exactTime(submission.createdAt)}
+										{formatDateTime(submission.createdAt)}
 									</time>
 									<span className="block text-xs text-[#64748B] dark:text-[#94A3B8]">
-										{formatDistanceToNowStrict(new Date(submission.createdAt), { addSuffix: true })}
+										{timeAgo(submission.createdAt)}
 									</span>
 								</Row>
 								{submission.reviewedAt ? (
 									<Row label={submission.status === "REJECTED" ? "Rejected" : "Approved"}>
 										<time dateTime={submission.reviewedAt} className="tabular-nums">
-											{exactTime(submission.reviewedAt)}
+											{formatDateTime(submission.reviewedAt)}
 										</time>
 										{reviewerName ? (
 											<span className="block text-xs text-[#64748B] dark:text-[#94A3B8]">by {reviewerName}</span>

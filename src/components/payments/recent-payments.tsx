@@ -1,15 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNowStrict } from "date-fns";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { StatusBadge, UserAvatar } from "@/components/shared";
 import { usePayments } from "@/hooks/payment.hook";
 import { formatCurrency } from "@/lib/pay";
-
-// Payroll periods are UTC midnight
-const formatPeriod = (iso: string) =>
-	new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+import { formatMonth, timeAgo } from "@/lib/utils";
 
 export function RecentPayments({ className }: { className?: string }) {
 	const { data, isLoading, isError } = usePayments({ limit: 5 });
@@ -42,9 +38,9 @@ export function RecentPayments({ className }: { className?: string }) {
 								{payment.employee.user.name}
 							</p>
 							<p className="truncate text-xs text-[#64748B] dark:text-[#94A3B8]">
-								{formatPeriod(payment.payroll.periodStart)} payroll ·{" "}
+								{formatMonth(payment.payroll.periodStart)} payroll ·{" "}
 								<time dateTime={payment.updatedAt}>
-									{formatDistanceToNowStrict(new Date(payment.updatedAt), { addSuffix: true })}
+									{timeAgo(payment.updatedAt)}
 								</time>
 							</p>
 						</div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { formatDistanceToNowStrict } from "date-fns";
 import { ChevronRight, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,15 +28,12 @@ import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { AUDIT_ACTION_GROUPS, describeAction, entityLabel } from "@/lib/audit";
 import type { AuditLog } from "@/types/audit-log.type";
+import { formatDateTime, timeAgo } from "@/lib/utils";
 
 const ALL = "__all__";
 const triggerClass =
 	"h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] @xl:w-48 dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white";
 const contentClass = "border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]";
-
-const timeAgo = (iso: string) => formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
-const exactTime = (iso: string) =>
-	new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 
 export function AuditLogsView() {
 	const { get, apply, page } = useUrlFilters();
@@ -118,10 +114,10 @@ export function AuditLogsView() {
 			headerClassName: "hidden @lg:table-cell",
 			className: "hidden @lg:table-cell whitespace-nowrap",
 			cell: (row) => (
-				<time dateTime={row.createdAt} title={exactTime(row.createdAt)}>
+				<time dateTime={row.createdAt} title={formatDateTime(row.createdAt)}>
 					<span className="block text-sm text-[#0F172A] dark:text-white">{timeAgo(row.createdAt)}</span>
 					<span className="block text-xs text-[#64748B] tabular-nums dark:text-[#94A3B8]">
-						{exactTime(row.createdAt)}
+						{formatDateTime(row.createdAt)}
 					</span>
 				</time>
 			),

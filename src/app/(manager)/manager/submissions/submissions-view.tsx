@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { formatDistanceToNowStrict } from "date-fns";
 import { Check, ChevronRight, ClipboardCheck, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,7 +20,7 @@ import { useCurrentUser } from "@/hooks/auth.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useApproveSubmission, useSubmissions } from "@/hooks/submission.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
-import { formatDay } from "@/lib/utils";
+import { formatDay, timeAgo } from "@/lib/utils";
 import type { Submission, SubmissionStatus } from "@/types/submission.type";
 
 // No ?status= means the review queue; "ALL" shows every status
@@ -32,8 +31,6 @@ const STATUS_TABS: { value: SubmissionStatus | "ALL"; label: string }[] = [
 	{ value: "ALL", label: "All" },
 ];
 const ALL_EMPLOYEES = "__all__";
-
-const timeAgo = (iso: string) => formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
 
 export function SubmissionsView() {
 	const { get, apply, page } = useUrlFilters();

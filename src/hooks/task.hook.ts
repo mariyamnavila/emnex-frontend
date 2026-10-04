@@ -3,14 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatStatus } from "@/components/shared";
-import { api, ApiError } from "@/lib/api";
+import { api, errorMessage } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type { ApiSubmission, Submission } from "@/types/submission.type";
 import type { ApiBoardTask, ApiTask, BoardTask, TaskStatus } from "@/types/task.type";
 import type { TaskFormValues } from "@/validation/task.validation";
-
-const errorMessage = (error: Error, fallback: string) =>
-	error instanceof ApiError ? error.message : fallback;
 
 export interface TaskBoardParams {
 	search?: string;

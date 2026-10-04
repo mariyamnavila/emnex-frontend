@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api";
+import { api, errorMessage } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type {
 	ApiEmployee,
@@ -47,9 +47,6 @@ const buildQuery = (params: EmployeeListParams) => {
 	const str = query.toString();
 	return str ? `?${str}` : "";
 };
-
-const errorMessage = (error: Error, fallback: string) =>
-	error instanceof ApiError ? error.message : fallback;
 
 // Decimal strings ("4000") → numbers, once, so every screen can do math/formatting
 const normalizePay = <T extends Employee>(raw: ApiEmployee<T>): T =>

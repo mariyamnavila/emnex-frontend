@@ -26,6 +26,10 @@ export class ApiError extends Error {
   }
 }
 
+// The API's message for toasts, or a fallback for network/unknown errors
+export const errorMessage = (error: Error, fallback: string) =>
+  error instanceof ApiError ? error.message : fallback;
+
 // A 401 on these means "wrong credentials", not "session expired" → never refresh
 const NO_REFRESH_PATHS = [
   "/auth/login",

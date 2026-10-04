@@ -1,12 +1,12 @@
 "use client";
 
-import { formatDistanceToNowStrict } from "date-fns";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { UserAvatar } from "@/components/shared";
 import { entityLabel } from "@/lib/audit";
 import type { AuditLog } from "@/types/audit-log.type";
 import { ActionBadge } from "./action-badge";
 import { AuditMetadata, AuditSummary, Row } from "./audit-metadata";
+import { formatDateTime, timeAgo } from "@/lib/utils";
 
 interface AuditLogSheetProps {
 	log: AuditLog | null;
@@ -44,13 +44,10 @@ export function AuditLogSheet({ log, open, onOpenChange }: AuditLogSheetProps) {
 						<dl className="divide-y divide-[#F1F5F9] border-y border-[#F1F5F9] dark:divide-[#1E293B] dark:border-[#1E293B]">
 							<Row label="When">
 								<time dateTime={log.createdAt} className="tabular-nums">
-									{new Date(log.createdAt).toLocaleString("en-US", {
-										dateStyle: "medium",
-										timeStyle: "medium",
-									})}
+									{formatDateTime(log.createdAt, { seconds: true })}
 								</time>
 								<span className="block text-xs text-[#64748B] dark:text-[#94A3B8]">
-									{formatDistanceToNowStrict(new Date(log.createdAt), { addSuffix: true })}
+									{timeAgo(log.createdAt)}
 								</span>
 							</Row>
 							<Row label="Record">{entityLabel(log.entity)}</Row>

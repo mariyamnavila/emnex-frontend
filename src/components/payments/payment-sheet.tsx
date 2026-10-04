@@ -1,18 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { formatDistanceToNowStrict } from "date-fns";
 import { Check, Copy, CreditCard, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge, UserAvatar } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCurrency } from "@/lib/pay";
-import { formatDay } from "@/lib/utils";
+import { formatDateTime, formatDay, timeAgo } from "@/lib/utils";
 import type { Payment } from "@/types/payment.type";
-
-const exactTime = (iso: string) =>
-	new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
 	return (
@@ -120,15 +116,15 @@ export function PaymentSheet({ payment, open, onOpenChange, canRetry, isRetrying
 								</Row>
 								<Row label="Started">
 									<time dateTime={payment.createdAt} className="tabular-nums">
-										{exactTime(payment.createdAt)}
+										{formatDateTime(payment.createdAt)}
 									</time>
 								</Row>
 								<Row label="Last update">
 									<time dateTime={payment.updatedAt} className="tabular-nums">
-										{exactTime(payment.updatedAt)}
+										{formatDateTime(payment.updatedAt)}
 									</time>
 									<span className="block text-xs text-[#64748B] dark:text-[#94A3B8]">
-										{formatDistanceToNowStrict(new Date(payment.updatedAt), { addSuffix: true })}
+										{timeAgo(payment.updatedAt)}
 									</span>
 								</Row>
 							</dl>

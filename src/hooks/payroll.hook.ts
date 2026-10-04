@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api";
+import { api, errorMessage } from "@/lib/api";
 import type { Payroll } from "@/types/payroll.type";
 import type { GeneratePayrollValues } from "@/validation/payroll.validation";
 
@@ -11,9 +11,6 @@ export interface PayrollListParams {
 	status?: string;
 	employeeId?: string;
 }
-
-const errorMessage = (error: Error, fallback: string) =>
-	error instanceof ApiError ? error.message : fallback;
 
 // "2026-10" → whole month in UTC, last day included up to 23:59:59.999
 export function monthToRange(period: string) {

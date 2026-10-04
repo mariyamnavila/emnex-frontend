@@ -48,7 +48,7 @@ import {
 import { AssignTaskDialog } from "@/components/projects/assign-task-dialog";
 import { ProjectFormDialog } from "@/components/projects/project-form-dialog";
 import { TaskFormDialog } from "@/components/projects/task-form-dialog";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan } from "@/hooks/auth.hook";
 import { useProject } from "@/hooks/project.hook";
 import { useDeleteTask, useUpdateTaskStatus } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -84,8 +84,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 	const { get, apply } = useUrlFilters();
 	const statusFilter = get("status");
 
-	const { data: me } = useGetMe();
-	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+	const can = useCan();
 
 	const { data: project, isLoading, error, refetch } = useProject(id);
 	const updateStatus = useUpdateTaskStatus();

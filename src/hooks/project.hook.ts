@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api";
+import { api, errorMessage } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type {
 	ApiProject,
@@ -17,9 +17,6 @@ export interface ProjectListParams {
 	search?: string;
 	status?: string;
 }
-
-const errorMessage = (error: Error, fallback: string) =>
-	error instanceof ApiError ? error.message : fallback;
 
 const normalizeProject = (raw: ApiProject): Project => ({
 	...raw,

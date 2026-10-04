@@ -8,22 +8,16 @@ import { RecentPayments } from "@/components/payments/recent-payments";
 import { usePaymentAnalytics, usePayrollAnalytics } from "@/hooks/analytics.hook";
 import { statusDonutOptions } from "@/lib/chart-theme";
 import { formatCurrency } from "@/lib/pay";
+import { sumByStatus } from "@/lib/utils";
 
 export function FinanceOverview() {
 	const payroll = usePayrollAnalytics();
 	const payments = usePaymentAnalytics();
 
-	const sumStatuses = (statuses: string[]) => {
-		const items = payroll.data?.byStatus.filter((item) => statuses.includes(item.status)) ?? [];
-		return {
-			count: items.reduce((sum, item) => sum + item._count, 0),
-			amount: items.reduce((sum, item) => sum + item.totalAmount, 0),
-		};
-	};
-	const awaiting = sumStatuses(["DRAFT", "GENERATED"]);
-	const approved = sumStatuses(["APPROVED"]);
+	const awaiting = sumByStatus(payroll.data?.byStatus, ["DRAFT", "GENERATED"]);
+	const approved = sumByStatus(payroll.data?.byStatus, ["APPROVED"]);
 	const paymentStatuses = payments.data?.byStatus ?? [];
-	const failed = paymentStatuses.find((item) => item.status === "FAILED")?._count ?? 0;
+	const failed = sumByStatus(paymentStatuses, ["FAILED"]).count;
 
 	return (
 		<div className="space-y-6">

@@ -2,12 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { api, ApiError } from "@/lib/api";
+import { api, errorMessage } from "@/lib/api";
 import type { ApiEmployee, Department } from "@/types/employee.type";
 import type { DepartmentFormValues } from "@/validation/department.validation";
-
-const errorMessage = (error: Error, fallback: string) =>
-	error instanceof ApiError ? error.message : fallback;
 
 
 export function useDepartments() {

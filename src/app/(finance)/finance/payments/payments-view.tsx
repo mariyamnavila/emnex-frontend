@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatDistanceToNowStrict } from "date-fns";
 import { AlertTriangle, BadgeCheck, CheckCircle2, ChevronRight, CreditCard, Hourglass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,12 +18,13 @@ import {
 } from "@/components/shared";
 import { PaymentSheet } from "@/components/payments/payment-sheet";
 import { usePaymentAnalytics, usePayrollAnalytics } from "@/hooks/analytics.hook";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan, useGetMe } from "@/hooks/auth.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { usePayments, useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
 import type { Payment, PaymentStatus } from "@/types/payment.type";
+import { formatMonth, sumByStatus, timeAgo } from "@/lib/utils";
 
 const STATUS_TABS: { value: PaymentStatus | ""; label: string }[] = [
 	{ value: "", label: "All" },
@@ -35,11 +35,6 @@ const STATUS_TABS: { value: PaymentStatus | ""; label: string }[] = [
 	{ value: "REFUNDED", label: "Refunded" },
 ];
 const ALL_EMPLOYEES = "__all__";
-
-// Payroll periods are UTC midnight
-const formatPeriod = (iso: string) =>
-	new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
-const timeAgo = (iso: string) => formatDistanceToNowStrict(new Date(iso), { addSuffix: true });
 
 export function PaymentsView() {
 	const { get, apply, page } = useUrlFilters();
@@ -52,6 +47,7 @@ export function PaymentsView() {
 	const payroll = usePayrollAnalytics();
 	const { data: employees = [] } = useEmployeeOptions();
 	const { data: me } = useGetMe();
+	const can = useCan();
 	const startCheckout = useStartCheckout();
 
 	const [selected, setSelected] = useState<Payment | null>(null);
@@ -60,20 +56,13 @@ export function PaymentsView() {
 	const rows = data?.rows ?? [];
 	const meta = data?.meta;
 
-	const byStatus = (statuses: PaymentStatus[]) => {
-		const items = analytics.data?.byStatus.filter((item) => statuses.includes(item.status as PaymentStatus)) ?? [];
-		return {
-			count: items.reduce((sum, item) => sum + item._count, 0),
-			amount: items.reduce((sum, item) => sum + item.totalAmount, 0),
-		};
-	};
-	const inProgress = byStatus(["PENDING", "PROCESSING"]);
-	const failed = byStatus(["FAILED"]);
-	const approved = payroll.data?.byStatus.find((item) => item.status === "APPROVED");
+	const inProgress = sumByStatus(analytics.data?.byStatus, ["PENDING", "PROCESSING"]);
+	const failed = sumByStatus(analytics.data?.byStatus, ["FAILED"]);
+	const approved = sumByStatus(payroll.data?.byStatus, ["APPROVED"]);
 
 	// Same rule as the backend: anything not completed can be retried while its payroll is approved
 	const canRetry = (payment: Payment) =>
-		(me?.permissions.includes("payment.create") ?? false) &&
+		can("payment.create") &&
 		payment.status !== "COMPLETED" &&
 		payment.status !== "REFUNDED" &&
 		payment.payroll.status === "APPROVED" &&
@@ -103,7 +92,7 @@ export function PaymentsView() {
 					<div className="min-w-0">
 						<p className="truncate font-medium text-[#0F172A] dark:text-white">{row.employee.user.name}</p>
 						<p className="truncate text-xs text-[#64748B] @2xl:hidden dark:text-[#94A3B8]">
-							{formatPeriod(row.payroll.periodStart)} payroll
+							{formatMonth(row.payroll.periodStart)} payroll
 						</p>
 						<p className="hidden truncate font-mono text-xs text-[#64748B] @2xl:block dark:text-[#94A3B8]">
 							{row.employee.employeeCode}
@@ -122,7 +111,7 @@ export function PaymentsView() {
 			className: "hidden @2xl:table-cell whitespace-nowrap",
 			cell: (row) => (
 				<div>
-					<p className="text-sm text-[#0F172A] dark:text-white">{formatPeriod(row.payroll.periodStart)}</p>
+					<p className="text-sm text-[#0F172A] dark:text-white">{formatMonth(row.payroll.periodStart)}</p>
 					<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
 						Payroll {row.payroll.status.toLowerCase()}
 					</p>
@@ -200,16 +189,16 @@ export function PaymentsView() {
 				<StatCard
 					title="Ready to pay"
 					isLoading={payroll.isLoading}
-					value={approved?._count ?? 0}
+					value={approved.count}
 					icon={BadgeCheck}
-					hint={`${formatCurrency(approved?.totalAmount ?? 0)} approved payroll`}
+					hint={`${formatCurrency(approved.amount)} approved payroll`}
 				/>
 			</div>
 
-			{(approved?._count ?? 0) > 0 ? (
+			{approved.count > 0 ? (
 				<div className="flex flex-col gap-3 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-[#1E3A5F] dark:bg-[#0B1120]">
 					<p className="text-sm text-[#1E3A8A] dark:text-[#BFDBFE]">
-						{approved?._count} approved payroll{approved?._count === 1 ? " is" : "s are"} waiting to be paid.
+						{approved.count} approved payroll{approved.count === 1 ? " is" : "s are"} waiting to be paid.
 					</p>
 					<Button asChild size="sm" className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]">
 						<Link href="/finance/payroll?status=APPROVED">
@@ -228,9 +217,7 @@ export function PaymentsView() {
 							...tab,
 							count: analytics.isLoading
 								? undefined
-								: tab.value
-									? byStatus([tab.value]).count
-									: (analytics.data?.byStatus.reduce((sum, item) => sum + item._count, 0) ?? 0),
+								: sumByStatus(analytics.data?.byStatus, tab.value ? [tab.value] : undefined).count,
 						}))}
 						value={status}
 						onChange={(value) => apply({ status: value || null })}

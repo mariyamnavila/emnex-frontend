@@ -1,3 +1,5 @@
+import { formatDistanceToNowStrict } from "date-fns";
+
 export { cn } from "cn";
 
 /**
@@ -21,6 +23,36 @@ export function formatDay(value: string | Date): string {
 		day: "numeric",
 		timeZone: "UTC",
 	});
+}
+
+/** "Jan 2026" for payroll periods (UTC midnight, so January never shows as December) */
+export function formatMonth(value: string | Date): string {
+	return new Date(value).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+}
+
+/** "Oct 4, 2026, 12:10 PM" (or with seconds) in the viewer's time zone */
+export function formatDateTime(value: string | Date, { seconds = false } = {}): string {
+	return new Date(value).toLocaleString("en-US", { dateStyle: "medium", timeStyle: seconds ? "medium" : "short" });
+}
+
+/** "3 days ago" */
+export function timeAgo(value: string | Date): string {
+	return formatDistanceToNowStrict(new Date(value), { addSuffix: true });
+}
+
+interface StatusTotal {
+	status: string;
+	_count: number;
+	totalAmount?: number;
+}
+
+/** Count and amount across some statuses of an analytics `byStatus` list (all statuses when none given) */
+export function sumByStatus(items: StatusTotal[] | undefined, statuses?: string[]) {
+	const picked = (items ?? []).filter((item) => !statuses || statuses.includes(item.status));
+	return {
+		count: picked.reduce((sum, item) => sum + item._count, 0),
+		amount: picked.reduce((sum, item) => sum + (item.totalAmount ?? 0), 0),
+	};
 }
 
 /** "October 5, 2026" — shared date format for every table/sheet/detail view. */

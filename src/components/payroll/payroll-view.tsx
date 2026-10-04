@@ -47,13 +47,13 @@ import {
 } from "@/components/shared";
 import { GeneratePayrollDialog } from "@/components/payroll/generate-payroll-dialog";
 import { usePayrollAnalytics } from "@/hooks/analytics.hook";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan, useGetMe } from "@/hooks/auth.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useApprovePayroll, usePayrolls, useRejectPayroll } from "@/hooks/payroll.hook";
 import { useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
-import { formatDay } from "@/lib/utils";
+import { formatDay, sumByStatus } from "@/lib/utils";
 import type { Payroll, PayrollStatus } from "@/types/payroll.type";
 
 const STATUS_TABS: { value: PayrollStatus | ""; label: string }[] = [
@@ -102,7 +102,7 @@ export function PayrollView() {
 	const hasFilters = Boolean(status || employeeId);
 
 	const { data: me } = useGetMe();
-	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+	const can = useCan();
 	// Finance managers are employees too; nobody approves or pays their own payroll
 	const isOwn = (payroll: Payroll) => payroll.employee.user.id === me?.id;
 
@@ -119,18 +119,9 @@ export function PayrollView() {
 	const rows = data?.rows ?? [];
 	const meta = data?.meta;
 
-	const statusTotals = (statuses: PayrollStatus[]) => {
-		const items = analytics?.byStatus.filter((item) =>
-			statuses.includes(item.status as PayrollStatus),
-		);
-		return {
-			count: items?.reduce((sum, item) => sum + item._count, 0) ?? 0,
-			amount: items?.reduce((sum, item) => sum + item.totalAmount, 0) ?? 0,
-		};
-	};
-	const awaiting = statusTotals(REVIEWABLE);
-	const approved = statusTotals(["APPROVED"]);
-	const paid = statusTotals(["PAID"]);
+	const awaiting = sumByStatus(analytics?.byStatus, REVIEWABLE);
+	const approved = sumByStatus(analytics?.byStatus, ["APPROVED"]);
+	const paid = sumByStatus(analytics?.byStatus, ["PAID"]);
 
 	const isActing =
 		approve.isPending || reject.isPending || startCheckout.isPending || startCheckout.isSuccess;

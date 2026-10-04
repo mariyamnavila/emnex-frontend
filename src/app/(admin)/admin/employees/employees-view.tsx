@@ -55,11 +55,11 @@ import {
 } from "@/hooks/employee.hook";
 import { useDepartments } from "@/hooks/department.hook";
 import { formatCurrency } from "@/lib/pay";
-import { formatDate } from "@/lib/utils";
+import { formatDate, sumByStatus } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";
 import { EmployeeDetailSheet } from "@/components/employees/employee-detail-sheet";
 import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan } from "@/hooks/auth.hook";
 
 const STATUS_TABS: { value: EmployeeStatus | ""; label: string }[] = [
 	{ value: "", label: "All" },
@@ -102,8 +102,7 @@ export function EmployeesView() {
 	const [statusTarget, setStatusTarget] = useState<Employee | null>(null);
 	const [statusOpen, setStatusOpen] = useState(false);
 
-	const { data: me } = useGetMe();
-	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+	const can = useCan();
 
 	const search = get("search");
 	const status = get("status");
@@ -127,8 +126,7 @@ export function EmployeesView() {
 	// Headcount by status for the stat cards
 	const countOf = (value: EmployeeStatus) =>
 		analytics?.byStatus.find((item) => item.status === value)?._count ?? 0;
-	const total =
-		analytics?.byStatus.reduce((sum, item) => sum + item._count, 0) ?? 0;
+	const total = sumByStatus(analytics?.byStatus).count;
 	const active = countOf("ACTIVE");
 	const onHold = countOf("INACTIVE") + countOf("SUSPENDED");
 	const terminated = countOf("TERMINATED");

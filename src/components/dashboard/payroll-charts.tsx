@@ -5,10 +5,7 @@ import { usePayrollAnalytics } from "@/hooks/analytics.hook";
 import { baseChartOptions, chartAxisLabelStyle, statusDonutOptions } from "@/lib/chart-theme";
 import { formatCompactCurrency, formatCurrency } from "@/lib/pay";
 import { ChartCard } from "./chart-card";
-
-// Payroll periods are stored as UTC midnight — format in UTC so "Jan" never shows as "Dec"
-const formatPeriod = (iso: string) =>
-	new Date(iso).toLocaleDateString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
+import { formatMonth } from "@/lib/utils";
 
 export function PayrollTrendChart({ className }: { className?: string }) {
 	const { data, isLoading, isError } = usePayrollAnalytics();
@@ -17,7 +14,7 @@ export function PayrollTrendChart({ className }: { className?: string }) {
 	const options = baseChartOptions({
 		plotOptions: { bar: { columnWidth: "45%", borderRadius: 4 } },
 		xaxis: {
-			categories: trend.map((item) => formatPeriod(item.period)),
+			categories: trend.map((item) => formatMonth(item.period)),
 			labels: { style: chartAxisLabelStyle },
 			axisBorder: { color: "#E2E8F0" },
 			axisTicks: { show: false },

@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, FilterTabs, PageHeader, SearchInput } from "@/components/shared";
 import { isTaskOverdue, TaskCard } from "@/components/tasks/task-card";
 import { TaskSheet } from "@/components/tasks/task-sheet";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan } from "@/hooks/auth.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useProjectOptions } from "@/hooks/project.hook";
 import { BOARD_LIMIT, useTaskBoard } from "@/hooks/task.hook";
@@ -56,8 +56,8 @@ export function TasksView() {
 	const { data, isLoading } = useTaskBoard({ search, projectId, employeeId, priority });
 	const { data: projects = [] } = useProjectOptions();
 	const { data: employees = [] } = useEmployeeOptions();
-	const { data: me } = useGetMe();
-	const canUpdateStatus = me?.permissions.includes("task.update") ?? false;
+	const can = useCan();
+	const canUpdateStatus = can("task.update");
 
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [snapshot, setSnapshot] = useState<BoardTask | null>(null);

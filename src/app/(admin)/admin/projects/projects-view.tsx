@@ -44,7 +44,7 @@ import {
 } from "@/components/shared";
 import { ProjectFormDialog } from "@/components/projects/project-form-dialog";
 import { useProjectAnalytics } from "@/hooks/analytics.hook";
-import { useGetMe } from "@/hooks/auth.hook";
+import { useCan } from "@/hooks/auth.hook";
 import { useDeleteProject, useProjects } from "@/hooks/project.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
@@ -88,8 +88,7 @@ export function ProjectsView() {
 	const status = get("status");
 	const hasFilters = Boolean(search || status);
 
-	const { data: me } = useGetMe();
-	const can = (permission: string) => me?.permissions.includes(permission) ?? false;
+	const can = useCan();
 
 	const { data, isLoading } = useProjects({ page, search, status });
 	const { data: analytics, isLoading: analyticsLoading } = useProjectAnalytics();

@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNowStrict } from "date-fns";
 import { describeAction, entityLabel } from "@/lib/audit";
 import { UserAvatar } from "@/components/shared";
 import { useRecentActivity } from "@/hooks/analytics.hook";
 import { ChartCard } from "./chart-card";
+import { timeAgo } from "@/lib/utils";
 
 export function RecentActivity({ className }: { className?: string }) {
 	const { data: logs = [], isLoading, isError } = useRecentActivity();
@@ -42,9 +42,7 @@ export function RecentActivity({ className }: { className?: string }) {
 							<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
 								{entityLabel(log.entity)} ·{" "}
 								<time dateTime={log.createdAt}>
-									{formatDistanceToNowStrict(new Date(log.createdAt), {
-										addSuffix: true,
-									})}
+									{timeAgo(log.createdAt)}
 								</time>
 							</p>
 						</div>
