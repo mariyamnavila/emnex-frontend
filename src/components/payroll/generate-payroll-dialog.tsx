@@ -213,7 +213,7 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 							>
 								<SelectValue placeholder={isLoading ? "Loading..." : "Choose an employee"} />
 							</SelectTrigger>
-							<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
+							<SelectContent>
 								{employees.map((employee) => (
 									<SelectItem key={employee.id} value={employee.id}>
 										{employee.user.name}

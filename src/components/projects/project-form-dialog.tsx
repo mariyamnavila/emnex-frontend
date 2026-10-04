@@ -183,7 +183,7 @@ function ProjectForm({ project, onDone }: { project: Project | null; onDone: () 
 									<SelectTrigger className={`h-10 w-full ${fieldClass}`}>
 										<SelectValue />
 									</SelectTrigger>
-									<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
+									<SelectContent>
 										{STATUSES.map((status) => (
 											<SelectItem key={status} value={status}>
 												{formatStatus(status)}

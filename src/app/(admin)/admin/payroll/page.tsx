@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { PayrollSkeleton } from "@/components/payroll/payroll-skeleton";
+import { PageSkeleton } from "@/components/shared";
 import { PayrollView } from "@/components/payroll/payroll-view";
 
 export const metadata: Metadata = { title: "Payroll" };
@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Payroll" };
 // URL filters (useSearchParams) need a Suspense boundary
 export default function PayrollPage() {
 	return (
-		<Suspense fallback={<PayrollSkeleton />}>
+		<Suspense fallback={<PageSkeleton stats />}>
 			<PayrollView />
 		</Suspense>
 	);

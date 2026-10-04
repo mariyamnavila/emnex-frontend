@@ -32,7 +32,6 @@ const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 
 const fieldClass =
 	"border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";
-const selectContentClass = "border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]";
 
 function FieldError({ message }: { message?: string }) {
 	return message ? <p className="text-xs text-[#DC2626]">{message}</p> : null;
@@ -133,7 +132,7 @@ function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void
 										placeholder={employeesLoading ? "Loading..." : "Choose an employee"}
 									/>
 								</SelectTrigger>
-								<SelectContent className={selectContentClass}>
+								<SelectContent>
 									{employees.map((employee) => (
 										<SelectItem key={employee.id} value={employee.id}>
 											{employee.user.name}
@@ -157,7 +156,7 @@ function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void
 								<SelectTrigger className={`h-10 w-full ${fieldClass}`}>
 									<SelectValue />
 								</SelectTrigger>
-								<SelectContent className={selectContentClass}>
+								<SelectContent>
 									{PRIORITIES.map((priority) => (
 										<SelectItem key={priority} value={priority}>
 											{formatStatus(priority)}

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { formatStatus } from "@/components/shared";
+import { formatStatus } from "@/components/shared/status-badge";
 import { api, errorMessage } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type { ApiSubmission, Submission } from "@/types/submission.type";

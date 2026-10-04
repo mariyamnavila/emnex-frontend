@@ -4,18 +4,10 @@ import { useState } from "react";
 import { ChevronRight, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
 	DataTable,
 	type DataTableColumn,
 	EmptyState,
+	FilterSelect,
 	PageHeader,
 	TablePagination,
 	UserAvatar,
@@ -30,10 +22,6 @@ import { AUDIT_ACTION_GROUPS, describeAction, entityLabel } from "@/lib/audit";
 import type { AuditLog } from "@/types/audit-log.type";
 import { formatDateTime, timeAgo } from "@/lib/utils";
 
-const ALL = "__all__";
-const triggerClass =
-	"h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] @xl:w-48 dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white";
-const contentClass = "border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]";
 
 export function AuditLogsView() {
 	const { get, apply, page } = useUrlFilters();
@@ -145,59 +133,42 @@ export function AuditLogsView() {
 
 			<section className="@container overflow-hidden rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
 				<div className="flex flex-col gap-2 border-b border-[#E2E8F0] p-4 @xl:flex-row @xl:flex-wrap @xl:items-center dark:border-[#1E293B]">
-					<Select
-						value={entity || ALL}
-						onValueChange={(value) =>
-							// A new entity can make the chosen action impossible, so reset it
-							apply({ entity: value === ALL ? null : value, action: null })
-						}
-					>
-						<SelectTrigger aria-label="Filter by record type" className={triggerClass}>
-							<SelectValue placeholder="All records" />
-						</SelectTrigger>
-						<SelectContent className={contentClass}>
-							<SelectItem value={ALL}>All records</SelectItem>
-							{AUDIT_ACTION_GROUPS.map((group) => (
-								<SelectItem key={group.entity} value={group.entity}>
-									{entityLabel(group.entity)}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-
-					<Select value={action || ALL} onValueChange={(value) => apply({ action: value === ALL ? null : value })}>
-						<SelectTrigger aria-label="Filter by action" className={triggerClass}>
-							<SelectValue placeholder="All actions" />
-						</SelectTrigger>
-						<SelectContent className={contentClass}>
-							<SelectItem value={ALL}>All actions</SelectItem>
-							{actionGroups.map((group) => (
-								<SelectGroup key={group.entity}>
-									<SelectLabel>{entityLabel(group.entity)}</SelectLabel>
-									{group.actions.map((item) => (
-										<SelectItem key={item} value={item}>
-											{describeAction(item).label}
-										</SelectItem>
-									))}
-								</SelectGroup>
-							))}
-						</SelectContent>
-					</Select>
-
-					<Select value={userId || ALL} onValueChange={(value) => apply({ userId: value === ALL ? null : value })}>
-						<SelectTrigger aria-label="Filter by person" className={triggerClass}>
-							<SelectValue placeholder="Everyone" />
-						</SelectTrigger>
-						<SelectContent className={contentClass}>
-							<SelectItem value={ALL}>Everyone</SelectItem>
-							{people.map((person) => (
-								<SelectItem key={person.id} value={person.id}>
+					<FilterSelect
+						label="Filter by record type"
+						allLabel="All records"
+						value={entity}
+						// A new entity can make the chosen action impossible, so reset it
+						onChange={(value) => apply({ entity: value, action: null })}
+						options={AUDIT_ACTION_GROUPS.map((group) => ({ value: group.entity, label: entityLabel(group.entity) }))}
+						className="@xl:w-48"
+					/>
+					<FilterSelect
+						label="Filter by action"
+						allLabel="All actions"
+						value={action}
+						onChange={(value) => apply({ action: value })}
+						groups={actionGroups.map((group) => ({
+							label: entityLabel(group.entity),
+							options: group.actions.map((item) => ({ value: item, label: describeAction(item).label })),
+						}))}
+						className="@xl:w-48"
+					/>
+					<FilterSelect
+						label="Filter by person"
+						allLabel="Everyone"
+						value={userId}
+						onChange={(value) => apply({ userId: value })}
+						options={people.map((person) => ({
+							value: person.id,
+							label: (
+								<>
 									{person.name}
 									{person.id === me?.id ? <span className="text-[#94A3B8]"> (you)</span> : null}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+								</>
+							),
+						}))}
+						className="@xl:w-48"
+					/>
 
 					{hasFilters ? (
 						<Button

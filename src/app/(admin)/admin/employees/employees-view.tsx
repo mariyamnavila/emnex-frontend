@@ -29,16 +29,10 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
 	DataTable,
 	type DataTableColumn,
 	EmptyState,
+	FilterSelect,
 	FilterTabs,
 	PageHeader,
 	SearchInput,
@@ -69,7 +63,6 @@ const STATUS_TABS: { value: EmployeeStatus | ""; label: string }[] = [
 	{ value: "TERMINATED", label: "Terminated" },
 ];
 
-const ALL_DEPARTMENTS = "__all__";
 
 // "$4,000.00 /mo" — right-aligned, tabular figures (theme.md §4)
 function PayCell({ employee }: { employee: Employee }) {
@@ -336,29 +329,14 @@ export function EmployeesView() {
 
 					<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
 						<SearchInput placeholder="Search name, email, code..." />
-						<Select
-							value={departmentId || ALL_DEPARTMENTS}
-							onValueChange={(value) =>
-								apply({
-									departmentId: value === ALL_DEPARTMENTS ? null : value,
-								})
-							}
-						>
-							<SelectTrigger
-								aria-label="Filter by department"
-								className="h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] sm:w-44 dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white"
-							>
-								<SelectValue placeholder="Department" />
-							</SelectTrigger>
-							<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
-								<SelectItem value={ALL_DEPARTMENTS}>All departments</SelectItem>
-								{departments.map((department) => (
-									<SelectItem key={department.id} value={department.id}>
-										{department.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						<FilterSelect
+							label="Filter by department"
+							allLabel="All departments"
+							value={departmentId}
+							onChange={(value) => apply({ departmentId: value })}
+							options={departments.map((department) => ({ value: department.id, label: department.name }))}
+							className="sm:w-44"
+						/>
 						{hasFilters ? (
 							<Button
 								variant="ghost"

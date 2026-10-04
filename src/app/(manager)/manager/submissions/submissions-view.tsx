@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { Check, ChevronRight, ClipboardCheck, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
 	DataTable,
 	type DataTableColumn,
+	EmployeeFilter,
 	EmptyState,
 	FilterTabs,
 	PageHeader,
@@ -30,7 +30,6 @@ const STATUS_TABS: { value: SubmissionStatus | "ALL"; label: string }[] = [
 	{ value: "REJECTED", label: "Rejected" },
 	{ value: "ALL", label: "All" },
 ];
-const ALL_EMPLOYEES = "__all__";
 
 export function SubmissionsView() {
 	const { get, apply, page } = useUrlFilters();
@@ -213,25 +212,11 @@ export function SubmissionsView() {
 						value={status}
 						onChange={(value) => apply({ status: value === "PENDING" ? null : value })}
 					/>
-					<Select
-						value={employeeId || ALL_EMPLOYEES}
-						onValueChange={(value) => apply({ employeeId: value === ALL_EMPLOYEES ? null : value })}
-					>
-						<SelectTrigger
-							aria-label="Filter by employee"
-							className="h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] @xl:w-52 dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white"
-						>
-							<SelectValue placeholder="All employees" />
-						</SelectTrigger>
-						<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
-							<SelectItem value={ALL_EMPLOYEES}>All employees</SelectItem>
-							{employees.map((employee) => (
-								<SelectItem key={employee.id} value={employee.id}>
-									{employee.user.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<EmployeeFilter
+						value={employeeId}
+						onChange={(value) => apply({ employeeId: value })}
+						className="@xl:w-52"
+					/>
 				</div>
 
 				{isQueue && rows.length > 0 ? (

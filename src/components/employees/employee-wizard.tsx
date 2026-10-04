@@ -12,7 +12,6 @@ import {
 	Loader2,
 	Send,
 } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -45,6 +44,8 @@ import {
 } from "@/hooks/employee.hook";
 import { useRoles } from "@/hooks/role.hook";
 import { useDepartments } from "@/hooks/department.hook";
+import { useCopy } from "@/hooks/use-copy";
+import { DetailList, DetailRow, SectionHeading } from "@/components/shared";
 import {
 	ESTIMATED_HOURS_PER_MONTH,
 	formatCurrency,
@@ -76,17 +77,6 @@ const NO_DEPARTMENT = "__none__";
 const inputClass =
 	"h-10 border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";
 
-function ReviewRow({ label, value }: { label: string; value: React.ReactNode }) {
-	return (
-		<div className="flex justify-between gap-4 py-2">
-			<dt className="text-[#64748B] dark:text-[#94A3B8]">{label}</dt>
-			<dd className="min-w-0 truncate text-right font-medium text-[#0F172A] dark:text-white">
-				{value}
-			</dd>
-		</div>
-	);
-}
-
 function FieldError({ message }: { message?: unknown }) {
 	if (typeof message !== "string" || !message) return null;
 	return <p className="text-xs text-[#DC2626]">{message}</p>;
@@ -94,6 +84,7 @@ function FieldError({ message }: { message?: unknown }) {
 
 export function EmployeeWizard() {
 	const router = useRouter();
+	const { copy } = useCopy();
 	const [step, setStep] = useState(1);
 	// Set after a successful create → opens the credentials dialog
 	const [created, setCreated] = useState<CreateEmployeeResult | null>(null);
@@ -151,15 +142,6 @@ export function EmployeeWizard() {
 			if (!parsed.success) return;
 		}
 		setStep(nextStep);
-	}
-
-	async function copyPassword(password: string) {
-		try {
-			await navigator.clipboard.writeText(password);
-			toast.success("Password copied");
-		} catch {
-			toast.error("Couldn't copy — select the password and copy it manually");
-		}
 	}
 
 	// Leaving the dialog (Done / Esc / outside click) returns to the list
@@ -319,7 +301,7 @@ export function EmployeeWizard() {
 									<SelectTrigger className={inputClass}>
 										<SelectValue placeholder="Select a role" />
 									</SelectTrigger>
-									<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
+									<SelectContent>
 										{roles.map((role) => (
 											<SelectItem key={role.id} value={role.id}>
 												{formatRoleName(role.name)}
@@ -340,7 +322,7 @@ export function EmployeeWizard() {
 									<SelectTrigger className={inputClass}>
 										<SelectValue placeholder="Select a department" />
 									</SelectTrigger>
-									<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
+									<SelectContent>
 										<SelectItem value={NO_DEPARTMENT}>
 											No department
 										</SelectItem>
@@ -518,43 +500,27 @@ export function EmployeeWizard() {
 						</div>
 
 						<div>
-							<h3 className="text-xs font-semibold tracking-wider text-[#64748B] uppercase dark:text-[#94A3B8]">
-								Review
-							</h3>
-							<dl className="mt-1 divide-y divide-[#F1F5F9] text-sm dark:divide-[#1E293B]">
-								<ReviewRow label="Name" value={values.name || "—"} />
-								<ReviewRow label="Email" value={values.email || "—"} />
-								<ReviewRow label="Job title" value={values.jobTitle || "—"} />
-								<ReviewRow
-									label="Role"
-									value={roleName ? formatRoleName(roleName) : "—"}
-								/>
-								<ReviewRow
-									label="Department"
-									value={departmentName ?? "No department"}
-								/>
-								<ReviewRow
-									label="Joining date"
-									// "T00:00:00" = read the picked date as local time, not UTC
-									value={
-										values.joiningDate
-											? formatDate(`${values.joiningDate}T00:00:00`)
-											: "—"
-									}
-								/>
-								<ReviewRow
-									label="Pay"
-									value={
-										pay ? (
-											<span className="tabular-nums">
-												{formatCurrency(pay.rate)} / {pay.unit}
-											</span>
-										) : (
-											"—"
-										)
-									}
-								/>
-							</dl>
+							<SectionHeading>Review</SectionHeading>
+							<DetailList bordered={false} className="mt-1">
+								<DetailRow variant="split" label="Name">{values.name || "—"}</DetailRow>
+								<DetailRow variant="split" label="Email">{values.email || "—"}</DetailRow>
+								<DetailRow variant="split" label="Job title">{values.jobTitle || "—"}</DetailRow>
+								<DetailRow variant="split" label="Role">{roleName ? formatRoleName(roleName) : "—"}</DetailRow>
+								<DetailRow variant="split" label="Department">{departmentName ?? "No department"}</DetailRow>
+								<DetailRow variant="split" label="Joining date">
+									{/* "T00:00:00" = read the picked date as local time, not UTC */}
+									{values.joiningDate ? formatDate(`${values.joiningDate}T00:00:00`) : "—"}
+								</DetailRow>
+								<DetailRow variant="split" label="Pay">
+									{pay ? (
+										<span className="tabular-nums">
+											{formatCurrency(pay.rate)} / {pay.unit}
+										</span>
+									) : (
+										"—"
+									)}
+								</DetailRow>
+							</DetailList>
 						</div>
 					</div>
 				) : null}
@@ -656,7 +622,7 @@ export function EmployeeWizard() {
 										size="icon"
 										aria-label="Copy temporary password"
 										className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
-										onClick={() => void copyPassword(created.temporaryPassword)}
+										onClick={() => void copy(created.temporaryPassword, "Password copied")}
 									>
 										<Copy className="size-4" />
 									</Button>

@@ -27,15 +27,9 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import {
 	DataTable,
 	type DataTableColumn,
+	EmployeeFilter,
 	EmptyState,
 	FilterTabs,
 	formatStatus,
@@ -48,7 +42,6 @@ import {
 import { GeneratePayrollDialog } from "@/components/payroll/generate-payroll-dialog";
 import { usePayrollAnalytics } from "@/hooks/analytics.hook";
 import { useCan, useGetMe } from "@/hooks/auth.hook";
-import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useApprovePayroll, usePayrolls, useRejectPayroll } from "@/hooks/payroll.hook";
 import { useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -66,7 +59,6 @@ const STATUS_TABS: { value: PayrollStatus | ""; label: string }[] = [
 ];
 
 const REVIEWABLE: PayrollStatus[] = ["DRAFT", "GENERATED"];
-const ALL_EMPLOYEES = "__all__";
 
 type PendingAction = { payroll: Payroll; action: "approve" | "reject" | "pay" };
 
@@ -108,7 +100,6 @@ export function PayrollView() {
 
 	const { data, isLoading } = usePayrolls({ page, status, employeeId });
 	const { data: analytics, isLoading: analyticsLoading } = usePayrollAnalytics();
-	const { data: employees = [] } = useEmployeeOptions();
 	const approve = useApprovePayroll();
 	const reject = useRejectPayroll();
 	const startCheckout = useStartCheckout();
@@ -333,27 +324,11 @@ export function PayrollView() {
 						value={status}
 						onChange={(value) => apply({ status: value || null })}
 					/>
-					<Select
-						value={employeeId || ALL_EMPLOYEES}
-						onValueChange={(value) =>
-							apply({ employeeId: value === ALL_EMPLOYEES ? null : value })
-						}
-					>
-						<SelectTrigger
-							aria-label="Filter by employee"
-							className="h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] sm:w-56 dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white"
-						>
-							<SelectValue placeholder="Employee" />
-						</SelectTrigger>
-						<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
-							<SelectItem value={ALL_EMPLOYEES}>All employees</SelectItem>
-							{employees.map((employee) => (
-								<SelectItem key={employee.id} value={employee.id}>
-									{employee.user.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<EmployeeFilter
+						value={employeeId}
+						onChange={(value) => apply({ employeeId: value })}
+						className="sm:w-56"
+					/>
 				</div>
 
 				<DataTable

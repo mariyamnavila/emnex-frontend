@@ -61,7 +61,7 @@ function AssignForm({ task, onDone }: { task: Task; onDone: () => void }) {
 					<SelectTrigger className="h-10 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white">
 						<SelectValue placeholder={isLoading ? "Loading..." : "Choose an employee"} />
 					</SelectTrigger>
-					<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
+					<SelectContent>
 						{employees.map((employee) => (
 							<SelectItem key={employee.id} value={employee.id}>
 								{employee.user.name}

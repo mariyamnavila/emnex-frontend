@@ -3,13 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState, FilterTabs, PageHeader, SearchInput } from "@/components/shared";
+import { EmployeeFilter, EmptyState, FilterSelect, FilterTabs, PageHeader, SearchInput } from "@/components/shared";
 import { isTaskOverdue, TaskCard } from "@/components/tasks/task-card";
 import { TaskSheet } from "@/components/tasks/task-sheet";
 import { useCan } from "@/hooks/auth.hook";
-import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useProjectOptions } from "@/hooks/project.hook";
 import { BOARD_LIMIT, useTaskBoard } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -33,14 +31,6 @@ const PRIORITIES: { value: TaskPriority; label: string }[] = [
 	{ value: "LOW", label: "Low" },
 ];
 
-const ALL = "__all__";
-const STATUS_OPTIONS: { value: TaskStatus | typeof ALL; label: string }[] = [
-	{ value: ALL, label: "All statuses" },
-	...COLUMNS.map((column) => ({ value: column.status, label: column.label })),
-];
-const triggerClass =
-	"h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white";
-const contentClass = "border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]";
 const bone = "bg-[#E2E8F0]/60 dark:bg-[#1E293B]";
 
 export function TasksView() {
@@ -55,7 +45,6 @@ export function TasksView() {
 	// Status is filtered here, not by the API, so every tab can show its count
 	const { data, isLoading } = useTaskBoard({ search, projectId, employeeId, priority });
 	const { data: projects = [] } = useProjectOptions();
-	const { data: employees = [] } = useEmployeeOptions();
 	const can = useCan();
 	const canUpdateStatus = can("task.update");
 
@@ -70,6 +59,18 @@ export function TasksView() {
 	const inReview = tasks.filter((task) => task.status === "SUBMITTED").length;
 	const byStatus = (value: TaskStatus) => tasks.filter((task) => task.status === value);
 	const visibleColumns = status ? COLUMNS.filter((column) => column.status === status) : COLUMNS;
+	// Shared by the status tabs (wide) and the status dropdown (narrow)
+	const statusCounts = COLUMNS.map((column) => ({
+		value: column.status,
+		label: column.label,
+		count: isLoading ? undefined : byStatus(column.status).length,
+	}));
+	const withCount = (label: string, count?: number) => (
+		<>
+			{label}
+			{count === undefined ? null : <span className="text-[#94A3B8] tabular-nums"> · {count}</span>}
+		</>
+	);
 
 	function openTask(task: BoardTask) {
 		setSelectedId(task.id);
@@ -111,80 +112,44 @@ export function TasksView() {
 			<section className="@container min-w-0 max-w-full space-y-4">
 				<div className="grid grid-cols-1 gap-2 rounded-lg border border-[#E2E8F0] bg-white p-3 shadow-2xs @md:grid-cols-2 @md:p-4 @5xl:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] dark:border-[#1E293B] dark:bg-[#0F172A]">
 					<SearchInput placeholder="Search tasks..." className="w-full sm:w-full" />
-					<Select value={projectId || ALL} onValueChange={(value) => apply({ projectId: value === ALL ? null : value })}>
-						<SelectTrigger aria-label="Filter by project" className={triggerClass}>
-							<SelectValue placeholder="All projects" />
-						</SelectTrigger>
-						<SelectContent className={contentClass}>
-							<SelectItem value={ALL}>All projects</SelectItem>
-							{projects.map((project) => (
-								<SelectItem key={project.id} value={project.id}>
-									{project.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					<Select value={employeeId || ALL} onValueChange={(value) => apply({ employeeId: value === ALL ? null : value })}>
-						<SelectTrigger aria-label="Filter by assignee" className={triggerClass}>
-							<SelectValue placeholder="Everyone" />
-						</SelectTrigger>
-						<SelectContent className={contentClass}>
-							<SelectItem value={ALL}>Everyone</SelectItem>
-							{employees.map((employee) => (
-								<SelectItem key={employee.id} value={employee.id}>
-									{employee.user.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-					<Select value={priority || ALL} onValueChange={(value) => apply({ priority: value === ALL ? null : value })}>
-						<SelectTrigger aria-label="Filter by priority" className={triggerClass}>
-							<SelectValue placeholder="Any priority" />
-						</SelectTrigger>
-						<SelectContent className={contentClass}>
-							<SelectItem value={ALL}>Any priority</SelectItem>
-							{PRIORITIES.map((item) => (
-								<SelectItem key={item.value} value={item.value}>
-									{item.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<FilterSelect
+						label="Filter by project"
+						allLabel="All projects"
+						value={projectId}
+						onChange={(value) => apply({ projectId: value })}
+						options={projects.map((project) => ({ value: project.id, label: project.name }))}
+					/>
+					<EmployeeFilter
+						label="Filter by assignee"
+						allLabel="Everyone"
+						value={employeeId}
+						onChange={(value) => apply({ employeeId: value })}
+					/>
+					<FilterSelect
+						label="Filter by priority"
+						allLabel="Any priority"
+						value={priority}
+						onChange={(value) => apply({ priority: value })}
+						options={PRIORITIES}
+					/>
 				</div>
 
 				<div className="flex flex-col gap-3 @5xl:flex-row @5xl:items-center @5xl:justify-between">
 					{/* Narrow: a dropdown, so no status is ever hidden. Wide: one row of tabs that fits */}
-					<Select value={status || ALL} onValueChange={(value) => apply({ status: value === ALL ? null : value })}>
-						<SelectTrigger aria-label="Filter by status" className={cn(triggerClass, "@2xl:hidden")}>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent className={contentClass}>
-							{STATUS_OPTIONS.map((option) => (
-								<SelectItem key={option.value} value={option.value}>
-									{option.label}
-									{isLoading ? null : (
-										<span className="text-[#94A3B8] tabular-nums">
-											{" "}
-											· {option.value === ALL ? tasks.length : byStatus(option.value).length}
-										</span>
-									)}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<FilterSelect
+						label="Filter by status"
+						allLabel={withCount("All statuses", isLoading ? undefined : tasks.length)}
+						value={status}
+						onChange={(value) => apply({ status: value })}
+						options={statusCounts.map((item) => ({ value: item.value, label: withCount(item.label, item.count) }))}
+						className="@2xl:hidden"
+					/>
 					<FilterTabs
 						label="Filter by status"
 						value={status}
 						onChange={(value) => apply({ status: value || null })}
 						className="hidden flex-nowrap @2xl:inline-flex"
-						tabs={[
-							{ value: "", label: "All", count: isLoading ? undefined : tasks.length },
-							...COLUMNS.map((column) => ({
-								value: column.status,
-								label: column.label,
-								count: isLoading ? undefined : byStatus(column.status).length,
-							})),
-						]}
+						tabs={[{ value: "", label: "All", count: isLoading ? undefined : tasks.length }, ...statusCounts]}
 					/>
 					{!isLoading && (tasks.length > 0 || hasFilters) ? (
 						<div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B] tabular-nums @5xl:shrink-0 dark:text-[#94A3B8]">

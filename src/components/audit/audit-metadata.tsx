@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { ArrowRight, Check, Copy } from "lucide-react";
-import { toast } from "sonner";
-import { StatusBadge, formatStatus } from "@/components/shared";
+import { DetailList, DetailRow, formatStatus, SectionHeading, StatusBadge } from "@/components/shared";
 import { useDepartments } from "@/hooks/department.hook";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { usePermissions, useRoles } from "@/hooks/role.hook";
+import { useCopy } from "@/hooks/use-copy";
 import { describeAction } from "@/lib/audit";
 import { formatCurrency, toAmount } from "@/lib/pay";
 import { cn, formatDay, formatRoleName } from "@/lib/utils";
@@ -118,20 +118,12 @@ export function AuditSummary({ log }: { log: AuditLog }) {
 }
 
 function ShortId({ id }: { id: string }) {
-	const [copied, setCopied] = useState(false);
+	const { copied, copy } = useCopy();
 	return (
 		<button
 			type="button"
 			title={`${id} — click to copy`}
-			onClick={async () => {
-				try {
-					await navigator.clipboard.writeText(id);
-					setCopied(true);
-					setTimeout(() => setCopied(false), 1500);
-				} catch {
-					toast.error("Couldn't copy");
-				}
-			}}
+			onClick={() => copy(id)}
 			className="inline-flex items-center gap-1 rounded border border-[#E2E8F0] bg-[#F8FAFC] px-1.5 py-0.5 font-mono text-[11px] text-[#334155] hover:border-[#CBD5E1] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-[#CBD5E1]"
 		>
 			#{id.slice(0, 8)}
@@ -233,21 +225,6 @@ function Chips({
 	);
 }
 
-export function Row({ label, children }: { label: string; children: React.ReactNode }) {
-	return (
-		<div className="grid grid-cols-[120px_minmax(0,1fr)] gap-3 py-2.5 text-sm">
-			<dt className="text-[#64748B] dark:text-[#94A3B8]">{label}</dt>
-			<dd className="min-w-0 text-[#0F172A] dark:text-white">{children}</dd>
-		</div>
-	);
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-	return (
-		<h3 className="text-xs font-semibold tracking-wider text-[#64748B] uppercase dark:text-[#94A3B8]">{children}</h3>
-	);
-}
-
 export function AuditMetadata({ log }: { log: AuditLog }) {
 	const lookups = useLookups();
 	const metadata: Metadata = log.metadata ?? {};
@@ -270,7 +247,7 @@ export function AuditMetadata({ log }: { log: AuditLog }) {
 		<div className="space-y-6">
 			{hasTransition ? (
 				<div className="space-y-2">
-					<SectionTitle>Change</SectionTitle>
+					<SectionHeading>Change</SectionHeading>
 					<p className="flex flex-wrap items-center gap-2 text-sm">
 						<Value name="from" value={metadata.from} />
 						<ArrowRight className="size-4 text-[#94A3B8]" aria-hidden="true" />
@@ -281,7 +258,7 @@ export function AuditMetadata({ log }: { log: AuditLog }) {
 
 			{changes.length > 0 ? (
 				<div className="space-y-2">
-					<SectionTitle>What changed</SectionTitle>
+					<SectionHeading>What changed</SectionHeading>
 					<div className="overflow-hidden rounded-lg border border-[#E2E8F0] dark:border-[#1E293B]">
 						{changes.map(([field, change]) => {
 							const long = [change?.from, change?.to].some((v) => typeof v === "string" && v.length > 24);
@@ -309,7 +286,7 @@ export function AuditMetadata({ log }: { log: AuditLog }) {
 
 			{added || removed ? (
 				<div className="space-y-3">
-					<SectionTitle>Permissions</SectionTitle>
+					<SectionHeading>Permissions</SectionHeading>
 					<dl className="space-y-3 text-sm">
 						{added?.length || !removed?.length ? (
 							<div>
@@ -333,17 +310,17 @@ export function AuditMetadata({ log }: { log: AuditLog }) {
 
 			{rest.length > 0 ? (
 				<div>
-					<SectionTitle>Details</SectionTitle>
-					<dl className="mt-1 divide-y divide-[#F1F5F9] dark:divide-[#1E293B]">
+					<SectionHeading>Details</SectionHeading>
+					<DetailList bordered={false} className="mt-1">
 						{rest.map(([key, value]) => {
 							const lookup = lookupFor(key, lookups);
 							return (
-								<Row key={key} label={fieldLabel(key, value, lookup)}>
+								<DetailRow key={key} label={fieldLabel(key, value, lookup)}>
 									<Value name={key} value={value} lookup={lookup} />
-								</Row>
+								</DetailRow>
 							);
 						})}
-					</dl>
+					</DetailList>
 				</div>
 			) : null}
 

@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, BadgeCheck, CheckCircle2, ChevronRight, CreditCard, Hourglass } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
 	DataTable,
 	type DataTableColumn,
+	EmployeeFilter,
 	EmptyState,
 	FilterTabs,
 	PageHeader,
@@ -19,7 +19,6 @@ import {
 import { PaymentSheet } from "@/components/payments/payment-sheet";
 import { usePaymentAnalytics, usePayrollAnalytics } from "@/hooks/analytics.hook";
 import { useCan, useGetMe } from "@/hooks/auth.hook";
-import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { usePayments, useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
@@ -34,7 +33,6 @@ const STATUS_TABS: { value: PaymentStatus | ""; label: string }[] = [
 	{ value: "FAILED", label: "Failed" },
 	{ value: "REFUNDED", label: "Refunded" },
 ];
-const ALL_EMPLOYEES = "__all__";
 
 export function PaymentsView() {
 	const { get, apply, page } = useUrlFilters();
@@ -45,7 +43,6 @@ export function PaymentsView() {
 	const { data, isLoading } = usePayments({ page, status: status || undefined, employeeId: employeeId || undefined });
 	const analytics = usePaymentAnalytics();
 	const payroll = usePayrollAnalytics();
-	const { data: employees = [] } = useEmployeeOptions();
 	const { data: me } = useGetMe();
 	const can = useCan();
 	const startCheckout = useStartCheckout();
@@ -222,25 +219,11 @@ export function PaymentsView() {
 						value={status}
 						onChange={(value) => apply({ status: value || null })}
 					/>
-					<Select
-						value={employeeId || ALL_EMPLOYEES}
-						onValueChange={(value) => apply({ employeeId: value === ALL_EMPLOYEES ? null : value })}
-					>
-						<SelectTrigger
-							aria-label="Filter by employee"
-							className="h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] @2xl:w-56 dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white"
-						>
-							<SelectValue placeholder="All employees" />
-						</SelectTrigger>
-						<SelectContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
-							<SelectItem value={ALL_EMPLOYEES}>All employees</SelectItem>
-							{employees.map((employee) => (
-								<SelectItem key={employee.id} value={employee.id}>
-									{employee.user.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<EmployeeFilter
+						value={employeeId}
+						onChange={(value) => apply({ employeeId: value })}
+						className="@2xl:w-56"
+					/>
 				</div>
 
 				<DataTable
