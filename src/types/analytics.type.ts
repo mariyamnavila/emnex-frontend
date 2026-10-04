@@ -43,3 +43,10 @@ export interface ManagerDashboardStats {
 	pendingHours: number;
 	approvedHoursThisMonth: number;
 }
+
+// GET /analytics/payments
+export interface PaymentAnalytics {
+	byStatus: (StatusCount & { totalAmount: number })[];
+	completed: { totalAmount: number; count: number };
+	byGateway: { gateway: string; _count: number; totalAmount: number }[];
+}

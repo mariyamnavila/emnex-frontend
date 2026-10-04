@@ -266,7 +266,7 @@ export function TasksView() {
 							className={cn(
 								status
 									? "grid"
-									: "flex w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-3 focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:outline-none [scrollbar-width:thin]",
+									: "flex w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-3 focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:outline-none scrollbar-thin",
 							)}
 						>
 							{visibleColumns.map((column) => {

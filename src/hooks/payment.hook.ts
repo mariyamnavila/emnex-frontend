@@ -5,7 +5,7 @@ import { preconnect } from "react-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
-import type { CheckoutVerification, PendingCheckout } from "@/types/payment.type";
+import type { CheckoutVerification, Payment, PaymentStatus, PendingCheckout } from "@/types/payment.type";
 
 const PENDING_CHECKOUT_KEY = "emnex:pending-checkout";
 
@@ -90,5 +90,28 @@ export function useVerifyCheckout(sessionId: string | null) {
 		retry: false,
 		// Asynchronous payment methods can take a moment: re-check while unpaid
 		refetchInterval: (query) => (query.state.data?.status === "unpaid" ? 4000 : false),
+	});
+}
+
+export interface PaymentListParams {
+	page?: number;
+	limit?: number;
+	status?: PaymentStatus;
+	employeeId?: string;
+}
+
+export function usePayments(params: PaymentListParams) {
+	return useQuery({
+		queryKey: ["payments", "list", params],
+		queryFn: async () => {
+			const query = new URLSearchParams();
+			if (params.page && params.page > 1) query.set("page", String(params.page));
+			if (params.limit) query.set("limit", String(params.limit));
+			if (params.status) query.set("status", params.status);
+			if (params.employeeId) query.set("employeeId", params.employeeId);
+			const res = await api.get<Payment[]>(`/payments?${query}`);
+			return { rows: res.data, meta: res.meta };
+		},
+		placeholderData: (prev) => prev,
 	});
 }

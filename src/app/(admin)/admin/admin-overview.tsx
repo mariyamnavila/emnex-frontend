@@ -8,30 +8,14 @@ import {
 } from "@/components/shared";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { HeadcountChart } from "@/components/dashboard/headcount-chart";
+import { PayrollStatusChart, PayrollTrendChart } from "@/components/dashboard/payroll-charts";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
-import {
-	useAdminDashboard,
-	usePayrollAnalytics,
-	useProjectAnalytics,
-} from "@/hooks/analytics.hook";
-import {
-	baseChartOptions,
-	chartAxisLabelStyle,
-	statusDonutOptions,
-} from "@/lib/chart-theme";
-import { formatCompactCurrency, formatCurrency } from "@/lib/pay";
-
-// Payroll periods are stored as UTC midnight — format in UTC so "Jan" never shows as "Dec"
-const formatPeriod = (iso: string) =>
-	new Date(iso).toLocaleDateString("en-US", {
-		month: "short",
-		year: "numeric",
-		timeZone: "UTC",
-	});
+import { useAdminDashboard, useProjectAnalytics } from "@/hooks/analytics.hook";
+import { statusDonutOptions } from "@/lib/chart-theme";
+import { formatCurrency } from "@/lib/pay";
 
 export function AdminOverview() {
 	const dashboard = useAdminDashboard();
-	const payroll = usePayrollAnalytics();
 	const projects = useProjectAnalytics();
 
 	const stats = dashboard.data;
@@ -40,23 +24,6 @@ export function AdminOverview() {
 		return format ? format(value) : value;
 	};
 
-	const trend = [...(payroll.data?.monthlyTrend ?? [])].reverse();
-	const trendOptions = baseChartOptions({
-		plotOptions: { bar: { columnWidth: "45%", borderRadius: 4 } },
-		xaxis: {
-			categories: trend.map((item) => formatPeriod(item.period)),
-			labels: { style: chartAxisLabelStyle },
-			axisBorder: { color: "#E2E8F0" },
-			axisTicks: { show: false },
-		},
-		yaxis: {
-			labels: { style: chartAxisLabelStyle, formatter: formatCompactCurrency },
-		},
-		grid: { borderColor: "#F1F5F9", strokeDashArray: 4 },
-		tooltip: { theme: "light", y: { formatter: formatCurrency } },
-	});
-
-	const payrollStatuses = payroll.data?.byStatus ?? [];
 	const projectStatuses = projects.data?.byStatus ?? [];
 
 	return (
@@ -98,41 +65,8 @@ export function AdminOverview() {
 			</div>
 
 			<div className="grid gap-4 lg:grid-cols-3">
-				<ChartCard
-					title="Payroll trend"
-					description="Net payroll per period (last 6)"
-					isLoading={payroll.isLoading}
-					isError={payroll.isError}
-					isEmpty={trend.length === 0}
-					emptyText="No payroll generated yet."
-					className="lg:col-span-2"
-				>
-					<ApexChart
-						type="bar"
-						height={280}
-						options={trendOptions}
-						series={[{ name: "Net payroll", data: trend.map((item) => item.total) }]}
-					/>
-				</ChartCard>
-
-				<ChartCard
-					title="Payroll by status"
-					description="Where each payroll record stands"
-					isLoading={payroll.isLoading}
-					isError={payroll.isError}
-					isEmpty={payrollStatuses.length === 0}
-					emptyText="No payroll records yet."
-				>
-					<ApexChart
-						type="donut"
-						height={280}
-						options={statusDonutOptions(
-							payrollStatuses.map((item) => item.status),
-							"Payrolls",
-						)}
-						series={payrollStatuses.map((item) => item._count)}
-					/>
-				</ChartCard>
+				<PayrollTrendChart className="lg:col-span-2" />
+				<PayrollStatusChart />
 			</div>
 
 			<div className="grid gap-4 lg:grid-cols-3">

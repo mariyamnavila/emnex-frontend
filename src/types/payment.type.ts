@@ -29,3 +29,24 @@ export interface CheckoutVerification {
 		};
 	};
 }
+
+export type PaymentStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REFUNDED";
+
+// GET /payments row (amount is already a number — backend formatPayment)
+export interface Payment {
+	id: string;
+	payrollId: string;
+	amount: number;
+	currency: string;
+	transactionId: string | null;
+	gateway: string;
+	status: PaymentStatus;
+	createdAt: string;
+	updatedAt: string;
+	employee: {
+		id: string;
+		employeeCode: string;
+		user: { id: string; name: string; email: string; avatar: string | null };
+	};
+	payroll: { id: string; periodStart: string; periodEnd: string; status: string };
+}

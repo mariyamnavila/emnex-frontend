@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import type {
 	AdminDashboardStats,
 	ManagerDashboardStats,
+	PaymentAnalytics,
 	PayrollAnalytics,
 	ProjectAnalytics,
 } from "@/types/analytics.type";
@@ -36,6 +37,16 @@ export function usePayrollAnalytics() {
 		queryKey: ["analytics", "payroll"],
 		queryFn: async () => {
 			const { data } = await api.get<PayrollAnalytics>("/analytics/payroll");
+			return data;
+		},
+	});
+}
+
+export function usePaymentAnalytics() {
+	return useQuery({
+		queryKey: ["analytics", "payments"],
+		queryFn: async () => {
+			const { data } = await api.get<PaymentAnalytics>("/analytics/payments");
 			return data;
 		},
 	});
