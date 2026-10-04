@@ -78,3 +78,11 @@ export function getPaySummary(
 		isEstimate: true,
 	};
 }
+
+/** One line on where a payroll stands, from the employee's point of view */
+export function payrollStatusNote(payroll: { status: string; payment: { status: string } | null }): string {
+	if (payroll.payment?.status === "COMPLETED") return "Paid through Stripe.";
+	if (payroll.status === "APPROVED") return "Approved — waiting to be paid.";
+	if (payroll.status === "REJECTED") return "This payroll was rejected.";
+	return "Waiting for finance approval.";
+}

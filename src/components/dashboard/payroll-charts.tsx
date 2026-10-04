@@ -2,7 +2,7 @@
 
 import { ApexChart } from "@/components/shared";
 import { usePayrollAnalytics } from "@/hooks/analytics.hook";
-import { baseChartOptions, chartAxisLabelStyle, statusDonutOptions } from "@/lib/chart-theme";
+import { monthlyBarOptions, statusDonutOptions } from "@/lib/chart-theme";
 import { formatCompactCurrency, formatCurrency } from "@/lib/pay";
 import { ChartCard } from "./chart-card";
 import { formatMonth } from "@/lib/utils";
@@ -11,18 +11,10 @@ export function PayrollTrendChart({ className }: { className?: string }) {
 	const { data, isLoading, isError } = usePayrollAnalytics();
 	const trend = [...(data?.monthlyTrend ?? [])].reverse();
 
-	const options = baseChartOptions({
-		plotOptions: { bar: { columnWidth: "45%", borderRadius: 4 } },
-		xaxis: {
-			categories: trend.map((item) => formatMonth(item.period)),
-			labels: { style: chartAxisLabelStyle },
-			axisBorder: { color: "#E2E8F0" },
-			axisTicks: { show: false },
-		},
-		yaxis: { labels: { style: chartAxisLabelStyle, formatter: formatCompactCurrency } },
-		grid: { borderColor: "#F1F5F9", strokeDashArray: 4 },
-		tooltip: { theme: "light", y: { formatter: formatCurrency } },
-	});
+	const options = monthlyBarOptions(
+		trend.map((item) => formatMonth(item.period)),
+		{ format: formatCurrency, axisFormat: formatCompactCurrency },
+	);
 
 	return (
 		<ChartCard

@@ -12,8 +12,8 @@ import { useMyPayrolls } from "@/hooks/payroll.hook";
 import { useMySubmissions } from "@/hooks/submission.hook";
 import { useMyTasks } from "@/hooks/task.hook";
 import { errorMessage } from "@/lib/api";
-import { baseChartOptions, chartAxisLabelStyle } from "@/lib/chart-theme";
-import { formatCurrency } from "@/lib/pay";
+import { monthlyBarOptions } from "@/lib/chart-theme";
+import { formatCurrency, payrollStatusNote } from "@/lib/pay";
 import { compareByUrgency, isTaskOverdue, OPEN_TASK_STATUSES } from "@/lib/task";
 import { formatDay, formatMonth, timeAgo } from "@/lib/utils";
 import type { MySubmission } from "@/types/submission.type";
@@ -47,21 +47,16 @@ export function EmployeeOverview() {
 	const months = [...new Set(myLogs.map((log) => monthKey(log.workDate)))].sort().slice(-6);
 	const hoursIn = (month: string, status: MySubmission["status"]) =>
 		sumHours(myLogs.filter((log) => monthKey(log.workDate) === month && log.status === status));
-	const chartOptions = baseChartOptions({
-		chart: { stacked: true },
-		colors: ["#16A34A", "#D97706"],
-		plotOptions: { bar: { columnWidth: "45%", borderRadius: 4 } },
-		xaxis: {
-			categories: months.map((month) => formatMonth(`${month}-01`)),
-			labels: { style: chartAxisLabelStyle },
-			axisBorder: { color: "#E2E8F0" },
-			axisTicks: { show: false },
+	const chartOptions = monthlyBarOptions(
+		months.map((month) => formatMonth(`${month}-01`)),
+		{
+			format: (value) => `${value} h`,
+			axisFormat: (value) => `${Math.round(value)} h`,
+			chart: { stacked: true },
+			colors: ["#16A34A", "#D97706"],
+			legend: { position: "top", horizontalAlign: "right", labels: { colors: "#64748B" }, markers: { size: 4 } },
 		},
-		yaxis: { labels: { style: chartAxisLabelStyle, formatter: (value: number) => `${Math.round(value)} h` } },
-		grid: { borderColor: "#F1F5F9", strokeDashArray: 4 },
-		legend: { position: "top", horizontalAlign: "right", labels: { colors: "#64748B" }, markers: { size: 4 } },
-		tooltip: { theme: "light", y: { formatter: (value: number) => `${value} h` } },
-	});
+	);
 
 	// Suspended accounts can't see tasks or work logs; the API says why
 	const blocked = tasks.error ?? logs.error;
@@ -159,6 +154,11 @@ export function EmployeeOverview() {
 					isError={payrolls.isError}
 					isEmpty={!latestPayroll}
 					emptyText="No payroll generated for you yet."
+					action={
+						<Link href="/dashboard/payroll" className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]">
+							View all
+						</Link>
+					}
 				>
 					{latestPayroll ? (
 						<div className="space-y-4">
@@ -176,13 +176,7 @@ export function EmployeeOverview() {
 								netAmount={latestPayroll.netAmount}
 							/>
 							<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
-								{latestPayroll.payment?.status === "COMPLETED"
-									? "Paid through Stripe."
-									: latestPayroll.status === "APPROVED"
-										? "Approved — waiting to be paid."
-										: latestPayroll.status === "REJECTED"
-											? "This payroll was rejected."
-											: "Waiting for finance approval."}
+								{payrollStatusNote(latestPayroll)}
 							</p>
 						</div>
 					) : null}

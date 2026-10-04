@@ -99,3 +99,27 @@ export function statusDonutOptions(statuses: string[], totalLabel: string): Apex
     },
   });
 }
+
+interface MonthlyBarOptions extends ApexOptions {
+  /** Tooltip value, e.g. formatCurrency or `${v} h` */
+  format: (value: number) => string;
+  /** Y-axis labels (defaults to `format`) */
+  axisFormat?: (value: number) => string;
+}
+
+// Bars per month ("Jan 2026", "Feb 2026"…); extra options are merged on top
+export function monthlyBarOptions(categories: string[], { format, axisFormat = format, ...overrides }: MonthlyBarOptions): ApexOptions {
+  return baseChartOptions({
+    plotOptions: { bar: { columnWidth: "45%", borderRadius: 4 } },
+    xaxis: {
+      categories,
+      labels: { style: chartAxisLabelStyle },
+      axisBorder: { color: "#E2E8F0" },
+      axisTicks: { show: false },
+    },
+    yaxis: { labels: { style: chartAxisLabelStyle, formatter: axisFormat } },
+    grid: { borderColor: "#F1F5F9", strokeDashArray: 4 },
+    tooltip: { theme: "light", y: { formatter: format } },
+    ...overrides,
+  });
+}
