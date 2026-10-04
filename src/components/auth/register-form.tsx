@@ -8,14 +8,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Loader2,
   Mail,
-  Lock,
-  Eye,
-  EyeOff,
   ArrowRight,
   Building2,
   User,
   AtSign,
 } from "lucide-react";
+import { PasswordInput, PasswordRules } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +34,6 @@ function slugify(text: string): string {
 
 export function RegisterForm() {
   const register = useRegister();
-  const [showPassword, setShowPassword] = useState(false);
   const [slugEdited, setSlugEdited] = useState(false);
 
   const {
@@ -300,41 +297,13 @@ export function RegisterForm() {
               >
                 Password
               </Label>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#94A3B8]" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Min. 8 characters"
-                  {...field("password")}
-                  className="h-10 border-[#CBD5E1] bg-white pr-10 pl-9 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-[#94A3B8] hover:text-[#0F172A] dark:hover:text-white"
-                  aria-label={
-                    showPassword ? "Hide password" : "Show password"
-                  }
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-4" />
-                  ) : (
-                    <Eye className="size-4" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput id="password" withIcon placeholder="Min. 8 characters" {...field("password")} />
               {errors.password ? (
                 <p className="text-xs font-medium text-[#DC2626]">
                   {errors.password.message}
                 </p>
               ) : null}
-              {!errors.password && watch("password") ? (
-                <p className="text-[11px] text-[#64748B] dark:text-[#94A3B8]">
-                  Must contain uppercase, lowercase, number, and special
-                  character
-                </p>
-              ) : null}
+              {watch("password") ? <PasswordRules value={watch("password")} /> : null}
             </div>
 
             <Button

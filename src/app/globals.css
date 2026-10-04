@@ -140,3 +140,9 @@
     @apply font-sans;
   }
 }
+
+/* Edge adds its own show-password eye; PasswordInput already has one */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}

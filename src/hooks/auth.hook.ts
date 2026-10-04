@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError, errorMessage } from "@/lib/api";
+import type { ChangePasswordValues } from "@/validation/auth.validation";
 import { useSession } from "@/providers/session.provider";
 import type {
   LoginFormValues,
@@ -29,6 +30,9 @@ export interface MeUser {
   organizationId: string;
   status: string;
   mustChangePassword: boolean;
+  authProvider: "CREDENTIAL" | "GOOGLE";
+  emailVerified: boolean;
+  createdAt: string;
   role: { id: string; name: string; description: string | null };
   organization: { id: string; name: string; slug: string };
   permissions: string[];
@@ -142,5 +146,38 @@ export function useLogout() {
       router.replace("/login");
       queryClient.clear();
     },
+  });
+}
+
+// The server signs out other sessions and re-issues this one's cookies
+export function useChangePassword() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (values: ChangePasswordValues) =>
+      api.post("/auth/change-password", {
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      }),
+    onSuccess: () => {
+      toast.success("Password changed — you've been signed out on other devices");
+      void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+    },
+    onError: (error) => toast.error(errorMessage(error, "Couldn't change your password")),
+  });
+}
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => {
+      const form = new FormData();
+      form.append("avatar", file);
+      return api.post<{ avatar: string }>("/auth/upload-avatar", form);
+    },
+    onSuccess: ({ data }) => {
+      queryClient.setQueryData<MeUser>(["auth", "me"], (me) => (me ? { ...me, avatar: data.avatar } : me));
+      toast.success("Profile photo updated");
+    },
+    onError: (error) => toast.error(errorMessage(error, "Couldn't upload your photo")),
   });
 }

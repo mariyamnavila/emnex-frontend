@@ -81,11 +81,13 @@ const request = async <T>(
   // 1. Network failure (backend not running, CORS blocked, ...)
   let response: Response;
   try {
+    // Files go as multipart (the browser sets the boundary header); everything else as JSON
+    const isForm = body instanceof FormData;
     response = await fetch(`${API_URL}${path}`, {
       method,
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
+      headers: isForm ? undefined : { "Content-Type": "application/json" },
+      body: isForm ? body : body ? JSON.stringify(body) : undefined,
     });
   } catch {
     throw new ApiError(

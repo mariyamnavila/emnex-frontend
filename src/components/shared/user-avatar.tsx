@@ -1,12 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, getInitials } from "@/lib/utils";
 
-type UserAvatarSize = "sm" | "md" | "lg";
+type UserAvatarSize = "sm" | "md" | "lg" | "xl";
 
 const SIZE_CLASSES: Record<UserAvatarSize, { box: string; text: string }> = {
 	sm: { box: "size-6", text: "text-[10px]" },
 	md: { box: "size-8", text: "text-xs" },
 	lg: { box: "size-14", text: "text-sm" },
+	xl: { box: "size-24", text: "text-2xl" },
 };
 
 interface UserAvatarProps {
