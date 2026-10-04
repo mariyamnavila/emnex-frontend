@@ -83,6 +83,11 @@ export async function proxy(request: NextRequest) {
 
   const role = payload.role || "";
 
+  // /dashboard is the employee area; roles with their own area go there instead
+  if (pathname.startsWith("/dashboard") && ROLE_HOME[role]) {
+    return NextResponse.redirect(new URL(ROLE_HOME[role], request.url));
+  }
+
   // Role-based route enforcement (assignment requirement)
   for (const [prefix, allowedRoles] of Object.entries(ROLE_ROUTES)) {
     if (pathname.startsWith(prefix) && !allowedRoles.includes(role)) {
