@@ -11,6 +11,7 @@ import {
 	SectionHeading,
 	StatusBadge,
 } from "@/components/shared";
+import { PayBreakdown } from "@/components/payroll/pay-breakdown";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/pay";
 import { formatDateTime, formatDay, timeAgo } from "@/lib/utils";
@@ -113,29 +114,19 @@ export function PaymentSheet({ payment, open, onOpenChange, canRetry, isRetrying
 
 					<div className="space-y-2">
 						<SectionHeading>Payroll</SectionHeading>
-						<div className="rounded-lg border border-[#E2E8F0] p-3 text-sm dark:border-[#1E293B]">
+						<div className="rounded-lg border border-[#E2E8F0] p-3 dark:border-[#1E293B]">
 							<div className="flex items-center justify-between gap-3">
 								<span className="text-[#334155] tabular-nums dark:text-[#CBD5E1]">
 									{formatDay(payment.payroll.periodStart)} – {formatDay(payment.payroll.periodEnd)}
 								</span>
 								<StatusBadge status={payment.payroll.status} />
 							</div>
-							<dl className="mt-3 space-y-1.5 tabular-nums">
-								<div className="flex justify-between">
-									<dt className="text-[#64748B] dark:text-[#94A3B8]">Gross</dt>
-									<dd className="text-[#0F172A] dark:text-white">{formatCurrency(payment.payroll.grossAmount)}</dd>
-								</div>
-								<div className="flex justify-between">
-									<dt className="text-[#64748B] dark:text-[#94A3B8]">Deductions</dt>
-									<dd className="text-[#64748B] dark:text-[#94A3B8]">
-										{payment.payroll.deductions > 0 ? `− ${formatCurrency(payment.payroll.deductions)}` : "—"}
-									</dd>
-								</div>
-								<div className="flex justify-between border-t border-[#F1F5F9] pt-1.5 font-semibold dark:border-[#1E293B]">
-									<dt className="text-[#0F172A] dark:text-white">Net pay</dt>
-									<dd className="text-[#0F172A] dark:text-white">{formatCurrency(payment.payroll.netAmount)}</dd>
-								</div>
-							</dl>
+							<PayBreakdown
+								grossAmount={payment.payroll.grossAmount}
+								deductions={payment.payroll.deductions}
+								netAmount={payment.payroll.netAmount}
+								className="mt-3"
+							/>
 						</div>
 					</div>
 				</>

@@ -38,12 +38,15 @@ export const chartAxisLabelStyle = { colors: "#64748B", fontSize: "12px" };
  * Pages can spread this and override individual keys.
  */
 export function baseChartOptions(overrides?: ApexOptions): ApexOptions {
+  // `chart` is merged so a page can add e.g. `stacked` without losing the defaults
+  const { chart, ...rest } = overrides ?? {};
   return {
     chart: {
       fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
       toolbar: { show: false },
       background: "transparent",
       animations: { enabled: true, speed: 300 },
+      ...chart,
     },
     colors: [...EMNEX_CHART_COLORS],
     dataLabels: { enabled: false },
@@ -62,7 +65,7 @@ export function baseChartOptions(overrides?: ApexOptions): ApexOptions {
     yaxis: {
       labels: { style: { colors: ["#64748B"] } },
     },
-    ...overrides,
+    ...rest,
   };
 }
 

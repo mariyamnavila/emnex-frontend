@@ -6,7 +6,15 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
-import type { ApiPayment, CheckoutVerification, Payment, PaymentStatus, PendingCheckout } from "@/types/payment.type";
+import type {
+	ApiMyPayment,
+	ApiPayment,
+	CheckoutVerification,
+	MyPayment,
+	Payment,
+	PaymentStatus,
+	PendingCheckout,
+} from "@/types/payment.type";
 
 const PENDING_CHECKOUT_KEY = "emnex:pending-checkout";
 
@@ -94,6 +102,17 @@ export function useVerifyCheckout(sessionId: string | null) {
 	});
 }
 
+// The nested payroll's money arrives as Decimal strings
+const normalizePayment = <T extends Pick<ApiPayment, "payroll">>(payment: T) => ({
+	...payment,
+	payroll: {
+		...payment.payroll,
+		grossAmount: toAmount(payment.payroll.grossAmount) ?? 0,
+		deductions: toAmount(payment.payroll.deductions) ?? 0,
+		netAmount: toAmount(payment.payroll.netAmount) ?? 0,
+	},
+});
+
 export interface PaymentListParams {
 	page?: number;
 	limit?: number;
@@ -111,17 +130,19 @@ export function usePayments(params: PaymentListParams) {
 			if (params.status) query.set("status", params.status);
 			if (params.employeeId) query.set("employeeId", params.employeeId);
 			const res = await api.get<ApiPayment[]>(`/payments?${query}`);
-			const rows: Payment[] = res.data.map((payment) => ({
-				...payment,
-				payroll: {
-					...payment.payroll,
-					grossAmount: toAmount(payment.payroll.grossAmount) ?? 0,
-					deductions: toAmount(payment.payroll.deductions) ?? 0,
-					netAmount: toAmount(payment.payroll.netAmount) ?? 0,
-				},
-			}));
-			return { rows, meta: res.meta };
+			return { rows: res.data.map((payment): Payment => normalizePayment(payment)), meta: res.meta };
 		},
 		placeholderData: (prev) => prev,
+	});
+}
+
+// The signed-in employee's payments, newest first
+export function useMyPayments() {
+	return useQuery({
+		queryKey: ["payments", "my"],
+		queryFn: async () => {
+			const { data } = await api.get<ApiMyPayment[]>("/payments/my");
+			return data.map((payment): MyPayment => normalizePayment(payment));
+		},
 	});
 }

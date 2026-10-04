@@ -2,16 +2,9 @@
 
 import { CalendarClock, ClipboardList } from "lucide-react";
 import { StatusBadge, UserAvatar } from "@/components/shared";
+import { isTaskOverdue } from "@/lib/task";
 import { cn, formatDay } from "@/lib/utils";
-import type { BoardTask, TaskStatus } from "@/types/task.type";
-
-const DONE: TaskStatus[] = ["APPROVED", "COMPLETED"];
-
-// Due dates are stored as UTC midnight, so compare calendar days in UTC
-export function isTaskOverdue(task: Pick<BoardTask, "dueDate" | "status">) {
-	if (!task.dueDate || DONE.includes(task.status)) return false;
-	return task.dueDate.slice(0, 10) < new Date().toISOString().slice(0, 10);
-}
+import type { BoardTask } from "@/types/task.type";
 
 export function TaskCard({ task, onOpen }: { task: BoardTask; onOpen: (task: BoardTask) => void }) {
 	const overdue = isTaskOverdue(task);

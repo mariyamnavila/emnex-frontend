@@ -5,12 +5,13 @@ import { ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmployeeFilter, EmptyState, FilterSelect, FilterTabs, PageHeader, SearchInput } from "@/components/shared";
-import { isTaskOverdue, TaskCard } from "@/components/tasks/task-card";
+import { TaskCard } from "@/components/tasks/task-card";
 import { TaskSheet } from "@/components/tasks/task-sheet";
 import { useCan } from "@/hooks/auth.hook";
 import { useProjectOptions } from "@/hooks/project.hook";
 import { BOARD_LIMIT, useTaskBoard } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { isTaskOverdue } from "@/lib/task";
 import { cn } from "@/lib/utils";
 import type { BoardTask, TaskPriority, TaskStatus } from "@/types/task.type";
 

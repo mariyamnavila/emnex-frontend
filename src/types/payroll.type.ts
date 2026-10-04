@@ -32,3 +32,6 @@ export interface Payroll {
 	};
 	payment: PayrollPayment | null;
 }
+
+// GET /payroll/my
+export type MyPayroll = Omit<Payroll, "employee">;

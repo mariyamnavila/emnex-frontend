@@ -55,3 +55,7 @@ export type BoardTask = Task & {
 	project: { id: string; name: string; status: string };
 	_count: { submissions: number };
 };
+
+// GET /tasks/my — the assignee is the signed-in employee, so it isn't included
+export type MyTask = Omit<BoardTask, "employee">;
+export type ApiMyTask = Omit<ApiBoardTask, "employee">;

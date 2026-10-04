@@ -6,7 +6,7 @@ import { formatStatus } from "@/components/shared/status-badge";
 import { api, errorMessage } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type { ApiSubmission, Submission } from "@/types/submission.type";
-import type { ApiBoardTask, ApiTask, BoardTask, TaskStatus } from "@/types/task.type";
+import type { ApiBoardTask, ApiMyTask, ApiTask, BoardTask, MyTask, TaskStatus } from "@/types/task.type";
 import type { TaskFormValues } from "@/validation/task.validation";
 
 export interface TaskBoardParams {
@@ -33,6 +33,17 @@ export function useTaskBoard(params: TaskBoardParams) {
 			return { tasks, total: res.meta?.total ?? tasks.length };
 		},
 		placeholderData: (prev) => prev,
+	});
+}
+
+// The signed-in employee's tasks (403 for suspended accounts)
+export function useMyTasks() {
+	return useQuery({
+		queryKey: ["tasks", "my"],
+		queryFn: async () => {
+			const { data } = await api.get<ApiMyTask[]>("/tasks/my");
+			return data.map((task): MyTask => ({ ...task, estimatedHours: toAmount(task.estimatedHours) }));
+		},
 	});
 }
 

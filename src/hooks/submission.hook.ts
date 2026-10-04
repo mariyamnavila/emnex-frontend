@@ -4,9 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, errorMessage } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
-import type { ApiSubmission, Submission, SubmissionStatus } from "@/types/submission.type";
+import type {
+	ApiMySubmission,
+	ApiSubmission,
+	MySubmission,
+	Submission,
+	SubmissionStatus,
+} from "@/types/submission.type";
 
-const normalize = (submission: ApiSubmission): Submission => ({
+// Hours arrive as a Decimal string
+const normalize = <T extends { hoursWorked: string | number }>(submission: T) => ({
 	...submission,
 	hoursWorked: toAmount(submission.hoursWorked) ?? 0,
 });
@@ -25,13 +32,21 @@ export function useApprovedSubmissions(employeeId: string | null) {
 			const { data } = await api.get<ApiApprovedSubmission[]>(
 				`/submissions?employeeId=${employeeId}&status=APPROVED&limit=100`,
 			);
-			return data.map((submission) => ({
-				...submission,
-				hoursWorked: toAmount(submission.hoursWorked) ?? 0,
-			}));
+			return data.map((submission) => normalize(submission));
 		},
 		enabled: Boolean(employeeId),
 		retry: false,
+	});
+}
+
+// The signed-in employee's own work logs, newest first
+export function useMySubmissions() {
+	return useQuery({
+		queryKey: ["submissions", "my"],
+		queryFn: async () => {
+			const { data } = await api.get<ApiMySubmission[]>("/submissions/my");
+			return data.map((submission): MySubmission => normalize(submission));
+		},
 	});
 }
 
@@ -54,7 +69,7 @@ export function useSubmissions(params: SubmissionParams) {
 			if (params.employeeId) query.set("employeeId", params.employeeId);
 			if (params.oldestFirst) query.set("sortOrder", "asc");
 			const res = await api.get<ApiSubmission[]>(`/submissions?${query}`);
-			return { rows: res.data.map(normalize), meta: res.meta };
+			return { rows: res.data.map((submission): Submission => normalize(submission)), meta: res.meta };
 		},
 		placeholderData: (prev) => prev,
 	});

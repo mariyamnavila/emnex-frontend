@@ -14,9 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTaskSubmissions, useUpdateTaskStatus } from "@/hooks/task.hook";
+import { isTaskOverdue } from "@/lib/task";
 import { cn, formatDay } from "@/lib/utils";
 import { type BoardTask, TASK_TRANSITIONS } from "@/types/task.type";
-import { isTaskOverdue } from "./task-card";
 
 const sum = (values: number[]) => Math.round(values.reduce((total, value) => total + value, 0) * 100) / 100;
 

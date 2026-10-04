@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, errorMessage } from "@/lib/api";
-import type { Payroll } from "@/types/payroll.type";
+import type { MyPayroll, Payroll } from "@/types/payroll.type";
 import type { GeneratePayrollValues } from "@/validation/payroll.validation";
 
 export interface PayrollListParams {
@@ -38,6 +38,17 @@ export function usePayrolls(params: PayrollListParams) {
 			return { rows: res.data, meta: res.meta };
 		},
 		placeholderData: (prev) => prev,
+	});
+}
+
+// The signed-in employee's payslips (money already numbers)
+export function useMyPayrolls() {
+	return useQuery({
+		queryKey: ["payroll", "my"],
+		queryFn: async () => {
+			const { data } = await api.get<MyPayroll[]>("/payroll/my");
+			return data;
+		},
 	});
 }
 

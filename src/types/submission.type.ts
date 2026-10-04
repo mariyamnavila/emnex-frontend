@@ -28,3 +28,7 @@ export interface ApiSubmission {
 }
 
 export type Submission = Omit<ApiSubmission, "hoursWorked"> & { hoursWorked: number };
+
+// GET /submissions/my — always the signed-in employee's own
+export type MySubmission = Omit<Submission, "employee">;
+export type ApiMySubmission = Omit<ApiSubmission, "employee">;

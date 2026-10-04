@@ -68,3 +68,7 @@ export interface Payment {
 	};
 	payroll: PaymentPayroll;
 }
+
+// GET /payments/my
+export type MyPayment = Omit<Payment, "employee">;
+export type ApiMyPayment = Omit<ApiPayment, "employee">;

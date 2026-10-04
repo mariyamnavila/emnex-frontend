@@ -54,6 +54,7 @@ import { useDeleteTask, useUpdateTaskStatus } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/pay";
+import { isTaskOverdue } from "@/lib/task";
 import { formatDay } from "@/lib/utils";
 import { type Task, TASK_TRANSITIONS, type TaskStatus } from "@/types/task.type";
 
@@ -68,9 +69,6 @@ const STATUS_TABS: { value: TaskStatus | ""; label: string }[] = [
 ];
 
 const DELETABLE: TaskStatus[] = ["TODO", "COMPLETED"];
-
-const isTaskOverdue = (task: Task) =>
-	task.dueDate !== null && new Date(task.dueDate) < new Date() && task.status !== "COMPLETED";
 
 function timelineHint(endDate: string | null): string {
 	if (!endDate) return "No end date";
