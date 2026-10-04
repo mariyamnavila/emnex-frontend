@@ -31,6 +31,7 @@ import {
 	type GeneratePayrollValues,
 } from "@/validation/payroll.validation";
 import { currentMonth, round2 } from "@/lib/utils";
+import { MonthPicker } from "@/components/shared";
 
 const fieldClass =
 	"border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";
@@ -205,7 +206,7 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 					control={control}
 					name="employeeId"
 					render={({ field }) => (
-						<Select value={field.value || undefined} onValueChange={field.onChange}>
+						<Select value={field.value} onValueChange={field.onChange}>
 							<SelectTrigger
 								aria-invalid={Boolean(errors.employeeId)}
 								className={`h-10 w-full ${fieldClass}`}
@@ -233,13 +234,19 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 					<Label htmlFor="payroll-period" className="text-xs font-semibold">
 						Pay period
 					</Label>
-					<Input
-						id="payroll-period"
-						type="month"
-						max={currentMonth()}
-						aria-invalid={Boolean(errors.period)}
-						{...register("period")}
-						className={`h-10 ${fieldClass}`}
+					<Controller
+						control={control}
+						name="period"
+						render={({ field }) => (
+							<MonthPicker
+								id="payroll-period"
+								value={field.value ?? ""}
+								onChange={field.onChange}
+								max={currentMonth()}
+								invalid={Boolean(errors.period)}
+								placeholder="Select month"
+							/>
+						)}
 					/>
 					<FieldError message={errors.period?.message} />
 				</div>

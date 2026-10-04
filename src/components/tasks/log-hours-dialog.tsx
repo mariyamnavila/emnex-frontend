@@ -3,7 +3,7 @@
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { fieldClass, FormField } from "@/components/shared";
+import { DatePicker, fieldClass, FormField } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -124,7 +124,7 @@ function LogHoursForm({
 						control={control}
 						name="taskId"
 						render={({ field }) => (
-							<Select value={field.value || undefined} onValueChange={field.onChange}>
+							<Select value={field.value} onValueChange={field.onChange}>
 								<SelectTrigger
 									id="log-task"
 									aria-invalid={Boolean(errors.taskId)}
@@ -147,13 +147,19 @@ function LogHoursForm({
 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<FormField id="log-date" label="Day worked" error={errors.workDate?.message}>
-					<Input
-						id="log-date"
-						type="date"
-						max={today()}
-						aria-invalid={Boolean(errors.workDate)}
-						{...register("workDate")}
-						className={`h-10 ${fieldClass}`}
+					<Controller
+						control={control}
+						name="workDate"
+						render={({ field }) => (
+							<DatePicker
+								id="log-date"
+								value={field.value ?? ""}
+								onChange={field.onChange}
+								max={today()}
+								invalid={Boolean(errors.workDate)}
+								placeholder="Select the day"
+							/>
+						)}
 					/>
 				</FormField>
 				<FormField id="log-hours" label="Hours" error={errors.hoursWorked?.message} hint="Up to 24, e.g. 1.5">

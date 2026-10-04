@@ -45,14 +45,14 @@ import {
 import { useRoles } from "@/hooks/role.hook";
 import { useDepartments } from "@/hooks/department.hook";
 import { useCopy } from "@/hooks/use-copy";
-import { DetailList, DetailRow, SectionHeading } from "@/components/shared";
+import { DatePicker, DetailList, DetailRow, SectionHeading } from "@/components/shared";
 import {
 	ESTIMATED_HOURS_PER_MONTH,
 	formatCurrency,
 	getPaySummary,
 	toAmount,
 } from "@/lib/pay";
-import { formatDate, formatRoleName } from "@/lib/utils";
+import { cn, formatDate, formatRoleName } from "@/lib/utils";
 
 const STEPS = [
 	{ number: 1, label: "Personal", hint: "Name & login email" },
@@ -178,35 +178,45 @@ export function EmployeeWizard() {
 
 	return (
 		<div className="mx-auto max-w-2xl">
-			{/* Stepper */}
-			<ol className="flex items-start gap-2" aria-label="Progress">
+			{/* Stepper — connectors are centered on the circles and evenly spaced */}
+			<ol className="flex items-start" aria-label="Progress">
 				{STEPS.map((item, index) => {
 					const isDone = step > item.number;
 					const isCurrent = step === item.number;
+					const isLast = index === STEPS.length - 1;
 					return (
 						<li
 							key={item.number}
 							aria-current={isCurrent ? "step" : undefined}
-							className="flex flex-1 items-start gap-2.5"
+							className="relative flex flex-1 flex-col items-center"
 						>
+							{!isLast ? (
+								<span
+									aria-hidden="true"
+									className={cn(
+										"absolute top-4 left-1/2 z-0 h-0.5 w-full -translate-y-1/2",
+										isDone ? "bg-[#16A34A]" : "bg-[#E2E8F0] dark:bg-[#1E293B]",
+									)}
+								/>
+							) : null}
 							<span
-								className={`flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors ${
+								className={cn(
+									"relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors",
 									isDone
 										? "border-[#16A34A] bg-[#16A34A] text-white"
 										: isCurrent
 											? "border-[#2563EB] bg-[#2563EB] text-white ring-4 ring-[#DBEAFE] dark:ring-[#1E3A5F]"
-											: "border-[#CBD5E1] bg-white text-[#64748B] dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-[#94A3B8]"
-								}`}
+											: "border-[#CBD5E1] bg-white text-[#64748B] dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-[#94A3B8]",
+								)}
 							>
 								{isDone ? <Check className="size-4" /> : item.number}
 							</span>
-							<div className="min-w-0 pt-0.5">
+							<div className="mt-2 px-1 text-center">
 								<p
-									className={`text-sm font-medium ${
-										isCurrent || isDone
-											? "text-[#0F172A] dark:text-white"
-											: "text-[#94A3B8]"
-									}`}
+									className={cn(
+										"text-sm font-medium",
+										isCurrent || isDone ? "text-[#0F172A] dark:text-white" : "text-[#94A3B8]",
+									)}
 								>
 									{item.label}
 								</p>
@@ -214,12 +224,6 @@ export function EmployeeWizard() {
 									{item.hint}
 								</p>
 							</div>
-							{index < STEPS.length - 1 ? (
-								<span
-									aria-hidden="true"
-									className={`mt-4 hidden h-px flex-1 sm:block ${step > item.number ? "bg-[#16A34A]" : "bg-[#E2E8F0] dark:bg-[#1E293B]"}`}
-								/>
-							) : null}
 						</li>
 					);
 				})}
@@ -293,12 +297,12 @@ export function EmployeeWizard() {
 							<div className="space-y-1.5">
 								<Label className="text-xs font-semibold">Role</Label>
 								<Select
-									value={values.roleId || undefined}
+									value={values.roleId}
 									onValueChange={(value) =>
 										setValue("roleId", value, { shouldValidate: true })
 									}
 								>
-									<SelectTrigger className={inputClass}>
+									<SelectTrigger className={cn("w-full", inputClass)}>
 										<SelectValue placeholder="Select a role" />
 									</SelectTrigger>
 									<SelectContent>
@@ -319,7 +323,7 @@ export function EmployeeWizard() {
 										setValue("departmentId", value, { shouldValidate: true })
 									}
 								>
-									<SelectTrigger className={inputClass}>
+									<SelectTrigger className={cn("w-full", inputClass)}>
 										<SelectValue placeholder="Select a department" />
 									</SelectTrigger>
 									<SelectContent>
@@ -340,11 +344,12 @@ export function EmployeeWizard() {
 							<Label htmlFor="joiningDate" className="text-xs font-semibold">
 								Joining date
 							</Label>
-							<Input
+							<DatePicker
 								id="joiningDate"
-								type="date"
-								{...register("joiningDate")}
-								className={inputClass}
+								value={values.joiningDate}
+								onChange={(value) => setValue("joiningDate", value, { shouldValidate: true })}
+								invalid={Boolean(errors.joiningDate)}
+								placeholder="Select joining date"
 							/>
 							<FieldError message={errors.joiningDate?.message} />
 						</div>

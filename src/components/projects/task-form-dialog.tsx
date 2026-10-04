@@ -22,7 +22,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { formatStatus } from "@/components/shared";
+import { DatePicker, formatStatus } from "@/components/shared";
 import { useActiveEmployees } from "@/hooks/employee.hook";
 import { useCreateTask } from "@/hooks/task.hook";
 import type { TaskPriority } from "@/types/task.type";
@@ -123,7 +123,7 @@ function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void
 						control={control}
 						name="employeeId"
 						render={({ field }) => (
-							<Select value={field.value || undefined} onValueChange={field.onChange}>
+							<Select value={field.value} onValueChange={field.onChange}>
 								<SelectTrigger
 									aria-invalid={Boolean(errors.employeeId)}
 									className={`h-10 w-full ${fieldClass}`}
@@ -190,7 +190,19 @@ function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void
 					<Label htmlFor="task-due" className="text-xs font-semibold">
 						Due date <span className="font-normal text-[#94A3B8]">(optional)</span>
 					</Label>
-					<Input id="task-due" type="date" {...register("dueDate")} className={`h-10 ${fieldClass}`} />
+					<Controller
+						control={control}
+						name="dueDate"
+						render={({ field }) => (
+							<DatePicker
+								id="task-due"
+								value={field.value ?? ""}
+								onChange={field.onChange}
+								clearable
+								placeholder="No due date"
+							/>
+						)}
+					/>
 				</div>
 			</div>
 

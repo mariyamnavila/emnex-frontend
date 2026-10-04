@@ -22,7 +22,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { formatStatus } from "@/components/shared";
+import { DatePicker, formatStatus } from "@/components/shared";
 import { useCreateProject, useUpdateProject } from "@/hooks/project.hook";
 import type { Project, ProjectStatus } from "@/types/project.type";
 import { projectSchema, type ProjectFormValues } from "@/validation/project.validation";
@@ -63,6 +63,7 @@ function ProjectForm({ project, onDone }: { project: Project | null; onDone: () 
 		register,
 		handleSubmit,
 		control,
+		watch,
 		formState: { errors },
 	} = useForm<ProjectFormValues>({
 		resolver: zodResolver(projectSchema),
@@ -131,18 +132,36 @@ function ProjectForm({ project, onDone }: { project: Project | null; onDone: () 
 					<Label htmlFor="project-start" className="text-xs font-semibold">
 						Start date
 					</Label>
-					<Input id="project-start" type="date" {...register("startDate")} className={`h-10 ${fieldClass}`} />
+					<Controller
+						control={control}
+						name="startDate"
+						render={({ field }) => (
+							<DatePicker
+								id="project-start"
+								value={field.value ?? ""}
+								onChange={field.onChange}
+								placeholder="Select start date"
+							/>
+						)}
+					/>
 				</div>
 				<div className="space-y-1.5">
 					<Label htmlFor="project-end" className="text-xs font-semibold">
 						End date
 					</Label>
-					<Input
-						id="project-end"
-						type="date"
-						aria-invalid={Boolean(errors.endDate)}
-						{...register("endDate")}
-						className={`h-10 ${fieldClass}`}
+					<Controller
+						control={control}
+						name="endDate"
+						render={({ field }) => (
+							<DatePicker
+								id="project-end"
+								value={field.value ?? ""}
+								onChange={field.onChange}
+								min={watch("startDate") || undefined}
+								invalid={Boolean(errors.endDate)}
+								placeholder="Select end date"
+							/>
+						)}
 					/>
 					<FieldError message={errors.endDate?.message} />
 				</div>
