@@ -34,6 +34,10 @@ const PRIORITIES: { value: TaskPriority; label: string }[] = [
 ];
 
 const ALL = "__all__";
+const STATUS_OPTIONS: { value: TaskStatus | typeof ALL; label: string }[] = [
+	{ value: ALL, label: "All statuses" },
+	...COLUMNS.map((column) => ({ value: column.status, label: column.label })),
+];
 const triggerClass =
 	"h-9 w-full border-[#CBD5E1] bg-white text-sm text-[#0F172A] dark:border-[#1E293B] dark:bg-[#0F172A] dark:text-white";
 const contentClass = "border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]";
@@ -99,12 +103,14 @@ export function TasksView() {
 	const clearFilters = () => apply({ search: null, projectId: null, employeeId: null, priority: null });
 
 	return (
-		<div className="space-y-6">
+		<div className="min-w-0 max-w-full space-y-6">
 			<PageHeader title="Tasks" description="Every task across your projects, grouped by status." />
 
-			<section className="@container space-y-4">
-				<div className="grid gap-2 rounded-lg border border-[#E2E8F0] bg-white p-4 shadow-2xs @md:grid-cols-2 @5xl:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] dark:border-[#1E293B] dark:bg-[#0F172A]">
-					<SearchInput placeholder="Search tasks..." className="sm:w-full" />
+			{/* Breakpoints below are container queries: they follow the content width, so the
+			    layout stays right whether the sidebar is open or not */}
+			<section className="@container min-w-0 max-w-full space-y-4">
+				<div className="grid grid-cols-1 gap-2 rounded-lg border border-[#E2E8F0] bg-white p-3 shadow-2xs @md:grid-cols-2 @md:p-4 @5xl:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))] dark:border-[#1E293B] dark:bg-[#0F172A]">
+					<SearchInput placeholder="Search tasks..." className="w-full sm:w-full" />
 					<Select value={projectId || ALL} onValueChange={(value) => apply({ projectId: value === ALL ? null : value })}>
 						<SelectTrigger aria-label="Filter by project" className={triggerClass}>
 							<SelectValue placeholder="All projects" />
@@ -146,11 +152,31 @@ export function TasksView() {
 					</Select>
 				</div>
 
-				<div className="flex flex-col gap-3 @3xl:flex-row @3xl:items-center @3xl:justify-between">
+				<div className="flex flex-col gap-3 @5xl:flex-row @5xl:items-center @5xl:justify-between">
+					{/* Narrow: a dropdown, so no status is ever hidden. Wide: one row of tabs that fits */}
+					<Select value={status || ALL} onValueChange={(value) => apply({ status: value === ALL ? null : value })}>
+						<SelectTrigger aria-label="Filter by status" className={cn(triggerClass, "@2xl:hidden")}>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent className={contentClass}>
+							{STATUS_OPTIONS.map((option) => (
+								<SelectItem key={option.value} value={option.value}>
+									{option.label}
+									{isLoading ? null : (
+										<span className="text-[#94A3B8] tabular-nums">
+											{" "}
+											· {option.value === ALL ? tasks.length : byStatus(option.value).length}
+										</span>
+									)}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 					<FilterTabs
 						label="Filter by status"
 						value={status}
 						onChange={(value) => apply({ status: value || null })}
+						className="hidden flex-nowrap @2xl:inline-flex"
 						tabs={[
 							{ value: "", label: "All", count: isLoading ? undefined : tasks.length },
 							...COLUMNS.map((column) => ({
@@ -161,22 +187,24 @@ export function TasksView() {
 						]}
 					/>
 					{!isLoading && (tasks.length > 0 || hasFilters) ? (
-						<div className="flex items-center gap-3 text-xs text-[#64748B] tabular-nums @3xl:shrink-0 dark:text-[#94A3B8]">
-							<p>
-								{inReview > 0 ? `${inReview} waiting for review` : "Nothing waiting for review"}
-								{overdue > 0 ? <span className="text-[#DC2626]"> · {overdue} overdue</span> : null}
-							</p>
-							{hasFilters ? (
-								<Button
-									variant="ghost"
-									onClick={clearFilters}
-									className="h-8 px-2 text-xs font-medium text-[#2563EB] hover:text-[#1D4ED8] dark:text-[#60A5FA]"
-								>
-									Clear filters
-								</Button>
-							) : null}
+						<div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#64748B] tabular-nums @5xl:shrink-0 dark:text-[#94A3B8]">
+							<div className="flex items-center gap-2">
+								<p>
+									{inReview > 0 ? `${inReview} waiting for review` : "Nothing waiting for review"}
+									{overdue > 0 ? <span className="text-[#DC2626]"> · {overdue} overdue</span> : null}
+								</p>
+								{hasFilters ? (
+									<Button
+										variant="ghost"
+										onClick={clearFilters}
+										className="h-7 px-2 text-xs font-medium text-[#2563EB] hover:text-[#1D4ED8] dark:text-[#60A5FA]"
+									>
+										Clear filters
+									</Button>
+								) : null}
+							</div>
 							{!status && (scrollable.left || scrollable.right) ? (
-								<div className="ml-auto hidden shrink-0 gap-1 @md:flex">
+								<div className="hidden shrink-0 gap-1 @md:flex">
 									<Button
 										variant="outline"
 										size="icon"
@@ -227,64 +255,69 @@ export function TasksView() {
 						/>
 					</div>
 				) : (
-					// Same status board everywhere, only the number of visible columns changes:
-					// phones 1 (+ a peek of the next), tablets 2, desktops 4, wide monitors all 6
-					<div
-						ref={boardRef}
-						onScroll={status ? undefined : updateScrollable}
-						role={status ? undefined : "region"}
-						aria-label={status ? undefined : "Tasks by status"}
-						tabIndex={status ? undefined : 0}
-						className={cn(
-							status
-								? "grid"
-								: "-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-3 focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:outline-none sm:mx-0 sm:scroll-px-0 sm:px-0",
-						)}
-					>
-						{visibleColumns.map((column) => {
-							const items = byStatus(column.status);
-							return (
-								<section
-									key={column.status}
-									aria-label={column.label}
-									className={cn(
-										"flex min-w-0 flex-col rounded-lg bg-[#F1F5F9] p-2 dark:bg-[#0B1120]",
-										!status &&
-											"w-[85%] max-w-90 shrink-0 snap-start @md:w-[calc((100%-0.75rem)/2)] @md:max-w-none @4xl:w-[calc((100%-2.25rem)/4)] @[82rem]:w-auto @[82rem]:flex-1",
-									)}
-								>
-									<header className="flex items-center gap-2 px-1.5 pt-1 pb-2.5">
-										<span className="size-2 rounded-full" style={{ backgroundColor: column.color }} aria-hidden="true" />
-										<h2 className="text-xs font-semibold tracking-wider text-[#334155] uppercase dark:text-[#CBD5E1]">
-											{column.label}
-										</h2>
-										<span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-medium text-[#64748B] tabular-nums dark:bg-[#1E293B] dark:text-[#94A3B8]">
-											{isLoading ? "–" : items.length}
-										</span>
-									</header>
-									<div
+					// Status board: 1 peeked column on mobile, 2 columns on tablet, 4 on desktop, all 6 on wide screens
+					<div className="w-full min-w-0 max-w-full">
+						<div
+							ref={boardRef}
+							onScroll={status ? undefined : updateScrollable}
+							role={status ? undefined : "region"}
+							aria-label={status ? undefined : "Tasks by status"}
+							tabIndex={status ? undefined : 0}
+							className={cn(
+								status
+									? "grid"
+									: "flex w-full snap-x snap-mandatory gap-3 overflow-x-auto pb-3 focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:outline-none [scrollbar-width:thin]",
+							)}
+						>
+							{visibleColumns.map((column) => {
+								const items = byStatus(column.status);
+								return (
+									<section
+										key={column.status}
+										aria-label={column.label}
 										className={cn(
-											"grid gap-2",
-											// One status at a time gets the full width, so spread its cards out
-											status && "@xl:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4",
+											"flex min-w-0 flex-col rounded-lg bg-[#F1F5F9] p-2 dark:bg-[#0B1120]",
+											!status &&
+												"w-[85%] max-w-80 shrink-0 snap-start @md:w-[calc((100%-0.75rem)/2)] @md:max-w-none @4xl:w-[calc((100%-2.25rem)/4)] @[82rem]:w-auto @[82rem]:flex-1",
 										)}
 									>
-										{isLoading ? (
-											<>
-												<Skeleton className={`h-28 rounded-lg ${bone}`} />
-												<Skeleton className={`h-28 rounded-lg ${bone}`} />
-											</>
-										) : items.length === 0 ? (
-											<p className="rounded-lg border border-dashed border-[#CBD5E1] px-3 py-4 text-center text-xs text-[#94A3B8] dark:border-[#1E293B]">
-												No tasks
-											</p>
-										) : (
-											items.map((task) => <TaskCard key={task.id} task={task} onOpen={openTask} />)
-										)}
-									</div>
-								</section>
-							);
-						})}
+										<header className="flex items-center gap-2 px-1.5 pt-1 pb-2.5">
+											<span className="size-2 rounded-full" style={{ backgroundColor: column.color }} aria-hidden="true" />
+											<h2 className="text-xs font-semibold tracking-wider text-[#334155] uppercase dark:text-[#CBD5E1]">
+												{column.label}
+											</h2>
+											<span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-medium text-[#64748B] tabular-nums dark:bg-[#1E293B] dark:text-[#94A3B8]">
+												{isLoading ? "–" : items.length}
+											</span>
+										</header>
+										<div
+											className={cn(
+												"grid gap-2",
+												// One status at a time gets the full width, so spread its cards out
+												status && "grid-cols-1 @md:grid-cols-2 @4xl:grid-cols-3 @6xl:grid-cols-4",
+											)}
+										>
+											{isLoading ? (
+												Array.from({ length: status ? 8 : 2 }).map((_, i) => (
+													<Skeleton key={i} className={`h-28 rounded-lg ${bone}`} />
+												))
+											) : items.length === 0 ? (
+												<p
+													className={cn(
+														"rounded-lg border border-dashed border-[#CBD5E1] px-3 py-4 text-center text-xs text-[#94A3B8] dark:border-[#1E293B]",
+														status && "col-span-full",
+													)}
+												>
+													No tasks
+												</p>
+											) : (
+												items.map((task) => <TaskCard key={task.id} task={task} onOpen={openTask} />)
+											)}
+										</div>
+									</section>
+								);
+							})}
+						</div>
 					</div>
 				)}
 			</section>

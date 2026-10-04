@@ -17,7 +17,7 @@ export default function SubmissionsPage() {
 						<Skeleton className={`h-8 w-40 ${bone}`} />
 						<Skeleton className={`h-4 w-96 max-w-full ${bone}`} />
 					</div>
-					<Skeleton className={`h-[480px] rounded-lg ${bone}`} />
+					<Skeleton className={`h-120 rounded-lg ${bone}`} />
 				</div>
 			}
 		>
