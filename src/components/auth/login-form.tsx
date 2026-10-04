@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/password-input";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -252,6 +253,11 @@ export function LoginForm() {
                 );
               })}
             </div>
+          </div>
+
+          {/* Continue with Google (only renders when a client ID is configured) */}
+          <div className="mt-4">
+            <GoogleSignInButton />
           </div>
 
           {/* Divider */}

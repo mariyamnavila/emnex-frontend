@@ -80,6 +80,24 @@ export function useLogin() {
   });
 }
 
+// Sign in with a Google ID token. The backend only signs in EXISTING users
+// (by email) and links their Google account — it won't create new accounts.
+export function useGoogleLogin() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (idToken: string) =>
+      api.post<{ accessToken: string; user: AuthUser }>("/auth/google", { idToken }),
+    onSuccess: ({ data }) => {
+      queryClient.removeQueries({ queryKey: ["auth", "me"] });
+      toast.success(`Welcome back, ${data.user.name}`);
+      router.push(getPostLoginPath(data.user.role));
+    },
+    onError: (error) => toast.error(errorMessage(error, "Google sign-in failed")),
+  });
+}
+
 export function useRegister() {
   const router = useRouter();
   const queryClient = useQueryClient();
