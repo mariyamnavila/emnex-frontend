@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type {
 	AdminDashboardStats,
+	ManagerDashboardStats,
 	PayrollAnalytics,
 	ProjectAnalytics,
 } from "@/types/analytics.type";
@@ -14,6 +15,17 @@ export function useAdminDashboard() {
 		queryKey: ["analytics", "dashboard"],
 		queryFn: async () => {
 			const { data } = await api.get<AdminDashboardStats>("/analytics/dashboard");
+			return data;
+		},
+	});
+}
+
+// Same endpoint as the admin's, but the backend answers per role
+export function useManagerDashboard() {
+	return useQuery({
+		queryKey: ["analytics", "dashboard", "manager"],
+		queryFn: async () => {
+			const { data } = await api.get<ManagerDashboardStats>("/analytics/dashboard");
 			return data;
 		},
 	});

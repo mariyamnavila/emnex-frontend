@@ -1,4 +1,5 @@
 import type { ApexOptions } from "apexcharts";
+import { formatStatus } from "@/components/shared/status-badge";
 
 /** EmNex chart palette — aligned with --chart-1..5 in globals.css */
 export const EMNEX_CHART_COLORS = [
@@ -22,6 +23,9 @@ export const STATUS_CHART_COLORS: Record<string, string> = {
   PROCESSING: "#60A5FA",
   PAID: "#16A34A",
   REJECTED: "#DC2626",
+  INACTIVE: "#94A3B8",
+  SUSPENDED: "#D97706",
+  TERMINATED: "#DC2626",
 };
 
 export const chartAxisLabelStyle = { colors: "#64748B", fontSize: "12px" };
@@ -57,4 +61,35 @@ export function baseChartOptions(overrides?: ApexOptions): ApexOptions {
     },
     ...overrides,
   };
+}
+
+// Status donut with the total in the middle, colored like StatusBadge
+export function statusDonutOptions(statuses: string[], totalLabel: string): ApexOptions {
+  return baseChartOptions({
+    labels: statuses.map(formatStatus),
+    colors: statuses.map((status) => STATUS_CHART_COLORS[status] ?? "#64748B"),
+    legend: {
+      position: "bottom",
+      labels: { colors: "#64748B" },
+      markers: { size: 4 },
+    },
+    stroke: { width: 2, colors: ["#FFFFFF"] },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "68%",
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: totalLabel,
+              color: "#64748B",
+              fontSize: "12px",
+            },
+            value: { color: "#0F172A", fontSize: "22px", fontWeight: 700 },
+          },
+        },
+      },
+    },
+  });
 }

@@ -115,6 +115,7 @@ export function useCurrentUser() {
   const { data: me } = useGetMe();
 
   return {
+    id: me?.id ?? session?.userId ?? null,
     name: me?.name ?? session?.name ?? "",
     email: me?.email ?? session?.email ?? "",
     role: me?.role.name ?? session?.role ?? "",

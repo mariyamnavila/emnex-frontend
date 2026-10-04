@@ -1,25 +1,23 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
 import { ClipboardCheck, FolderKanban, Users, Wallet } from "lucide-react";
 import {
 	ApexChart,
-	formatStatus,
 	PageHeader,
 	StatCard,
 } from "@/components/shared";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { HeadcountChart } from "@/components/dashboard/headcount-chart";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import {
 	useAdminDashboard,
 	usePayrollAnalytics,
 	useProjectAnalytics,
 } from "@/hooks/analytics.hook";
-import { useEmployeeAnalytics } from "@/hooks/employee.hook";
 import {
 	baseChartOptions,
 	chartAxisLabelStyle,
-	STATUS_CHART_COLORS,
+	statusDonutOptions,
 } from "@/lib/chart-theme";
 import { formatCompactCurrency, formatCurrency } from "@/lib/pay";
 
@@ -31,40 +29,9 @@ const formatPeriod = (iso: string) =>
 		timeZone: "UTC",
 	});
 
-function donutOptions(statuses: string[], totalLabel: string): ApexOptions {
-	return baseChartOptions({
-		labels: statuses.map(formatStatus),
-		colors: statuses.map((status) => STATUS_CHART_COLORS[status] ?? "#64748B"),
-		legend: {
-			position: "bottom",
-			labels: { colors: "#64748B" },
-			markers: { size: 4 },
-		},
-		stroke: { width: 2, colors: ["#FFFFFF"] },
-		plotOptions: {
-			pie: {
-				donut: {
-					size: "68%",
-					labels: {
-						show: true,
-						total: {
-							show: true,
-							label: totalLabel,
-							color: "#64748B",
-							fontSize: "12px",
-						},
-						value: { color: "#0F172A", fontSize: "22px", fontWeight: 700 },
-					},
-				},
-			},
-		},
-	});
-}
-
 export function AdminOverview() {
 	const dashboard = useAdminDashboard();
 	const payroll = usePayrollAnalytics();
-	const employees = useEmployeeAnalytics();
 	const projects = useProjectAnalytics();
 
 	const stats = dashboard.data;
@@ -91,21 +58,6 @@ export function AdminOverview() {
 
 	const payrollStatuses = payroll.data?.byStatus ?? [];
 	const projectStatuses = projects.data?.byStatus ?? [];
-	const departments = employees.data?.byDepartment ?? [];
-
-	const departmentOptions = baseChartOptions({
-		plotOptions: { bar: { horizontal: true, barHeight: "55%", borderRadius: 4 } },
-		xaxis: {
-			categories: departments.map((item) => item.department),
-			labels: { style: chartAxisLabelStyle },
-			axisBorder: { show: false },
-			axisTicks: { show: false },
-			tickAmount: Math.max(1, ...departments.map((item) => item.count)),
-		},
-		yaxis: { labels: { style: chartAxisLabelStyle } },
-		grid: { borderColor: "#F1F5F9", strokeDashArray: 4 },
-		tooltip: { theme: "light", y: { formatter: (value: number) => `${value} employees` } },
-	});
 
 	return (
 		<div className="space-y-6">
@@ -174,7 +126,7 @@ export function AdminOverview() {
 					<ApexChart
 						type="donut"
 						height={280}
-						options={donutOptions(
+						options={statusDonutOptions(
 							payrollStatuses.map((item) => item.status),
 							"Payrolls",
 						)}
@@ -184,20 +136,7 @@ export function AdminOverview() {
 			</div>
 
 			<div className="grid gap-4 lg:grid-cols-3">
-				<ChartCard
-					title="Headcount by department"
-					isLoading={employees.isLoading}
-					isError={employees.isError}
-					isEmpty={departments.length === 0}
-					emptyText="No departments yet."
-				>
-					<ApexChart
-						type="bar"
-						height={260}
-						options={departmentOptions}
-						series={[{ name: "Employees", data: departments.map((item) => item.count) }]}
-					/>
-				</ChartCard>
+				<HeadcountChart />
 
 				<ChartCard
 					title="Projects by status"
@@ -209,7 +148,7 @@ export function AdminOverview() {
 					<ApexChart
 						type="donut"
 						height={260}
-						options={donutOptions(
+						options={statusDonutOptions(
 							projectStatuses.map((item) => item.status),
 							"Projects",
 						)}

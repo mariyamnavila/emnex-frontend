@@ -31,3 +31,15 @@ export interface ProjectAnalytics {
 	avgTasksPerProject: number;
 }
 
+
+// GET /analytics/dashboard — HR_MANAGER shape
+export interface ManagerDashboardStats {
+	totalEmployees: number;
+	activeEmployees: number;
+	totalDepartments: number;
+	newEmployeesThisMonth: number;
+	employeeByStatus: StatusCount[];
+	pendingSubmissions: number;
+	pendingHours: number;
+	approvedHoursThisMonth: number;
+}
