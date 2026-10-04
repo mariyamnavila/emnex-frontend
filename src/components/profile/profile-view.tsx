@@ -20,6 +20,8 @@ const AVATAR_MAX_MB = 5;
 // One profile page for every role: who you are, your photo, your password
 export function ProfileView() {
 	const { data: me, isLoading, isError } = useGetMe();
+	// A fresh form after each change; reset() leaves react-hook-form's inputs unregistered under the React Compiler
+	const [passwordFormKey, setPasswordFormKey] = useState(0);
 
 	return (
 		<div className="space-y-6">
@@ -78,7 +80,7 @@ export function ProfileView() {
 						You sign in with Google, so there&apos;s no EmNex password to change.
 					</p>
 				) : (
-					<ChangePasswordForm />
+					<ChangePasswordForm key={passwordFormKey} onChanged={() => setPasswordFormKey((key) => key + 1)} />
 				)}
 			</ChartCard>
 		</div>
@@ -151,13 +153,12 @@ function AvatarCard({
 	);
 }
 
-function ChangePasswordForm() {
+function ChangePasswordForm({ onChanged }: { onChanged: () => void }) {
 	const changePassword = useChangePassword();
 	const {
 		register,
 		handleSubmit,
 		control,
-		reset,
 		formState: { errors },
 	} = useForm<ChangePasswordValues>({
 		resolver: zodResolver(changePasswordSchema),
@@ -167,7 +168,7 @@ function ChangePasswordForm() {
 
 	return (
 		<form
-			onSubmit={handleSubmit((values) => changePassword.mutate(values, { onSuccess: () => reset() }))}
+			onSubmit={handleSubmit((values) => changePassword.mutate(values, { onSuccess: onChanged }))}
 			className="grid max-w-xl gap-4"
 			noValidate
 		>

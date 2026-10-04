@@ -160,7 +160,8 @@ export function useChangePassword() {
       }),
     onSuccess: () => {
       toast.success("Password changed — you've been signed out on other devices");
-      void queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
+      // Only this flag changes, so update the cache instead of another /auth/me round trip
+      queryClient.setQueryData<MeUser>(["auth", "me"], (me) => (me ? { ...me, mustChangePassword: false } : me));
     },
     onError: (error) => toast.error(errorMessage(error, "Couldn't change your password")),
   });
