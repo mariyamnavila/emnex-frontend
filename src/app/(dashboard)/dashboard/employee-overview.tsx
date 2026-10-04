@@ -217,6 +217,11 @@ export function EmployeeOverview() {
 					isError={logs.isError}
 					isEmpty={myLogs.length === 0}
 					emptyText="You haven't logged any hours yet."
+					action={
+						<Link href="/dashboard/submissions" className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]">
+							View all
+						</Link>
+					}
 				>
 					<ul className="divide-y divide-[#F1F5F9] dark:divide-[#1E293B]">
 						{myLogs.slice(0, 5).map((log) => (

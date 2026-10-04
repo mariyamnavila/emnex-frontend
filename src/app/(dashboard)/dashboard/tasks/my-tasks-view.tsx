@@ -178,7 +178,7 @@ export function MyTasksView() {
 				open={logOpen}
 				onOpenChange={setLogOpen}
 				tasks={loggable}
-				taskId={logTaskId}
+				initial={logTaskId ? { taskId: logTaskId } : undefined}
 				loggedHours={loggedHours}
 			/>
 			<ConfirmDialog

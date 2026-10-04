@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useLogHours } from "@/hooks/submission.hook";
+import { useLogHours, useUpdateWorkLog } from "@/hooks/submission.hook";
 import { today } from "@/lib/utils";
 import type { MyTask } from "@/types/task.type";
 import { logHoursSchema, type LogHoursValues } from "@/validation/submission.validation";
@@ -26,20 +26,30 @@ interface LogHoursDialogProps {
 	onOpenChange: (open: boolean) => void;
 	/** Tasks hours can be logged against */
 	tasks: MyTask[];
-	/** Pre-selected task, e.g. when opened from a task card */
-	taskId?: string | null;
+	/** Starting values, e.g. the task of the card it was opened from, or a rejected log to send again */
+	initial?: Partial<LogHoursValues>;
+	/** Edit this pending log instead of creating one (its task can't change) */
+	editing?: { id: string; taskTitle: string } | null;
 	/** Hours already logged per task (approved + pending), for the hint */
 	loggedHours?: Record<string, number>;
 }
 
-export function LogHoursDialog({ open, onOpenChange, tasks, taskId, loggedHours = {} }: LogHoursDialogProps) {
+export function LogHoursDialog({
+	open,
+	onOpenChange,
+	tasks,
+	initial,
+	editing = null,
+	loggedHours = {},
+}: LogHoursDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="border-[#E2E8F0] bg-white sm:max-w-lg dark:border-[#1E293B] dark:bg-[#0F172A]">
 				{open ? (
 					<LogHoursForm
 						tasks={tasks}
-						taskId={taskId ?? ""}
+						initial={initial}
+						editing={editing}
 						loggedHours={loggedHours}
 						onDone={() => onOpenChange(false)}
 					/>
@@ -51,16 +61,20 @@ export function LogHoursDialog({ open, onOpenChange, tasks, taskId, loggedHours 
 
 function LogHoursForm({
 	tasks,
-	taskId,
+	initial,
+	editing,
 	loggedHours,
 	onDone,
 }: {
 	tasks: MyTask[];
-	taskId: string;
+	initial?: Partial<LogHoursValues>;
+	editing: { id: string; taskTitle: string } | null;
 	loggedHours: Record<string, number>;
 	onDone: () => void;
 }) {
 	const logHours = useLogHours();
+	const updateLog = useUpdateWorkLog();
+	const isSaving = logHours.isPending || updateLog.isPending;
 	const {
 		register,
 		handleSubmit,
@@ -68,7 +82,7 @@ function LogHoursForm({
 		formState: { errors },
 	} = useForm<LogHoursValues>({
 		resolver: zodResolver(logHoursSchema),
-		defaultValues: { taskId, workDate: today(), hoursWorked: "", description: "" },
+		defaultValues: { taskId: "", workDate: today(), hoursWorked: "", description: "", ...initial },
 	});
 	const [selectedId, description] = useWatch({ control, name: ["taskId", "description"] });
 	const selected = tasks.find((task) => task.id === selectedId);
@@ -76,13 +90,21 @@ function LogHoursForm({
 
 	return (
 		<form
-			onSubmit={handleSubmit((values) => logHours.mutate(values, { onSuccess: onDone }))}
+			onSubmit={handleSubmit((values) =>
+				editing
+					? updateLog.mutate({ id: editing.id, values }, { onSuccess: onDone })
+					: logHours.mutate(values, { onSuccess: onDone }),
+			)}
 			className="space-y-5"
 			noValidate
 		>
 			<DialogHeader>
-				<DialogTitle className="text-[#0F172A] dark:text-white">Log hours</DialogTitle>
-				<DialogDescription>Your manager reviews each log. Approved hours count toward hourly pay.</DialogDescription>
+				<DialogTitle className="text-[#0F172A] dark:text-white">{editing ? "Edit work log" : "Log hours"}</DialogTitle>
+				<DialogDescription>
+					{editing
+						? "You can change it until your manager reviews it."
+						: "Your manager reviews each log. Approved hours count toward hourly pay."}
+				</DialogDescription>
 			</DialogHeader>
 
 			<FormField
@@ -95,28 +117,32 @@ function LogHoursForm({
 						: undefined
 				}
 			>
-				<Controller
-					control={control}
-					name="taskId"
-					render={({ field }) => (
-						<Select value={field.value || undefined} onValueChange={field.onChange}>
-							<SelectTrigger
-								id="log-task"
-								aria-invalid={Boolean(errors.taskId)}
-								className={`h-10 w-full ${fieldClass}`}
-							>
-								<SelectValue placeholder={tasks.length ? "Choose a task" : "No tasks to log against"} />
-							</SelectTrigger>
-							<SelectContent>
-								{tasks.map((task) => (
-									<SelectItem key={task.id} value={task.id}>
-										{task.title}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					)}
-				/>
+				{editing ? (
+					<Input id="log-task" value={editing.taskTitle} disabled className={`h-10 ${fieldClass}`} />
+				) : (
+					<Controller
+						control={control}
+						name="taskId"
+						render={({ field }) => (
+							<Select value={field.value || undefined} onValueChange={field.onChange}>
+								<SelectTrigger
+									id="log-task"
+									aria-invalid={Boolean(errors.taskId)}
+									className={`h-10 w-full ${fieldClass}`}
+								>
+									<SelectValue placeholder={tasks.length ? "Choose a task" : "No tasks to log against"} />
+								</SelectTrigger>
+								<SelectContent>
+									{tasks.map((task) => (
+										<SelectItem key={task.id} value={task.id}>
+											{task.title}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+					/>
+				)}
 			</FormField>
 
 			<div className="grid gap-4 sm:grid-cols-2">
@@ -167,18 +193,18 @@ function LogHoursForm({
 					type="button"
 					variant="outline"
 					onClick={onDone}
-					disabled={logHours.isPending}
+					disabled={isSaving}
 					className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
 				>
 					Cancel
 				</Button>
 				<Button
 					type="submit"
-					disabled={logHours.isPending || tasks.length === 0}
+					disabled={isSaving || (!editing && tasks.length === 0)}
 					className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 				>
-					{logHours.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-					Log hours
+					{isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
+					{editing ? "Save changes" : "Log hours"}
 				</Button>
 			</DialogFooter>
 		</form>

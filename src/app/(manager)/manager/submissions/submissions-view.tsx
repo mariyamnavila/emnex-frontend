@@ -258,10 +258,12 @@ export function SubmissionsView() {
 				open={sheetOpen}
 				onOpenChange={setSheetOpen}
 				reviewerName={reviewerName(selected?.reviewedBy ?? null)}
-				isOwn={selected ? isOwn(selected) : false}
-				isApproving={approve.isPending && approve.variables?.id === selected?.id}
-				onApprove={approveSubmission}
-				onReject={startReject}
+				review={{
+					isOwn: selected ? isOwn(selected) : false,
+					isApproving: approve.isPending && approve.variables?.id === selected?.id,
+					onApprove: approveSubmission,
+					onReject: startReject,
+				}}
 			/>
 			<RejectSubmissionDialog
 				submission={rejecting}

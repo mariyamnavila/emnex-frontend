@@ -32,3 +32,16 @@ export const logHoursSchema = z.object({
 });
 
 export type LogHoursValues = z.infer<typeof logHoursSchema>;
+
+/** An existing work log as form values (to edit it, or send a rejected one again) */
+export const workLogToForm = (log: {
+	taskId: string;
+	workDate: string;
+	hoursWorked: number;
+	description: string;
+}): LogHoursValues => ({
+	taskId: log.taskId,
+	workDate: log.workDate.slice(0, 10),
+	hoursWorked: String(log.hoursWorked),
+	description: log.description,
+});

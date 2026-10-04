@@ -110,22 +110,45 @@ export function useRejectSubmission() {
 	});
 }
 
-export function useLogHours() {
+// Form values → API body ("YYYY-MM-DD" → UTC midnight, hours → number)
+const toWorkLog = (values: LogHoursValues) => ({
+	workDate: `${values.workDate}T00:00:00.000Z`,
+	hoursWorked: Number(values.hoursWorked),
+	description: values.description,
+});
+
+function useInvalidateWorkLogs() {
 	const queryClient = useQueryClient();
+	return () => {
+		void queryClient.invalidateQueries({ queryKey: ["submissions"] });
+		void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+		void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+	};
+}
+
+export function useLogHours() {
+	const invalidate = useInvalidateWorkLogs();
 	return useMutation({
 		mutationFn: (values: LogHoursValues) =>
-			api.post<ApiSubmission>("/submissions", {
-				taskId: values.taskId,
-				workDate: `${values.workDate}T00:00:00.000Z`,
-				hoursWorked: Number(values.hoursWorked),
-				description: values.description,
-			}),
+			api.post<ApiSubmission>("/submissions", { taskId: values.taskId, ...toWorkLog(values) }),
 		onSuccess: ({ data }) => {
 			toast.success(`Logged ${toAmount(data.hoursWorked)} h on "${data.task.title}" — sent for review`);
-			void queryClient.invalidateQueries({ queryKey: ["submissions"] });
-			void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-			void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+			invalidate();
 		},
 		onError: (error) => toast.error(errorMessage(error, "Couldn't log your hours")),
+	});
+}
+
+// Only the owner can edit, and only while the log is still pending
+export function useUpdateWorkLog() {
+	const invalidate = useInvalidateWorkLogs();
+	return useMutation({
+		mutationFn: ({ id, values }: { id: string; values: LogHoursValues }) =>
+			api.patch<ApiSubmission>(`/submissions/${id}`, toWorkLog(values)),
+		onSuccess: () => {
+			toast.success("Work log updated");
+			invalidate();
+		},
+		onError: (error) => toast.error(errorMessage(error, "Couldn't update your work log")),
 	});
 }

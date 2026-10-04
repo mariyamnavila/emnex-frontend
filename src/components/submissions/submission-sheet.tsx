@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { Check, Loader2, X } from "lucide-react";
 import {
 	DetailFigure,
@@ -12,14 +14,9 @@ import {
 } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { formatDateTime, formatDay, timeAgo } from "@/lib/utils";
-import type { Submission } from "@/types/submission.type";
+import type { MySubmission, Submission } from "@/types/submission.type";
 
-interface SubmissionSheetProps {
-	submission: Submission | null;
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	/** Who reviewed it, already resolved from `reviewedBy` */
-	reviewerName: string | null;
+interface ReviewProps {
 	/** Own work can't be reviewed */
 	isOwn: boolean;
 	isApproving: boolean;
@@ -27,22 +24,36 @@ interface SubmissionSheetProps {
 	onReject: (submission: Submission) => void;
 }
 
+interface SubmissionSheetProps {
+	/** Anyone's log (reviewers) or one of the signed-in employee's own */
+	submission: Submission | MySubmission | null;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	/** Who reviewed it, already resolved from `reviewedBy` */
+	reviewerName?: string | null;
+	/** Approve / reject footer for reviewers */
+	review?: ReviewProps;
+	/** Replaces the footer, e.g. the employee's Edit / Log again */
+	actions?: ReactNode;
+}
+
 export function SubmissionSheet({
 	submission,
 	open,
 	onOpenChange,
-	reviewerName,
-	isOwn,
-	isApproving,
-	onApprove,
-	onReject,
+	reviewerName = null,
+	review,
+	actions,
 }: SubmissionSheetProps) {
-	const canReview = submission?.status === "PENDING" && !isOwn;
+	const isTheirs = submission !== null && "employee" in submission;
+	const reviewable = review && isTheirs && submission.status === "PENDING" ? submission : null;
+	const canReview = reviewable !== null && !review?.isOwn;
 
 	const footer =
-		submission?.status === "PENDING" ? (
+		actions ??
+		(reviewable && review ? (
 			<>
-				{isOwn ? (
+				{review.isOwn ? (
 					<p className="mb-3 text-xs text-[#64748B] dark:text-[#94A3B8]">
 						This is your own work log — someone else has to review it.
 					</p>
@@ -50,24 +61,24 @@ export function SubmissionSheet({
 				<div className="flex gap-2">
 					<Button
 						variant="outline"
-						disabled={!canReview || isApproving}
-						onClick={() => onReject(submission)}
+						disabled={!canReview || review.isApproving}
+						onClick={() => review.onReject(reviewable)}
 						className="flex-1 border-[#E2E8F0] text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C] dark:border-[#1E293B]"
 					>
 						<X className="size-4" />
 						Reject
 					</Button>
 					<Button
-						disabled={!canReview || isApproving}
-						onClick={() => onApprove(submission)}
+						disabled={!canReview || review.isApproving}
+						onClick={() => review.onApprove(reviewable)}
 						className="flex-1 bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 					>
-						{isApproving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-						Approve {submission.hoursWorked} h
+						{review.isApproving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+						Approve {reviewable.hoursWorked} h
 					</Button>
 				</div>
 			</>
-		) : null;
+		) : null);
 
 	return (
 		<DetailSheet
@@ -79,14 +90,18 @@ export function SubmissionSheet({
 		>
 			{submission ? (
 				<>
-					<PersonLine
-						name={submission.employee.user.name}
-						avatar={submission.employee.user.avatar}
-						subtitle={submission.employee.employeeCode}
-						monoSubtitle
-						isYou={isOwn}
-						trailing={<StatusBadge status={submission.status} />}
-					/>
+					{"employee" in submission ? (
+						<PersonLine
+							name={submission.employee.user.name}
+							avatar={submission.employee.user.avatar}
+							subtitle={submission.employee.employeeCode}
+							monoSubtitle
+							isYou={review?.isOwn}
+							trailing={<StatusBadge status={submission.status} />}
+						/>
+					) : (
+						<StatusBadge status={submission.status} />
+					)}
 
 					<DetailFigure
 						value={`${submission.hoursWorked} h`}
@@ -119,7 +134,7 @@ export function SubmissionSheet({
 					</DetailList>
 
 					<div className="space-y-2">
-						<SectionHeading>What they did</SectionHeading>
+						<SectionHeading>{isTheirs ? "What they did" : "What you did"}</SectionHeading>
 						<p className="text-sm whitespace-pre-line text-[#334155] dark:text-[#CBD5E1]">
 							{submission.description || "No description given."}
 						</p>
