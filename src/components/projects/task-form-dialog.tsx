@@ -24,8 +24,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker, formatStatus } from "@/components/shared";
 import { useActiveEmployees } from "@/hooks/employee.hook";
-import { useCreateTask } from "@/hooks/task.hook";
-import type { TaskPriority } from "@/types/task.type";
+import { useCreateTask, useUpdateTask } from "@/hooks/task.hook";
+import type { Task, TaskPriority } from "@/types/task.type";
 import { taskSchema, type TaskFormValues } from "@/validation/task.validation";
 
 const PRIORITIES: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
@@ -38,24 +38,39 @@ function FieldError({ message }: { message?: string }) {
 }
 
 interface TaskFormDialogProps {
-	projectId: string;
+	/** Required to create a task; ignored when editing */
+	projectId?: string;
+	/** Pass a task to edit it; omit to create a new one */
+	task?: Task | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
 
-export function TaskFormDialog({ projectId, open, onOpenChange }: TaskFormDialogProps) {
+export function TaskFormDialog({ projectId, task, open, onOpenChange }: TaskFormDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="border-[#E2E8F0] bg-white sm:max-w-lg dark:border-[#1E293B] dark:bg-[#0F172A]">
-				<TaskForm projectId={projectId} onDone={() => onOpenChange(false)} />
+				{/* key: a fresh form per task (or for a new one) */}
+				<TaskForm key={task?.id ?? "new"} projectId={projectId} task={task} onDone={() => onOpenChange(false)} />
 			</DialogContent>
 		</Dialog>
 	);
 }
 
-function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void }) {
-	const createTask = useCreateTask(projectId);
+function TaskForm({
+	projectId,
+	task,
+	onDone,
+}: {
+	projectId?: string;
+	task?: Task | null;
+	onDone: () => void;
+}) {
+	const isEdit = Boolean(task);
+	const createTask = useCreateTask(projectId ?? "");
+	const updateTask = useUpdateTask(task?.id ?? "");
 	const { data: employees = [], isLoading: employeesLoading } = useActiveEmployees();
+	const mutation = isEdit ? updateTask : createTask;
 
 	const {
 		register,
@@ -65,25 +80,28 @@ function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void
 	} = useForm<TaskFormValues>({
 		resolver: zodResolver(taskSchema),
 		defaultValues: {
-			title: "",
-			description: "",
-			employeeId: "",
-			priority: "MEDIUM",
-			estimatedHours: "",
-			dueDate: "",
+			title: task?.title ?? "",
+			description: task?.description ?? "",
+			// Prefilled so validation passes; not sent when editing (reassign has its own action)
+			employeeId: task?.employeeId ?? "",
+			priority: task?.priority ?? "MEDIUM",
+			estimatedHours: task?.estimatedHours != null ? String(task.estimatedHours) : "",
+			dueDate: task?.dueDate ? task.dueDate.slice(0, 10) : "",
 		},
 	});
 
 	return (
 		<form
-			onSubmit={handleSubmit((values) => createTask.mutate(values, { onSuccess: onDone }))}
+			onSubmit={handleSubmit((values) => mutation.mutate(values, { onSuccess: onDone }))}
 			className="space-y-5"
 			noValidate
 		>
 			<DialogHeader>
-				<DialogTitle className="text-[#0F172A] dark:text-white">New task</DialogTitle>
+				<DialogTitle className="text-[#0F172A] dark:text-white">{isEdit ? "Edit task" : "New task"}</DialogTitle>
 				<DialogDescription>
-					Assign work to an active employee. They&apos;ll see it under My Tasks.
+					{isEdit
+						? "Update the task details. Use Reassign to change who's on it."
+						: "Assign work to an active employee. They'll see it under My Tasks."}
 				</DialogDescription>
 			</DialogHeader>
 
@@ -117,34 +135,36 @@ function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void
 			</div>
 
 			<div className="grid gap-4 sm:grid-cols-2">
-				<div className="space-y-1.5">
-					<Label className="text-xs font-semibold">Assignee</Label>
-					<Controller
-						control={control}
-						name="employeeId"
-						render={({ field }) => (
-							<Select value={field.value} onValueChange={field.onChange}>
-								<SelectTrigger
-									aria-invalid={Boolean(errors.employeeId)}
-									className={`h-10 w-full ${fieldClass}`}
-								>
-									<SelectValue
-										placeholder={employeesLoading ? "Loading..." : "Choose an employee"}
-									/>
-								</SelectTrigger>
-								<SelectContent>
-									{employees.map((employee) => (
-										<SelectItem key={employee.id} value={employee.id}>
-											{employee.user.name}
-											<span className="text-[#94A3B8]">· {employee.jobTitle}</span>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						)}
-					/>
-					<FieldError message={errors.employeeId?.message} />
-				</div>
+				{!isEdit ? (
+					<div className="space-y-1.5">
+						<Label className="text-xs font-semibold">Assignee</Label>
+						<Controller
+							control={control}
+							name="employeeId"
+							render={({ field }) => (
+								<Select value={field.value} onValueChange={field.onChange}>
+									<SelectTrigger
+										aria-invalid={Boolean(errors.employeeId)}
+										className={`h-10 w-full ${fieldClass}`}
+									>
+										<SelectValue
+											placeholder={employeesLoading ? "Loading..." : "Choose an employee"}
+										/>
+									</SelectTrigger>
+									<SelectContent>
+										{employees.map((employee) => (
+											<SelectItem key={employee.id} value={employee.id}>
+												{employee.user.name}
+												<span className="text-[#94A3B8]">· {employee.jobTitle}</span>
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							)}
+						/>
+						<FieldError message={errors.employeeId?.message} />
+					</div>
+				) : null}
 
 				<div className="space-y-1.5">
 					<Label className="text-xs font-semibold">Priority</Label>
@@ -211,18 +231,18 @@ function TaskForm({ projectId, onDone }: { projectId: string; onDone: () => void
 					type="button"
 					variant="outline"
 					onClick={onDone}
-					disabled={createTask.isPending}
+					disabled={mutation.isPending}
 					className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
 				>
 					Cancel
 				</Button>
 				<Button
 					type="submit"
-					disabled={createTask.isPending}
+					disabled={mutation.isPending}
 					className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 				>
-					{createTask.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
-					Create task
+					{mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+					{isEdit ? "Save changes" : "Create task"}
 				</Button>
 			</DialogFooter>
 		</form>

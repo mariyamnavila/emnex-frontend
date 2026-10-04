@@ -94,6 +94,27 @@ export function useCreateTask(projectId: string) {
 	});
 }
 
+// Edit a task's details (not its assignee — that's the assign endpoint — or status)
+export function useUpdateTask(id: string) {
+	const invalidate = useInvalidateTasks();
+
+	return useMutation({
+		mutationFn: (values: TaskFormValues) =>
+			api.patch<ApiTask>(`/tasks/${id}`, {
+				title: values.title,
+				description: values.description || undefined,
+				priority: values.priority,
+				estimatedHours: values.estimatedHours ? Number(values.estimatedHours) : undefined,
+				dueDate: values.dueDate ? toIsoDay(values.dueDate) : undefined,
+			}),
+		onSuccess: ({ data }) => {
+			toast.success(`"${data.title}" updated`);
+			invalidate();
+		},
+		onError: (error) => toast.error(errorMessage(error, "Failed to update task")),
+	});
+}
+
 export function useAssignTask() {
 	const invalidate = useInvalidateTasks();
 

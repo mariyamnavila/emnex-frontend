@@ -90,6 +90,8 @@ export function ProjectDetailView({ id }: { id: string }) {
 
 	const [editOpen, setEditOpen] = useState(false);
 	const [taskFormOpen, setTaskFormOpen] = useState(false);
+	const [editingTask, setEditingTask] = useState<Task | null>(null);
+	const [taskEditOpen, setTaskEditOpen] = useState(false);
 	const [assigning, setAssigning] = useState<Task | null>(null);
 	const [assignOpen, setAssignOpen] = useState(false);
 	const [pendingDelete, setPendingDelete] = useState<Task | null>(null);
@@ -205,10 +207,11 @@ export function ProjectDetailView({ id }: { id: string }) {
 			headerClassName: "w-12",
 			className: "w-12 text-right",
 			cell: (row) => {
-				const nextStatuses = can("task.update") ? TASK_TRANSITIONS[row.status] : [];
+				const canEdit = can("task.update");
+				const nextStatuses = canEdit ? TASK_TRANSITIONS[row.status] : [];
 				const canAssign = can("task.assign") && row.status !== "COMPLETED";
 				const canDelete = can("task.delete") && DELETABLE.includes(row.status);
-				if (nextStatuses.length === 0 && !canAssign && !canDelete) return null;
+				if (!canEdit && nextStatuses.length === 0 && !canAssign && !canDelete) return null;
 
 				return (
 					<DropdownMenu>
@@ -226,6 +229,18 @@ export function ProjectDetailView({ id }: { id: string }) {
 							align="end"
 							className="w-52 border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]"
 						>
+							{canEdit ? (
+								<DropdownMenuItem
+									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
+									onSelect={() => {
+										setEditingTask(row);
+										setTaskEditOpen(true);
+									}}
+								>
+									<Pencil className="size-4" />
+									Edit task
+								</DropdownMenuItem>
+							) : null}
 							{nextStatuses.map((status) => (
 								<DropdownMenuItem
 									key={status}
@@ -392,6 +407,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 
 			<ProjectFormDialog open={editOpen} onOpenChange={setEditOpen} project={project} />
 			<TaskFormDialog projectId={project.id} open={taskFormOpen} onOpenChange={setTaskFormOpen} />
+			<TaskFormDialog task={editingTask} open={taskEditOpen} onOpenChange={setTaskEditOpen} />
 			<AssignTaskDialog task={assigning} open={assignOpen} onOpenChange={setAssignOpen} />
 
 			<Dialog
