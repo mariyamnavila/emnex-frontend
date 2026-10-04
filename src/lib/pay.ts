@@ -86,3 +86,12 @@ export function payrollStatusNote(payroll: { status: string; payment: { status: 
 	if (payroll.status === "REJECTED") return "This payroll was rejected.";
 	return "Waiting for finance approval.";
 }
+
+/** One line on a payment's state, from the employee's point of view */
+export function paymentStatusNote(status: string): string {
+	if (status === "COMPLETED") return "Paid through Stripe.";
+	if (status === "PROCESSING") return "Finance has started this payment — Stripe is processing it.";
+	if (status === "FAILED") return "This payment didn't go through. Finance can retry it.";
+	if (status === "REFUNDED") return "This payment was refunded.";
+	return "Payment created, not started yet.";
+}

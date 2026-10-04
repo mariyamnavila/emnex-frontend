@@ -21,11 +21,9 @@ import { useMyTasks } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { errorMessage } from "@/lib/api";
 import { sumHours } from "@/lib/task";
-import { formatDay, plural, timeAgo } from "@/lib/utils";
+import { formatDay, paginate, plural, timeAgo, whereStatus } from "@/lib/utils";
 import type { MySubmission, SubmissionStatus } from "@/types/submission.type";
 import { type LogHoursValues, workLogToForm } from "@/validation/submission.validation";
-
-const PAGE_SIZE = 10;
 
 const STATUSES: { value: SubmissionStatus; label: string }[] = [
 	{ value: "PENDING", label: "Pending" },
@@ -48,10 +46,8 @@ export function MySubmissionsView() {
 	const [dialog, setDialog] = useState<DialogState>(null);
 
 	const all = logs.data ?? [];
-	const byStatus = (value: SubmissionStatus) => all.filter((log) => log.status === value);
-	const filtered = status ? byStatus(status) : all;
-	const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-	const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+	const filtered = status ? whereStatus(all, [status]) : all;
+	const { rows, totalPages } = paginate(filtered, page);
 	const loggable = (tasks.data ?? []).filter(canLogHours);
 
 	function openLog(state: NonNullable<DialogState>) {
@@ -150,9 +146,9 @@ export function MySubmissionsView() {
 		},
 	];
 
-	const pending = byStatus("PENDING");
-	const approved = byStatus("APPROVED");
-	const rejected = byStatus("REJECTED");
+	const pending = whereStatus(all, ["PENDING"]);
+	const approved = whereStatus(all, ["APPROVED"]);
+	const rejected = whereStatus(all, ["REJECTED"]);
 
 	return (
 		<div className="space-y-6">
@@ -213,7 +209,7 @@ export function MySubmissionsView() {
 							...STATUSES.map((item) => ({
 								value: item.value,
 								label: item.label,
-								count: logs.isLoading ? undefined : byStatus(item.value).length,
+								count: logs.isLoading ? undefined : whereStatus(all, [item.value]).length,
 							})),
 						]}
 					/>

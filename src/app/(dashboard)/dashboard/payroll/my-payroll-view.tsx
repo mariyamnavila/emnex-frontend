@@ -17,12 +17,10 @@ import { useMyPayrolls } from "@/hooks/payroll.hook";
 import { errorMessage } from "@/lib/api";
 import { monthlyBarOptions } from "@/lib/chart-theme";
 import { formatCompactCurrency, formatCurrency } from "@/lib/pay";
-import { formatDay, formatMonth, plural, sumBy } from "@/lib/utils";
-import type { MyPayroll, PayrollStatus } from "@/types/payroll.type";
+import { formatDay, formatMonth, plural, sumBy, whereStatus } from "@/lib/utils";
+import type { MyPayroll } from "@/types/payroll.type";
 
 const netOf = (payrolls: MyPayroll[]) => sumBy(payrolls, (payroll) => payroll.netAmount);
-const withStatus = (payrolls: MyPayroll[], statuses: PayrollStatus[]) =>
-	payrolls.filter((payroll) => statuses.includes(payroll.status));
 
 export function MyPayrollView() {
 	const { data, isLoading, isError, error } = useMyPayrolls();
@@ -31,9 +29,9 @@ export function MyPayrollView() {
 
 	// Newest period first
 	const payrolls = [...(data ?? [])].sort((a, b) => b.periodStart.localeCompare(a.periodStart));
-	const paid = withStatus(payrolls, ["PAID"]);
-	const approved = withStatus(payrolls, ["APPROVED"]);
-	const preparing = withStatus(payrolls, ["DRAFT", "GENERATED"]);
+	const paid = whereStatus(payrolls, ["PAID"]);
+	const approved = whereStatus(payrolls, ["APPROVED"]);
+	const preparing = whereStatus(payrolls, ["DRAFT", "GENERATED"]);
 	const latest = payrolls.find((payroll) => payroll.status !== "REJECTED");
 
 	// Net pay per month, last 12 periods, rejected payroll left out

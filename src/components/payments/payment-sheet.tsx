@@ -13,9 +13,9 @@ import {
 } from "@/components/shared";
 import { PayBreakdown } from "@/components/payroll/pay-breakdown";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/pay";
+import { formatCurrency, paymentStatusNote } from "@/lib/pay";
 import { formatDateTime, formatDay, timeAgo } from "@/lib/utils";
-import type { Payment } from "@/types/payment.type";
+import type { MyPayment, Payment } from "@/types/payment.type";
 
 function TransactionId({ id }: { id: string }) {
 	// Real Stripe payment intents can be opened in the (test) dashboard; seeded ids can't
@@ -39,30 +39,36 @@ function TransactionId({ id }: { id: string }) {
 	);
 }
 
-interface PaymentSheetProps {
-	payment: Payment | null;
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
+interface RetryProps {
 	/** Not completed, payroll still approved, user may pay, and it isn't their own */
-	canRetry: boolean;
+	allowed: boolean;
 	isRetrying: boolean;
 	onRetry: (payment: Payment) => void;
 }
 
-export function PaymentSheet({ payment, open, onOpenChange, canRetry, isRetrying, onRetry }: PaymentSheetProps) {
+interface PaymentSheetProps {
+	/** Anyone's payment (finance) or one of the signed-in employee's own */
+	payment: Payment | MyPayment | null;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	retry?: RetryProps;
+}
+
+export function PaymentSheet({ payment, open, onOpenChange, retry }: PaymentSheetProps) {
+	const retryable = payment && "employee" in payment && retry?.allowed ? payment : null;
 	const footer =
-		payment && canRetry ? (
+		retryable && retry ? (
 			<div className="space-y-2">
 				<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
 					Test mode: card 4242 4242 4242 4242, any future date and any CVC.
 				</p>
 				<Button
-					disabled={isRetrying}
-					onClick={() => onRetry(payment)}
+					disabled={retry.isRetrying}
+					onClick={() => retry.onRetry(retryable)}
 					className="w-full bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 				>
-					{isRetrying ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4" />}
-					{isRetrying ? "Opening Stripe..." : "Retry with Stripe"}
+					{retry.isRetrying ? <Loader2 className="size-4 animate-spin" /> : <CreditCard className="size-4" />}
+					{retry.isRetrying ? "Opening Stripe..." : "Retry with Stripe"}
 				</Button>
 			</div>
 		) : null;
@@ -71,19 +77,26 @@ export function PaymentSheet({ payment, open, onOpenChange, canRetry, isRetrying
 		<DetailSheet
 			open={open}
 			onOpenChange={onOpenChange}
-			title="Payment"
+			title={payment && !("employee" in payment) ? "Your payment" : "Payment"}
 			description="The Stripe payment and the payroll it settles"
 			footer={footer}
 		>
 			{payment ? (
 				<>
-					<PersonLine
-						name={payment.employee.user.name}
-						avatar={payment.employee.user.avatar}
-						subtitle={payment.employee.employeeCode}
-						monoSubtitle
-						trailing={<StatusBadge status={payment.status} />}
-					/>
+					{"employee" in payment ? (
+						<PersonLine
+							name={payment.employee.user.name}
+							avatar={payment.employee.user.avatar}
+							subtitle={payment.employee.employeeCode}
+							monoSubtitle
+							trailing={<StatusBadge status={payment.status} />}
+						/>
+					) : (
+						<div className="space-y-2">
+							<StatusBadge status={payment.status} />
+							<p className="text-sm text-[#334155] dark:text-[#CBD5E1]">{paymentStatusNote(payment.status)}</p>
+						</div>
+					)}
 
 					<DetailFigure
 						value={formatCurrency(payment.amount)}

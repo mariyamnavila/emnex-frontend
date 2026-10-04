@@ -262,9 +262,11 @@ export function PaymentsView() {
 				payment={selected}
 				open={sheetOpen}
 				onOpenChange={setSheetOpen}
-				canRetry={selected ? canRetry(selected) : false}
-				isRetrying={startCheckout.isPending || startCheckout.isSuccess}
-				onRetry={retry}
+				retry={{
+					allowed: selected ? canRetry(selected) : false,
+					isRetrying: startCheckout.isPending || startCheckout.isSuccess,
+					onRetry: retry,
+				}}
 			/>
 		</div>
 	);

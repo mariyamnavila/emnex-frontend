@@ -73,6 +73,19 @@ export function sumBy<T>(items: T[], pick: (item: T) => number): number {
 	return round2(items.reduce((total, item) => total + pick(item), 0));
 }
 
+/** Items whose status is one of `statuses` */
+export function whereStatus<T extends { status: string }>(items: T[], statuses: string[]): T[] {
+	return items.filter((item) => statuses.includes(item.status));
+}
+
+/** One page of a list that's already fully loaded (page is 1-based) */
+export function paginate<T>(items: T[], page: number, pageSize = 10) {
+	return {
+		rows: items.slice((page - 1) * pageSize, page * pageSize),
+		totalPages: Math.max(1, Math.ceil(items.length / pageSize)),
+	};
+}
+
 interface StatusTotal {
 	status: string;
 	_count: number;
