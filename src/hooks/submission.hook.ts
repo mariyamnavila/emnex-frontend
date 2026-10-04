@@ -42,6 +42,7 @@ export interface SubmissionParams {
 	page?: number;
 	limit?: number;
 	status?: SubmissionStatus;
+	employeeId?: string;
 	oldestFirst?: boolean;
 }
 
@@ -53,6 +54,7 @@ export function useSubmissions(params: SubmissionParams) {
 			if (params.page && params.page > 1) query.set("page", String(params.page));
 			if (params.limit) query.set("limit", String(params.limit));
 			if (params.status) query.set("status", params.status);
+			if (params.employeeId) query.set("employeeId", params.employeeId);
 			if (params.oldestFirst) query.set("sortOrder", "asc");
 			const res = await api.get<ApiSubmission[]>(`/submissions?${query}`);
 			return { rows: res.data.map(normalize), meta: res.meta };
@@ -61,14 +63,12 @@ export function useSubmissions(params: SubmissionParams) {
 	});
 }
 
-// Reviews change the task's status and the dashboard counts too
+// Reviews change the dashboard counts too (the task's own status is untouched)
 function useInvalidateReviews() {
 	const queryClient = useQueryClient();
 	return () => {
 		void queryClient.invalidateQueries({ queryKey: ["submissions"] });
 		void queryClient.invalidateQueries({ queryKey: ["analytics"] });
-		void queryClient.invalidateQueries({ queryKey: ["tasks"] });
-		void queryClient.invalidateQueries({ queryKey: ["projects"] });
 	};
 }
 

@@ -26,21 +26,43 @@ interface RejectSubmissionDialogProps {
 	submission: Submission | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	onRejected?: () => void;
 }
 
-export function RejectSubmissionDialog({ submission, open, onOpenChange }: RejectSubmissionDialogProps) {
+export function RejectSubmissionDialog({
+	submission,
+	open,
+	onOpenChange,
+	onRejected,
+}: RejectSubmissionDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="border-[#E2E8F0] bg-white sm:max-w-md dark:border-[#1E293B] dark:bg-[#0F172A]">
 				{submission ? (
-					<RejectForm key={submission.id} submission={submission} onDone={() => onOpenChange(false)} />
+					<RejectForm
+						key={submission.id}
+						submission={submission}
+						onDone={() => onOpenChange(false)}
+						onRejected={() => {
+							onOpenChange(false);
+							onRejected?.();
+						}}
+					/>
 				) : null}
 			</DialogContent>
 		</Dialog>
 	);
 }
 
-function RejectForm({ submission, onDone }: { submission: Submission; onDone: () => void }) {
+function RejectForm({
+	submission,
+	onDone,
+	onRejected,
+}: {
+	submission: Submission;
+	onDone: () => void;
+	onRejected: () => void;
+}) {
 	const reject = useRejectSubmission();
 	const {
 		register,
@@ -55,7 +77,7 @@ function RejectForm({ submission, onDone }: { submission: Submission; onDone: ()
 
 	return (
 		<form
-			onSubmit={handleSubmit(({ reason }) => reject.mutate({ submission, reason }, { onSuccess: onDone }))}
+			onSubmit={handleSubmit(({ reason }) => reject.mutate({ submission, reason }, { onSuccess: onRejected }))}
 			className="space-y-5"
 			noValidate
 		>

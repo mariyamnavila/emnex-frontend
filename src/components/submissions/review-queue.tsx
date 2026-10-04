@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { formatDistanceToNowStrict } from "date-fns";
 import { Check, CheckCircle2, Loader2, X } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
@@ -38,6 +39,14 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 			isLoading={isLoading}
 			isError={isError}
 			className={className}
+			action={
+				<Link
+					href="/manager/submissions"
+					className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]"
+				>
+					View all
+				</Link>
+			}
 		>
 			{rows.length === 0 ? (
 				<div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
