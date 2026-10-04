@@ -32,7 +32,25 @@ export interface CheckoutVerification {
 
 export type PaymentStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REFUNDED";
 
-// GET /payments row (amount is already a number — backend formatPayment)
+interface PaymentPayroll {
+	id: string;
+	periodStart: string;
+	periodEnd: string;
+	status: string;
+	grossAmount: number;
+	deductions: number;
+	netAmount: number;
+}
+
+// GET /payments row; the nested payroll's money arrives as Decimal strings
+export type ApiPayment = Omit<Payment, "payroll"> & {
+	payroll: Omit<PaymentPayroll, "grossAmount" | "deductions" | "netAmount"> & {
+		grossAmount: string | number;
+		deductions: string | number;
+		netAmount: string | number;
+	};
+};
+
 export interface Payment {
 	id: string;
 	payrollId: string;
@@ -48,5 +66,5 @@ export interface Payment {
 		employeeCode: string;
 		user: { id: string; name: string; email: string; avatar: string | null };
 	};
-	payroll: { id: string; periodStart: string; periodEnd: string; status: string };
+	payroll: PaymentPayroll;
 }

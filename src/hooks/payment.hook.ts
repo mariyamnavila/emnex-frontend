@@ -5,7 +5,8 @@ import { preconnect } from "react-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
-import type { CheckoutVerification, Payment, PaymentStatus, PendingCheckout } from "@/types/payment.type";
+import { toAmount } from "@/lib/pay";
+import type { ApiPayment, CheckoutVerification, Payment, PaymentStatus, PendingCheckout } from "@/types/payment.type";
 
 const PENDING_CHECKOUT_KEY = "emnex:pending-checkout";
 
@@ -109,8 +110,17 @@ export function usePayments(params: PaymentListParams) {
 			if (params.limit) query.set("limit", String(params.limit));
 			if (params.status) query.set("status", params.status);
 			if (params.employeeId) query.set("employeeId", params.employeeId);
-			const res = await api.get<Payment[]>(`/payments?${query}`);
-			return { rows: res.data, meta: res.meta };
+			const res = await api.get<ApiPayment[]>(`/payments?${query}`);
+			const rows: Payment[] = res.data.map((payment) => ({
+				...payment,
+				payroll: {
+					...payment.payroll,
+					grossAmount: toAmount(payment.payroll.grossAmount) ?? 0,
+					deductions: toAmount(payment.payroll.deductions) ?? 0,
+					netAmount: toAmount(payment.payroll.netAmount) ?? 0,
+				},
+			}));
+			return { rows, meta: res.meta };
 		},
 		placeholderData: (prev) => prev,
 	});

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { formatDistanceToNowStrict } from "date-fns";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { StatusBadge, UserAvatar } from "@/components/shared";
@@ -23,6 +24,14 @@ export function RecentPayments({ className }: { className?: string }) {
 			isEmpty={payments.length === 0}
 			emptyText="No payments yet. Approved payroll can be paid through Stripe."
 			className={className}
+			action={
+				<Link
+					href="/finance/payments"
+					className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]"
+				>
+					View all
+				</Link>
+			}
 		>
 			<ul className="divide-y divide-[#F1F5F9] dark:divide-[#1E293B]">
 				{payments.map((payment) => (
