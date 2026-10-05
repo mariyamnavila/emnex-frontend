@@ -71,7 +71,28 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="gap-1 px-2 py-3">
-        {routes.map((group) => (
+        {permissions === null ? (
+          // /auth/me not loaded yet: show a nav skeleton instead of flashing
+          // every link (permissions filter them once they arrive)
+          [4, 3].map((count, groupIndex) => (
+            <SidebarGroup
+              key={`nav-skeleton-${groupIndex}`}
+              className="px-1 py-1.5 group-data-[collapsible=icon]:px-0"
+            >
+              <div className="px-2 py-1.5">
+                <Skeleton className="h-2.5 w-16 bg-white/10" />
+              </div>
+              <SidebarGroupContent>
+                <div className="space-y-1 px-1">
+                  {Array.from({ length: count }).map((_, i) => (
+                    <Skeleton key={i} className="h-9 rounded-md bg-white/7" />
+                  ))}
+                </div>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))
+        ) : (
+          routes.map((group) => (
           <SidebarGroup key={group.title} className="px-1 py-1.5 group-data-[collapsible=icon]:px-0">
             <SidebarGroupLabel className="h-7 px-2 text-[11px] font-semibold tracking-wider text-[#64748B] uppercase">
               {group.title}
@@ -99,7 +120,8 @@ export function DashboardSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        ))}
+          ))
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-white/6 p-3 group-data-[collapsible=icon]:p-2">

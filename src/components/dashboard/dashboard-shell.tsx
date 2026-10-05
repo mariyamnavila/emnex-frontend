@@ -17,8 +17,6 @@ import { DashboardSidebar } from "./dashboard-sidebar";
 
 interface DashboardShellProps {
   children: ReactNode;
-  /** Section name shown first in the breadcrumb, e.g. "Admin" */
-  title?: string;
   /** Roles allowed in this section — omit for any signed-in user */
   roles?: string[];
   /** Permissions (any one) that also grant access — lets custom roles in */
@@ -31,7 +29,6 @@ interface DashboardShellProps {
 
 export default function DashboardShell({
   children,
-  title,
   roles,
   permissions,
   session,
@@ -51,7 +48,7 @@ export default function DashboardShell({
                 orientation="vertical"
                 className="bg-[#E2E8F0] data-vertical:h-4 data-vertical:self-center dark:bg-[#1E293B]"
               />
-              <Breadcrumbs section={title ?? "Workspace"} />
+              <Breadcrumbs />
             </header>
             <div className="mx-auto w-full max-w-350 flex-1 p-4 md:p-6 lg:p-8">
               <RoutePermissionGuard>{children}</RoutePermissionGuard>
@@ -64,10 +61,19 @@ export default function DashboardShell({
   );
 }
 
+// Area label for the first breadcrumb, from the URL's first segment
+const SECTION_LABEL: Record<string, string> = {
+  admin: "Admin",
+  manager: "Manager",
+  finance: "Finance",
+  dashboard: "Workspace",
+};
+
 // "Admin › Projects › Details", derived from the sidebar routes
-function Breadcrumbs({ section }: { section: string }) {
+function Breadcrumbs() {
   const pathname = usePathname();
   const { role, permissions } = useCurrentUser();
+  const section = SECTION_LABEL[pathname.split("/")[1] ?? ""] ?? "Workspace";
   const home = isSystemRole(role)
     ? getHomePath(role)
     : (firstAccessibleHref(role, permissions) ?? "/dashboard/profile");

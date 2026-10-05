@@ -186,7 +186,7 @@ export function DepartmentsView() {
 											) : null}
 											{can("department.delete") ? (
 												<>
-													<DropdownMenuSeparator />
+													{can("department.update") ? <DropdownMenuSeparator /> : null}
 													<DropdownMenuItem
 														disabled={count > 0}
 														className="items-start gap-2 text-[#DC2626] focus:bg-[#FEF2F2] focus:text-[#DC2626] dark:text-[#F87171] dark:focus:bg-[#450A0A]"
