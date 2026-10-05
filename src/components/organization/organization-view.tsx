@@ -79,7 +79,8 @@ export function OrganizationView() {
 
 			{canUpdate ? (
 				<ChartCard title="Edit organization" description="Changing the name updates it everywhere." isLoading={isLoading} isError={isError}>
-					{org ? <EditOrganizationForm key={org.id} org={org} /> : null}
+					{/* key on the data so the form resets to the saved values after an update */}
+					{org ? <EditOrganizationForm key={`${org.id}:${org.name}:${org.slug}`} org={org} /> : null}
 				</ChartCard>
 			) : null}
 		</div>

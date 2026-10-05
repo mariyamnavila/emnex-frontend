@@ -577,6 +577,7 @@ export function EmployeeWizard() {
 				<Button
 					type="button"
 					variant="ghost"
+					disabled={createEmployee.isPending}
 					className="text-xs text-[#64748B] hover:text-[#0F172A] dark:text-[#94A3B8] dark:hover:text-white"
 					onClick={() => router.push("/admin/employees")}
 				>

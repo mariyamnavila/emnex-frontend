@@ -59,7 +59,7 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 		handleSubmit,
 		control,
 		setValue,
-		formState: { errors },
+		formState: { errors, isDirty },
 	} = useForm<EmployeeEditValues>({
 		resolver: zodResolver(employeeEditSchema),
 		defaultValues: {
@@ -114,7 +114,7 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 			<FormField id="edit-department" label="Department" error={errors.departmentId?.message}>
 				<Select
 					value={departmentId || NO_DEPARTMENT}
-					onValueChange={(value) => setValue("departmentId", value, { shouldValidate: true })}
+					onValueChange={(value) => setValue("departmentId", value, { shouldValidate: true, shouldDirty: true })}
 				>
 					<SelectTrigger id="edit-department" className={cn("h-10 w-full", fieldClass)}>
 						<SelectValue placeholder="Select a department" />
@@ -132,7 +132,7 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 
 			<RadioGroup
 				value={salaryType}
-				onValueChange={(value) => setValue("salaryType", value as "MONTHLY" | "HOURLY", { shouldValidate: true })}
+				onValueChange={(value) => setValue("salaryType", value as "MONTHLY" | "HOURLY", { shouldValidate: true, shouldDirty: true })}
 				className="grid gap-3 sm:grid-cols-2"
 			>
 				{[
@@ -233,7 +233,7 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 				</Button>
 				<Button
 					type="submit"
-					disabled={update.isPending}
+					disabled={update.isPending || !isDirty}
 					className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 				>
 					{update.isPending ? <Loader2 className="size-4 animate-spin" /> : null}

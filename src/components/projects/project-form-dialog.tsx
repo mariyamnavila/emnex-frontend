@@ -64,7 +64,7 @@ function ProjectForm({ project, onDone }: { project: Project | null; onDone: () 
 		handleSubmit,
 		control,
 		watch,
-		formState: { errors },
+		formState: { errors, isDirty },
 	} = useForm<ProjectFormValues>({
 		resolver: zodResolver(projectSchema),
 		defaultValues: {
@@ -228,7 +228,7 @@ function ProjectForm({ project, onDone }: { project: Project | null; onDone: () 
 				</Button>
 				<Button
 					type="submit"
-					disabled={isSaving}
+					disabled={isSaving || (isEdit && !isDirty)}
 					className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 				>
 					{isSaving ? <Loader2 className="size-4 animate-spin" /> : null}

@@ -76,7 +76,7 @@ function TaskForm({
 		register,
 		handleSubmit,
 		control,
-		formState: { errors },
+		formState: { errors, isDirty },
 	} = useForm<TaskFormValues>({
 		resolver: zodResolver(taskSchema),
 		defaultValues: {
@@ -238,7 +238,7 @@ function TaskForm({
 				</Button>
 				<Button
 					type="submit"
-					disabled={mutation.isPending}
+					disabled={mutation.isPending || (isEdit && !isDirty)}
 					className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 				>
 					{mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
