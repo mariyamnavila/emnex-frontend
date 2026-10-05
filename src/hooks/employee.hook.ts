@@ -150,8 +150,8 @@ export function useUpdateEmployee() {
 // (the password isn't returned — it's only sent to their inbox)
 export function useResendCredentials() {
 	return useMutation({
-		mutationFn: (id: string) => api.post<null>(`/employees/${id}/resend-credentials`),
-		onSuccess: () => toast.success("New credentials emailed to the employee"),
+		mutationFn: (id: string) =>
+			api.post<{ temporaryPassword: string }>(`/employees/${id}/resend-credentials`),
 		onError: (error) => toast.error(errorMessage(error, "Failed to resend credentials")),
 	});
 }

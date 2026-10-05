@@ -9,19 +9,11 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Check,
-	Copy,
 	Loader2,
 	Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { CredentialsDialog } from "@/components/employees/credentials-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -45,7 +37,6 @@ import {
 } from "@/hooks/employee.hook";
 import { useRoles } from "@/hooks/role.hook";
 import { useDepartments } from "@/hooks/department.hook";
-import { useCopy } from "@/hooks/use-copy";
 import { DatePicker, DetailList, DetailRow, SectionHeading } from "@/components/shared";
 import {
 	ESTIMATED_HOURS_PER_MONTH,
@@ -85,7 +76,6 @@ function FieldError({ message }: { message?: unknown }) {
 
 export function EmployeeWizard() {
 	const router = useRouter();
-	const { copy } = useCopy();
 	const [step, setStep] = useState(1);
 	// Set after a successful create → opens the credentials dialog
 	const [created, setCreated] = useState<CreateEmployeeResult | null>(null);
@@ -587,68 +577,20 @@ export function EmployeeWizard() {
 			</div>
 
 			{/* Shown once after creation — the password is never retrievable again */}
-			<Dialog
+			<CredentialsDialog
 				open={created !== null}
 				onOpenChange={(open) => {
 					if (!open) finish();
 				}}
-			>
-				<DialogContent className="border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
-					<DialogHeader>
-						<DialogTitle className="text-[#0F172A] dark:text-white">
-							Employee created
-						</DialogTitle>
-						<DialogDescription>
-							{created
-								? `${created.employee.user.name} (${created.employee.employeeCode}) can now log in. The credentials were also emailed — if it doesn't arrive, share this password securely. It won't be shown again.`
-								: null}
-						</DialogDescription>
-					</DialogHeader>
-
-					{created ? (
-						<dl className="space-y-3 text-sm">
-							<div className="space-y-1">
-								<dt className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8]">
-									Email
-								</dt>
-								<dd className="font-medium text-[#0F172A] dark:text-white">
-									{created.employee.user.email}
-								</dd>
-							</div>
-							<div className="space-y-1">
-								<dt className="text-xs font-semibold text-[#64748B] dark:text-[#94A3B8]">
-									Temporary password
-								</dt>
-								<dd className="flex items-center gap-2">
-									<code className="flex-1 rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 font-mono text-sm text-[#0F172A] select-all dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white">
-										{created.temporaryPassword}
-									</code>
-									<Button
-										type="button"
-										variant="outline"
-										size="icon"
-										aria-label="Copy temporary password"
-										className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
-										onClick={() => void copy(created.temporaryPassword, "Password copied")}
-									>
-										<Copy className="size-4" />
-									</Button>
-								</dd>
-							</div>
-						</dl>
-					) : null}
-
-					<DialogFooter>
-						<Button
-							type="button"
-							className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
-							onClick={finish}
-						>
-							Done
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+				title="Employee created"
+				description={
+					created
+						? `${created.employee.user.name} (${created.employee.employeeCode}) can now log in. The credentials were also emailed — share this password if it doesn't arrive. It won't be shown again.`
+						: ""
+				}
+				email={created?.employee.user.email ?? ""}
+				temporaryPassword={created?.temporaryPassword ?? ""}
+			/>
 		</div>
 	);
 }

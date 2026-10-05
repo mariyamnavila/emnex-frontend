@@ -59,6 +59,7 @@ import type { Employee, EmployeeStatus } from "@/types/employee.type";
 import { EmployeeDetailSheet } from "@/components/employees/employee-detail-sheet";
 import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
 import { EmployeeEditDialog } from "@/components/employees/employee-edit-dialog";
+import { CredentialsDialog } from "@/components/employees/credentials-dialog";
 import { useCan } from "@/hooks/auth.hook";
 
 const STATUS_TABS: { value: EmployeeStatus | ""; label: string }[] = [
@@ -103,6 +104,7 @@ export function EmployeesView() {
 	const [editTarget, setEditTarget] = useState<Employee | null>(null);
 	const [editOpen, setEditOpen] = useState(false);
 	const [pendingResend, setPendingResend] = useState<Employee | null>(null);
+	const [resent, setResent] = useState<{ employee: Employee; password: string } | null>(null);
 
 	const can = useCan();
 
@@ -470,8 +472,29 @@ export function EmployeesView() {
 				isPending={resendCredentials.isPending}
 				onConfirm={() => {
 					if (!pendingResend) return;
-					resendCredentials.mutate(pendingResend.id, { onSuccess: () => setPendingResend(null) });
+					const target = pendingResend;
+					resendCredentials.mutate(target.id, {
+						onSuccess: ({ data }) => {
+							setResent({ employee: target, password: data.temporaryPassword });
+							setPendingResend(null);
+						},
+					});
 				}}
+			/>
+
+			<CredentialsDialog
+				open={resent !== null}
+				onOpenChange={(open) => {
+					if (!open) setResent(null);
+				}}
+				title="New credentials"
+				description={
+					resent
+						? `A new temporary password for ${resent.employee.user.name}. It was also emailed — share this if it doesn't arrive. It won't be shown again.`
+						: ""
+				}
+				email={resent?.employee.user.email ?? ""}
+				temporaryPassword={resent?.password ?? ""}
 			/>
 
 			<Dialog
