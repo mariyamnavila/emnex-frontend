@@ -125,8 +125,8 @@ export function useGetMe() {
     // Keep permissions fresh so a role change reaches the UI WITHOUT a reload:
     // short stale (nav refreshes), poll while the tab is active, and refresh on
     // refocus. /auth/me isn't under the strict auth limiter (300 req/15 min cap).
-    staleTime: 60 * 1000,
-    refetchInterval: 90 * 1000,
+    staleTime: 20 * 1000,
+    refetchInterval: 30 * 1000,
     refetchOnWindowFocus: true,
     retry: false,
   });
