@@ -36,6 +36,7 @@ export function SuccessView() {
 		if (!isPaid) return;
 		clearPendingCheckout();
 		void queryClient.invalidateQueries({ queryKey: ["payroll"] });
+		void queryClient.invalidateQueries({ queryKey: ["payments"] });
 		void queryClient.invalidateQueries({ queryKey: ["analytics"] });
 	}, [isPaid, queryClient]);
 
