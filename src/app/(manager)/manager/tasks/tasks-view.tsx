@@ -49,7 +49,9 @@ export function TasksView() {
 	const { data, isLoading, isError, error } = useTaskBoard({ search, projectId, employeeId, priority });
 	const { data: projects = [] } = useProjectOptions();
 	const can = useCan();
-	const canUpdateStatus = can("task.update");
+	// Changing another employee's task status needs assign/review rights (the
+	// backend rejects a plain task.update holder who isn't the assignee)
+	const canUpdateStatus = can("task.assign") || can("submission.approve");
 
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [snapshot, setSnapshot] = useState<BoardTask | null>(null);
