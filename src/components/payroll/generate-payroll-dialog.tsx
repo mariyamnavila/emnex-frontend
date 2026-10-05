@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -101,22 +102,25 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 		formState: { errors },
 	} = useForm<GeneratePayrollValues>({
 		resolver: zodResolver(generatePayrollSchema),
-		defaultValues: { employeeId: "", period: currentMonth(), deductions: "" },
+		defaultValues: { employeeId: "", period: currentMonth(), deductions: "", grossAmount: "" },
 	});
 
-	const [employeeId, period, deductionsInput] = useWatch({
+	const [employeeId, period, deductionsInput, grossInput] = useWatch({
 		control,
-		name: ["employeeId", "period", "deductions"],
+		name: ["employeeId", "period", "deductions", "grossAmount"],
 	});
 	const selected = employees.find((employee) => employee.id === employeeId);
 	const isHourly = selected?.salaryType === "HOURLY";
 	const deductions = toAmount(deductionsInput) ?? 0;
+	// A manual amount overrides the hours/salary calc (PTO, bonus, special cases)
+	const override = toAmount(grossInput);
+	const hasOverride = override !== null && override > 0;
 	const isFuture = isMonth(period) && period > currentMonth();
 
 	// Same rule as the backend: approved hours with a work date inside the month
-	const approved = useApprovedSubmissions(isHourly ? employeeId : null);
+	const approved = useApprovedSubmissions(isHourly && !hasOverride ? employeeId : null);
 	let hours: number | null = null;
-	if (isHourly && approved.data && isMonth(period)) {
+	if (isHourly && !hasOverride && approved.data && isMonth(period)) {
 		const { periodStart, periodEnd } = monthToRange(period);
 		hours = approved.data
 			.filter((submission) => submission.workDate >= periodStart && submission.workDate <= periodEnd)
@@ -124,38 +128,39 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 	}
 
 	let gross: number | null = null;
-	if (selected && !isHourly) gross = round2(selected.salary ?? 0);
-	if (selected && isHourly && hours !== null) gross = round2(hours * (selected.hourlyRate ?? 0));
+	if (hasOverride) gross = round2(override);
+	else if (selected && !isHourly) gross = round2(selected.salary ?? 0);
+	else if (selected && isHourly && hours !== null) gross = round2(hours * (selected.hourlyRate ?? 0));
 	const net = gross !== null ? round2(gross - deductions) : null;
 
 	let blockReason: string | null = null;
 	if (isFuture) {
 		blockReason = `${monthLabel(period)} hasn't started yet.`;
-	} else if (selected && isHourly && hours === 0) {
+	} else if (!hasOverride && selected && isHourly && hours === 0) {
 		blockReason = `${selected.user.name} has no approved work hours in ${monthLabel(period)}.${
 			selected.status !== "ACTIVE" ? ` Their status is ${selected.status.toLowerCase()}, so they can't log work.` : ""
-		}`;
-	} else if (selected && gross === 0) {
+		} Enter a manual amount below to pay anyway.`;
+	} else if (!hasOverride && selected && gross === 0) {
 		blockReason = `${selected.user.name} has no ${isHourly ? "hourly rate" : "monthly salary"} set.`;
 	} else if (net !== null && net < 0) {
 		blockReason = "Deductions are higher than the gross pay.";
 	}
 
-	let preview;
+	let preview: ReactNode;
 	if (!selected) {
 		preview = (
 			<p className="text-sm text-[#64748B] dark:text-[#94A3B8]">
 				Choose an employee to preview the amount.
 			</p>
 		);
-	} else if (isHourly && approved.isLoading) {
+	} else if (isHourly && !hasOverride && approved.isLoading) {
 		preview = (
 			<p className="flex items-center gap-2 text-sm text-[#64748B] dark:text-[#94A3B8]">
 				<Loader2 className="size-4 animate-spin" />
 				Checking approved hours...
 			</p>
 		);
-	} else if (isHourly && approved.isError) {
+	} else if (isHourly && !hasOverride && approved.isError) {
 		// e.g. Finance Manager has no submission.view permission
 		preview = (
 			<p className="text-sm text-[#334155] dark:text-[#CBD5E1]">
@@ -169,14 +174,14 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 	} else if (gross !== null && net !== null) {
 		preview = (
 			<dl className="space-y-1.5 text-sm">
-				{isHourly ? (
+				{isHourly && !hasOverride ? (
 					<PreviewRow
 						label={`Approved hours (${monthLabel(period)})`}
 						value={`${hours} h × ${formatCurrency(selected.hourlyRate ?? 0)}`}
 					/>
 				) : null}
 				<PreviewRow
-					label={isHourly ? "Gross" : "Gross (monthly salary)"}
+					label={hasOverride ? "Gross (manual)" : isHourly ? "Gross" : "Gross (monthly salary)"}
 					value={formatCurrency(gross)}
 				/>
 				<PreviewRow label="Deductions" value={`− ${formatCurrency(deductions)}`} />
@@ -272,6 +277,32 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 					</div>
 					<FieldError message={errors.deductions?.message} />
 				</div>
+			</div>
+
+			<div className="space-y-1.5">
+				<Label htmlFor="payroll-gross" className="text-xs font-semibold">
+					Manual amount <span className="font-normal text-[#94A3B8]">(optional override)</span>
+				</Label>
+				<div className="relative">
+					<span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-[#64748B]">
+						$
+					</span>
+					<Input
+						id="payroll-gross"
+						type="number"
+						inputMode="decimal"
+						min="0"
+						step="0.01"
+						placeholder="Leave blank to use the calculated pay"
+						aria-invalid={Boolean(errors.grossAmount)}
+						{...register("grossAmount")}
+						className={`h-10 pl-7 tabular-nums ${fieldClass}`}
+					/>
+				</div>
+				<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
+					Overrides the gross for special cases — PTO, a bonus, or paying an hourly employee with no logged hours.
+				</p>
+				<FieldError message={errors.grossAmount?.message} />
 			</div>
 
 			<div
