@@ -89,19 +89,18 @@ export function PermissionEditor({ roleId, userCount, readOnlyReason }: Permissi
 	);
 }
 
-interface PermissionMatrixProps {
-	roleId: string;
-	saved: string[];
+interface PermissionGridProps {
 	catalog: Permission[];
-	userCount: number;
-	readOnlyReason: string | null;
+	selected: Set<string>;
+	onChange: (next: Set<string>) => void;
+	readOnly?: boolean;
+	/** Baseline to diff against for Added/Removed badges (edit mode only) */
+	savedSet?: Set<string>;
 }
 
-function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }: PermissionMatrixProps) {
-	const [selected, setSelected] = useState(() => new Set(saved));
-	const assign = useAssignPermissions();
-	const readOnly = readOnlyReason !== null;
-
+// The permission checkbox matrix with the "action requires view" dependency
+// rules. Controlled, so it's reused for both editing a role and creating one.
+export function PermissionGrid({ catalog, selected, onChange, readOnly = false, savedSet }: PermissionGridProps) {
 	// Acting on a resource requires viewing it: each "<module>.<action>" (not
 	// view/view_own) depends on "<module>.view".
 	const { requiredView, dependentsByView, viewIds } = useMemo(() => {
@@ -123,30 +122,125 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 		return { requiredView, dependentsByView, viewIds };
 	}, [catalog]);
 
-	const savedSet = new Set(saved);
-	const added = [...selected].filter((id) => !savedSet.has(id)).length;
-	const removed = saved.filter((id) => !selected.has(id)).length;
-	const changes = added + removed;
-
 	// A view can't be unchecked while an action in its module is still selected
 	const isLockedView = (id: string) =>
 		viewIds.has(id) && (dependentsByView.get(id) ?? []).some((dep) => selected.has(dep));
 
-	const toggle = (ids: string[], on: boolean) =>
-		setSelected((current) => {
-			const next = new Set(current);
-			for (const id of ids) {
-				if (on) {
-					next.add(id);
-					const viewId = requiredView.get(id);
-					if (viewId) next.add(viewId); // pull in the module's View
-				} else {
-					next.delete(id);
-					for (const dep of dependentsByView.get(id) ?? []) next.delete(dep); // drop dependents
-				}
+	const toggle = (ids: string[], on: boolean) => {
+		const next = new Set(selected);
+		for (const id of ids) {
+			if (on) {
+				next.add(id);
+				const viewId = requiredView.get(id);
+				if (viewId) next.add(viewId); // pull in the module's View
+			} else {
+				next.delete(id);
+				for (const dep of dependentsByView.get(id) ?? []) next.delete(dep); // drop dependents
 			}
-			return next;
-		});
+		}
+		onChange(next);
+	};
+
+	return (
+		<div className="grid gap-4 @2xl:grid-cols-2">
+			{groupPermissions(catalog).map((group) => {
+				const ids = group.items.map((p) => p.id);
+				const count = ids.filter((id) => selected.has(id)).length;
+				const allOn = count === ids.length;
+				return (
+					<section
+						key={group.module}
+						className="rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]"
+					>
+						<header className="flex items-center justify-between gap-2 border-b border-[#F1F5F9] px-4 py-2.5 dark:border-[#1E293B]">
+							<h3 className="text-sm font-semibold text-[#0F172A] dark:text-white">
+								{group.label}
+								<span className="ml-2 text-xs font-medium text-[#94A3B8] tabular-nums">
+									{count}/{ids.length}
+								</span>
+							</h3>
+							{readOnly ? null : (
+								<button
+									type="button"
+									onClick={() => toggle(ids, !allOn)}
+									className="rounded px-1.5 py-0.5 text-xs font-medium text-[#2563EB] hover:bg-[#EFF6FF] focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:outline-none dark:text-[#60A5FA] dark:hover:bg-[#1E293B]"
+								>
+									{allOn ? "Clear" : "Select all"}
+								</button>
+							)}
+						</header>
+						<ul className="divide-y divide-[#F1F5F9] dark:divide-[#1E293B]">
+							{group.items.map((permission) => {
+								const checked = selected.has(permission.id);
+								const changed = savedSet ? checked !== savedSet.has(permission.id) : false;
+								const locked = isLockedView(permission.id);
+								return (
+									<li key={permission.id}>
+										<label
+											className={cn(
+												"flex items-center gap-3 px-4 py-2.5",
+												readOnly ? "cursor-default" : "cursor-pointer hover:bg-[#F8FAFC] dark:hover:bg-[#1E293B]/40",
+											)}
+										>
+											<Checkbox
+												checked={checked}
+												disabled={readOnly || locked}
+												onCheckedChange={(value) => toggle([permission.id], value === true)}
+												className="data-[state=checked]:border-[#2563EB] data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white"
+											/>
+											<span className="min-w-0 flex-1">
+												<span className="block text-sm text-[#0F172A] dark:text-white">
+													{actionLabel(permission.name.split(".").slice(1).join("."))}
+												</span>
+												<span className="block truncate font-mono text-[11px] text-[#94A3B8]">
+													{permission.name}
+												</span>
+											</span>
+											{locked ? (
+												<span className="rounded-full bg-[#EFF6FF] px-1.5 py-px text-[10px] font-semibold text-[#2563EB] uppercase dark:bg-[#1E293B] dark:text-[#60A5FA]">
+													Required
+												</span>
+											) : changed ? (
+												<span
+													className={cn(
+														"rounded-full px-1.5 py-px text-[10px] font-semibold uppercase",
+														checked
+															? "bg-[#F0FDF4] text-[#16A34A]"
+															: "bg-[#FEF2F2] text-[#DC2626]",
+													)}
+												>
+													{checked ? "Added" : "Removed"}
+												</span>
+											) : null}
+										</label>
+									</li>
+								);
+							})}
+						</ul>
+					</section>
+				);
+			})}
+		</div>
+	);
+}
+
+interface PermissionMatrixProps {
+	roleId: string;
+	saved: string[];
+	catalog: Permission[];
+	userCount: number;
+	readOnlyReason: string | null;
+}
+
+function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }: PermissionMatrixProps) {
+	const [selected, setSelected] = useState(() => new Set(saved));
+	const assign = useAssignPermissions();
+	const readOnly = readOnlyReason !== null;
+
+	const savedSet = new Set(saved);
+	const added = [...selected].filter((id) => !savedSet.has(id)).length;
+	const removed = saved.filter((id) => !selected.has(id)).length;
+	const changes = added + removed;
 
 	return (
 		<div className="space-y-4">
@@ -157,85 +251,13 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 				</p>
 			) : null}
 
-			<div className="grid gap-4 @2xl:grid-cols-2">
-				{groupPermissions(catalog).map((group) => {
-					const ids = group.items.map((p) => p.id);
-					const count = ids.filter((id) => selected.has(id)).length;
-					const allOn = count === ids.length;
-					return (
-						<section
-							key={group.module}
-							className="rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]"
-						>
-							<header className="flex items-center justify-between gap-2 border-b border-[#F1F5F9] px-4 py-2.5 dark:border-[#1E293B]">
-								<h3 className="text-sm font-semibold text-[#0F172A] dark:text-white">
-									{group.label}
-									<span className="ml-2 text-xs font-medium text-[#94A3B8] tabular-nums">
-										{count}/{ids.length}
-									</span>
-								</h3>
-								{readOnly ? null : (
-									<button
-										type="button"
-										onClick={() => toggle(ids, !allOn)}
-										className="rounded px-1.5 py-0.5 text-xs font-medium text-[#2563EB] hover:bg-[#EFF6FF] focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:outline-none dark:text-[#60A5FA] dark:hover:bg-[#1E293B]"
-									>
-										{allOn ? "Clear" : "Select all"}
-									</button>
-								)}
-							</header>
-							<ul className="divide-y divide-[#F1F5F9] dark:divide-[#1E293B]">
-								{group.items.map((permission) => {
-									const checked = selected.has(permission.id);
-									const changed = checked !== savedSet.has(permission.id);
-									const locked = isLockedView(permission.id);
-									return (
-										<li key={permission.id}>
-											<label
-												className={cn(
-													"flex items-center gap-3 px-4 py-2.5",
-													readOnly ? "cursor-default" : "cursor-pointer hover:bg-[#F8FAFC] dark:hover:bg-[#1E293B]/40",
-												)}
-											>
-												<Checkbox
-													checked={checked}
-													disabled={readOnly || locked}
-													onCheckedChange={(value) => toggle([permission.id], value === true)}
-													className="data-[state=checked]:border-[#2563EB] data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white"
-												/>
-												<span className="min-w-0 flex-1">
-													<span className="block text-sm text-[#0F172A] dark:text-white">
-														{actionLabel(permission.name.split(".").slice(1).join("."))}
-													</span>
-													<span className="block truncate font-mono text-[11px] text-[#94A3B8]">
-														{permission.name}
-													</span>
-												</span>
-												{locked ? (
-													<span className="rounded-full bg-[#EFF6FF] px-1.5 py-px text-[10px] font-semibold text-[#2563EB] uppercase dark:bg-[#1E293B] dark:text-[#60A5FA]">
-														Required
-													</span>
-												) : changed ? (
-													<span
-														className={cn(
-															"rounded-full px-1.5 py-px text-[10px] font-semibold uppercase",
-															checked
-																? "bg-[#F0FDF4] text-[#16A34A]"
-																: "bg-[#FEF2F2] text-[#DC2626]",
-														)}
-													>
-														{checked ? "Added" : "Removed"}
-													</span>
-												) : null}
-											</label>
-										</li>
-									);
-								})}
-							</ul>
-						</section>
-					);
-				})}
-			</div>
+			<PermissionGrid
+				catalog={catalog}
+				selected={selected}
+				onChange={setSelected}
+				readOnly={readOnly}
+				savedSet={savedSet}
+			/>
 
 			{changes > 0 ? (
 				<div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-lg border border-[#E2E8F0] bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-[#1E293B] dark:bg-[#0F172A]/95">

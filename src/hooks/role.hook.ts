@@ -51,10 +51,11 @@ export function useCreateRole() {
 	const invalidate = useInvalidateRoles();
 
 	return useMutation({
-		mutationFn: (values: RoleFormValues) =>
+		mutationFn: (values: RoleFormValues & { permissionIds: string[] }) =>
 			api.post<Role>("/roles", {
 				name: values.name,
 				description: values.description || undefined,
+				permissionIds: values.permissionIds,
 			}),
 		onSuccess: ({ data }) => {
 			toast.success(`${formatRoleName(data.name)} role created`);
