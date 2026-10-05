@@ -8,7 +8,8 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import RoleGuard from "@/components/auth/role-guard";
-import { firstAccessibleHref, getSidebarRoutes, sidebarRoutesByRole } from "@/config/sidebar-routes";
+import RoutePermissionGuard from "@/components/auth/route-permission-guard";
+import { firstAccessibleHref, getSidebarRoutes, isSystemRole } from "@/config/sidebar-routes";
 import { getHomePath, useCurrentUser, useRoleSync } from "@/hooks/auth.hook";
 import type { SessionUser } from "@/lib/session";
 import { SessionProvider } from "@/providers/session.provider";
@@ -52,7 +53,9 @@ export default function DashboardShell({
               />
               <Breadcrumbs section={title ?? "Workspace"} />
             </header>
-            <div className="mx-auto w-full max-w-350 flex-1 p-4 md:p-6 lg:p-8">{children}</div>
+            <div className="mx-auto w-full max-w-350 flex-1 p-4 md:p-6 lg:p-8">
+              <RoutePermissionGuard>{children}</RoutePermissionGuard>
+            </div>
           </SidebarInset>
         </SidebarProvider>
         </TooltipProvider>
@@ -65,7 +68,7 @@ export default function DashboardShell({
 function Breadcrumbs({ section }: { section: string }) {
   const pathname = usePathname();
   const { role, permissions } = useCurrentUser();
-  const home = sidebarRoutesByRole[role]
+  const home = isSystemRole(role)
     ? getHomePath(role)
     : (firstAccessibleHref(role, permissions) ?? "/dashboard/profile");
 

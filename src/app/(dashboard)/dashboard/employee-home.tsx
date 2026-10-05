@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
-import { firstAccessibleHref, hasManagementPermission, sidebarRoutesByRole } from "@/config/sidebar-routes";
+import { firstAccessibleHref, hasManagementPermission, isSystemRole } from "@/config/sidebar-routes";
 import { useCurrentUser } from "@/hooks/auth.hook";
 import { EmployeeOverview } from "./employee-overview";
 
@@ -13,7 +13,7 @@ export function EmployeeHome() {
 	const router = useRouter();
 	const { role, permissions } = useCurrentUser();
 	const redirectHref =
-		role && !sidebarRoutesByRole[role] && hasManagementPermission(permissions)
+		role && !isSystemRole(role) && hasManagementPermission(permissions)
 			? firstAccessibleHref(role, permissions)
 			: null;
 

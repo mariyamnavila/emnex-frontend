@@ -49,9 +49,10 @@ export function TasksView() {
 	const { data, isLoading, isError, error } = useTaskBoard({ search, projectId, employeeId, priority });
 	const { data: projects = [] } = useProjectOptions();
 	const can = useCan();
-	// Changing another employee's task status needs assign/review rights (the
-	// backend rejects a plain task.update holder who isn't the assignee)
-	const canUpdateStatus = can("task.assign") || can("submission.approve");
+	// Mirror the backend: the status route needs task.update, and changing someone
+	// else's task also needs assign or review rights. Without task.update (e.g. HR)
+	// the button would only 403, so don't show it.
+	const canUpdateStatus = can("task.update") && (can("task.assign") || can("submission.approve"));
 
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [snapshot, setSnapshot] = useState<BoardTask | null>(null);

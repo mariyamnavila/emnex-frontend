@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { api, ApiError, errorMessage } from "@/lib/api";
 import type { ChangePasswordValues } from "@/validation/auth.validation";
 import { useSession } from "@/providers/session.provider";
+import { SYSTEM_ROLE_HOME } from "@/config/sidebar-routes";
 import type {
   LoginFormValues,
   RegisterFormValues,
@@ -41,12 +42,8 @@ export interface MeUser {
 
 // Where each role lands after logging in
 // Custom/unknown roles default to /dashboard (safe entry point)
-export const getHomePath = (role: string): string => {
-  if (role === "ADMIN") return "/admin";
-  if (role === "HR_MANAGER") return "/manager";
-  if (role === "FINANCE_MANAGER") return "/finance";
-  return "/dashboard";
-};
+export const getHomePath = (role: string): string =>
+  SYSTEM_ROLE_HOME[role] ?? "/dashboard";
 
 // Only these mean "logged out" (no/expired session, blocked or terminated user).
 // Network errors, 429 and 5xx must NOT log the user out.

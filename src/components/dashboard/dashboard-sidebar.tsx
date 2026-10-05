@@ -22,7 +22,7 @@ import {
   canViewItem,
   firstAccessibleHref,
   getSidebarRoutes,
-  sidebarRoutesByRole,
+  isSystemRole,
 } from "@/config/sidebar-routes";
 import { getHomePath, useCurrentUser } from "@/hooks/auth.hook";
 import { UserMenu } from "./user-menu";
@@ -32,7 +32,7 @@ export function DashboardSidebar() {
   const { setOpenMobile } = useSidebar();
   const { role, permissions, organizationName } = useCurrentUser();
   // System roles have a fixed home; custom roles land on their first allowed page
-  const home = sidebarRoutesByRole[role]
+  const home = isSystemRole(role)
     ? getHomePath(role)
     : (firstAccessibleHref(role, permissions) ?? "/dashboard/profile");
 

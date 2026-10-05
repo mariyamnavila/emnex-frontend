@@ -18,20 +18,6 @@ const PUBLIC_PATHS = [
   "/payment/cancel",
 ];
 
-// Role → home path (mirrors getHomePath in auth.hook.ts)
-const ROLE_HOME: Record<string, string> = {
-  ADMIN: "/admin",
-  HR_MANAGER: "/manager",
-  FINANCE_MANAGER: "/finance",
-};
-
-// Route prefix → roles allowed (assignment: role enforcement at middleware level)
-const ROLE_ROUTES: Record<string, string[]> = {
-  "/admin": ["ADMIN"],
-  "/manager": ["HR_MANAGER"],
-  "/finance": ["FINANCE_MANAGER"],
-};
-
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some(
     (p) => pathname === p || (p !== "/" && pathname.startsWith(`${p}/`)),
@@ -81,25 +67,9 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  const role = payload.role || "";
-  const KNOWN_ROLES = ["ADMIN", "HR_MANAGER", "FINANCE_MANAGER", "EMPLOYEE"];
-
-  // /dashboard is the employee area; management system roles go to their own area
-  if (pathname.startsWith("/dashboard") && ROLE_HOME[role]) {
-    return NextResponse.redirect(new URL(ROLE_HOME[role], request.url));
-  }
-
-  // System roles get role-based area enforcement. Custom roles are
-  // permission-based: the client guard (RoleGuard) and the API decide access,
-  // so we let them through to any area here.
-  if (KNOWN_ROLES.includes(role)) {
-    for (const [prefix, allowedRoles] of Object.entries(ROLE_ROUTES)) {
-      if (pathname.startsWith(prefix) && !allowedRoles.includes(role)) {
-        return NextResponse.redirect(new URL(ROLE_HOME[role] || "/dashboard", request.url));
-      }
-    }
-  }
-
+  // Access is permission-based for every role: the client guard (RoleGuard) and
+  // the API decide which areas/pages a user can open, so the proxy only enforces
+  // authentication here, not role-to-area mapping.
   return NextResponse.next();
 }
 
