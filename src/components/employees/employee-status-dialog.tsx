@@ -14,6 +14,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { StatusBadge } from "@/components/shared";
 import { useUpdateEmployeeStatus } from "@/hooks/employee.hook";
+import { useCan } from "@/hooks/auth.hook";
 import { cn } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";
 
@@ -55,6 +56,12 @@ export function EmployeeStatusDialog({ employee, open, onOpenChange }: EmployeeS
 function StatusForm({ employee, onDone }: { employee: Employee; onDone: () => void }) {
 	const [status, setStatus] = useState<EmployeeStatus>(employee.status);
 	const updateStatus = useUpdateEmployeeStatus();
+	const canDelete = useCan()("employee.delete");
+	// Terminating is a soft delete, so only offer it to someone who can delete
+	// (keep it visible if the employee is already terminated, for reactivation)
+	const options = STATUS_OPTIONS.filter(
+		(option) => option.value !== "TERMINATED" || canDelete || employee.status === "TERMINATED",
+	);
 	const unchanged = status === employee.status;
 	const isTerminating = status === "TERMINATED";
 
@@ -73,7 +80,7 @@ function StatusForm({ employee, onDone }: { employee: Employee; onDone: () => vo
 				onValueChange={(value) => setStatus(value as EmployeeStatus)}
 				className="gap-2"
 			>
-				{STATUS_OPTIONS.map((option) => {
+				{options.map((option) => {
 					const isCurrent = option.value === employee.status;
 					const isSelected = option.value === status;
 					return (
