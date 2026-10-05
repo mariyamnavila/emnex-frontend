@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Info, Loader2, RotateCcw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -102,17 +102,48 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 	const assign = useAssignPermissions();
 	const readOnly = readOnlyReason !== null;
 
+	// Acting on a resource requires viewing it: each "<module>.<action>" (not
+	// view/view_own) depends on "<module>.view".
+	const { requiredView, dependentsByView, viewIds } = useMemo(() => {
+		const idByName = new Map(catalog.map((p) => [p.name, p.id]));
+		const requiredView = new Map<string, string>();
+		const dependentsByView = new Map<string, string[]>();
+		const viewIds = new Set<string>();
+		for (const permission of catalog) {
+			const [moduleName, action] = permission.name.split(".");
+			if (action === "view") viewIds.add(permission.id);
+			if (action && action !== "view" && action !== "view_own") {
+				const viewId = idByName.get(`${moduleName}.view`);
+				if (viewId) {
+					requiredView.set(permission.id, viewId);
+					dependentsByView.set(viewId, [...(dependentsByView.get(viewId) ?? []), permission.id]);
+				}
+			}
+		}
+		return { requiredView, dependentsByView, viewIds };
+	}, [catalog]);
+
 	const savedSet = new Set(saved);
 	const added = [...selected].filter((id) => !savedSet.has(id)).length;
 	const removed = saved.filter((id) => !selected.has(id)).length;
 	const changes = added + removed;
 
+	// A view can't be unchecked while an action in its module is still selected
+	const isLockedView = (id: string) =>
+		viewIds.has(id) && (dependentsByView.get(id) ?? []).some((dep) => selected.has(dep));
+
 	const toggle = (ids: string[], on: boolean) =>
 		setSelected((current) => {
 			const next = new Set(current);
 			for (const id of ids) {
-				if (on) next.add(id);
-				else next.delete(id);
+				if (on) {
+					next.add(id);
+					const viewId = requiredView.get(id);
+					if (viewId) next.add(viewId); // pull in the module's View
+				} else {
+					next.delete(id);
+					for (const dep of dependentsByView.get(id) ?? []) next.delete(dep); // drop dependents
+				}
 			}
 			return next;
 		});
@@ -157,6 +188,7 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 								{group.items.map((permission) => {
 									const checked = selected.has(permission.id);
 									const changed = checked !== savedSet.has(permission.id);
+									const locked = isLockedView(permission.id);
 									return (
 										<li key={permission.id}>
 											<label
@@ -167,7 +199,7 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 											>
 												<Checkbox
 													checked={checked}
-													disabled={readOnly}
+													disabled={readOnly || locked}
 													onCheckedChange={(value) => toggle([permission.id], value === true)}
 													className="data-[state=checked]:border-[#2563EB] data-[state=checked]:bg-[#2563EB] data-[state=checked]:text-white"
 												/>
@@ -179,7 +211,11 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 														{permission.name}
 													</span>
 												</span>
-												{changed ? (
+												{locked ? (
+													<span className="rounded-full bg-[#EFF6FF] px-1.5 py-px text-[10px] font-semibold text-[#2563EB] uppercase dark:bg-[#1E293B] dark:text-[#60A5FA]">
+														Required
+													</span>
+												) : changed ? (
 													<span
 														className={cn(
 															"rounded-full px-1.5 py-px text-[10px] font-semibold uppercase",
