@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -182,7 +183,7 @@ export function RegisterForm() {
             </p>
           </div>
 
-          <form
+          <form onKeyDown={focusNextOnEnter}
             onSubmit={handleSubmit((values) => register.mutate(values))}
             className="mt-6 space-y-4"
           >

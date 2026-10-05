@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -229,7 +230,7 @@ export function EmployeeWizard() {
 				})}
 			</ol>
 
-			<form
+			<form onKeyDown={focusNextOnEnter}
 				onSubmit={handleSubmit(onSubmit)}
 				className="mt-6 rounded-lg border border-[#E2E8F0] bg-white p-6 dark:border-[#1E293B] dark:bg-[#0F172A]"
 			>

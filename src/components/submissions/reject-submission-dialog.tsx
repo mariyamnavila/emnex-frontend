@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -76,7 +77,7 @@ function RejectForm({
 	const reasonLength = useWatch({ control, name: "reason" })?.length ?? 0;
 
 	return (
-		<form
+		<form onKeyDown={focusNextOnEnter}
 			onSubmit={handleSubmit(({ reason }) => reject.mutate({ submission, reason }, { onSuccess: onRejected }))}
 			className="space-y-5"
 			noValidate

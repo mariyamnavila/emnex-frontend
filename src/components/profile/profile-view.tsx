@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -167,7 +168,7 @@ function ChangePasswordForm({ onChanged }: { onChanged: () => void }) {
 	const newPassword = useWatch({ control, name: "newPassword" }) ?? "";
 
 	return (
-		<form
+		<form onKeyDown={focusNextOnEnter}
 			onSubmit={handleSubmit((values) => changePassword.mutate(values, { onSuccess: onChanged }))}
 			className="grid max-w-xl gap-4"
 			noValidate

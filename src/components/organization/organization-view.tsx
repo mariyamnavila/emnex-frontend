@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -99,7 +100,7 @@ function EditOrganizationForm({ org }: { org: Organization }) {
 	});
 
 	return (
-		<form onSubmit={handleSubmit((values) => update.mutate(values))} className="grid max-w-xl gap-4" noValidate>
+		<form onKeyDown={focusNextOnEnter} onSubmit={handleSubmit((values) => update.mutate(values))} className="grid max-w-xl gap-4" noValidate>
 			<FormField id="org-name" label="Name" error={errors.name?.message}>
 				<Input id="org-name" aria-invalid={Boolean(errors.name)} {...register("name")} className={cn("h-10", fieldClass)} />
 			</FormField>

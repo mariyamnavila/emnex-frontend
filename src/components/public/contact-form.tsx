@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -95,7 +96,7 @@ export function ContactForm() {
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
+        <form onKeyDown={focusNextOnEnter} onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             {/* Full Name */}
             <div className="space-y-1.5">

@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import type { ReactNode } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -193,7 +194,7 @@ function GenerateForm({ onDone }: { onDone: () => void }) {
 	}
 
 	return (
-		<form
+		<form onKeyDown={focusNextOnEnter}
 			onSubmit={handleSubmit((values) => generate.mutate(values, { onSuccess: onDone }))}
 			className="space-y-5"
 			noValidate

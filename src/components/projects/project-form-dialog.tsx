@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -86,7 +87,7 @@ function ProjectForm({ project, onDone }: { project: Project | null; onDone: () 
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+		<form onKeyDown={focusNextOnEnter} onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
 			<DialogHeader>
 				<DialogTitle className="text-[#0F172A] dark:text-white">
 					{isEdit ? "Edit project" : "New project"}

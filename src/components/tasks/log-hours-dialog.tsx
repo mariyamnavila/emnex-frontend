@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -89,7 +90,7 @@ function LogHoursForm({
 	const logged = selected ? (loggedHours[selected.id] ?? 0) : 0;
 
 	return (
-		<form
+		<form onKeyDown={focusNextOnEnter}
 			onSubmit={handleSubmit((values) =>
 				editing
 					? updateLog.mutate({ id: editing.id, values }, { onSuccess: onDone })

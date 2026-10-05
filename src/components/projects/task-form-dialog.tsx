@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -91,7 +92,7 @@ function TaskForm({
 	});
 
 	return (
-		<form
+		<form onKeyDown={focusNextOnEnter}
 			onSubmit={handleSubmit((values) => mutation.mutate(values, { onSuccess: onDone }))}
 			className="space-y-5"
 			noValidate

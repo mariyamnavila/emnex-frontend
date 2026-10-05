@@ -1,4 +1,5 @@
 "use client";
+import { focusNextOnEnter } from "@/lib/form";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -271,7 +272,7 @@ export function LoginForm() {
           </div>
 
           {/* Credentials Form */}
-          <form onSubmit={handleSubmit((values) => login.mutate(values))} className="space-y-4">
+          <form onKeyDown={focusNextOnEnter} onSubmit={handleSubmit((values) => login.mutate(values))} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-xs font-semibold text-[#0F172A] dark:text-white">
                 Work Email
