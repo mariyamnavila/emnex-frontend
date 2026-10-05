@@ -36,7 +36,12 @@ const createQueryClient = () => {
     }),
     defaultOptions: {
       queries: {
-        staleTime: 30_000,
+        // Data here changes on user actions (which invalidate their keys), not
+        // second-to-second — so keep it fresh for a couple of minutes and in
+        // cache for longer. Revisiting a page within the window is instant
+        // instead of cold-fetching from the (distant) database again.
+        staleTime: 2 * 60_000,
+        gcTime: 15 * 60_000,
         retry: shouldRetry,
         refetchOnWindowFocus: false,
       },
