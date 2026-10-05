@@ -129,6 +129,7 @@ export interface UpdateEmployeePayload {
 	salaryType?: "MONTHLY" | "HOURLY";
 	salary?: number;
 	hourlyRate?: number;
+	roleId?: string;
 }
 
 // Edit the details the backend allows (not name/email/role/joining date)

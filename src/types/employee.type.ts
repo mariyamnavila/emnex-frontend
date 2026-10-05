@@ -3,6 +3,7 @@ export interface EmployeeUser {
 	name: string;
 	email: string;
 	avatar: string | null;
+	roleId: string;
 }
 
 export interface EmployeeDepartment {

@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import RoleGuard from "@/components/auth/role-guard";
 import { firstAccessibleHref, getSidebarRoutes, sidebarRoutesByRole } from "@/config/sidebar-routes";
-import { getHomePath, useCurrentUser } from "@/hooks/auth.hook";
+import { getHomePath, useCurrentUser, useRoleSync } from "@/hooks/auth.hook";
 import type { SessionUser } from "@/lib/session";
 import { SessionProvider } from "@/providers/session.provider";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -36,6 +36,7 @@ export default function DashboardShell({
   session,
   sidebarOpen = true,
 }: DashboardShellProps) {
+  useRoleSync();
   return (
     <SessionProvider session={session}>
       <RoleGuard roles={roles} permissions={permissions}>

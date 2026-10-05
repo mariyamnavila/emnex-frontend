@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -121,11 +122,31 @@ export function useGetMe() {
       const { data } = await api.get<MeUser>("/auth/me");
       return data;
     },
-    // Profile/permissions rarely change, and /auth/* is rate limited
-    // (20 req / 15 min) — don't refetch on every page change.
-    staleTime: 5 * 60 * 1000,
+    // Keep permissions fresh so a role change reaches the UI WITHOUT a reload:
+    // short stale (nav refreshes), poll while the tab is active, and refresh on
+    // refocus. /auth/me isn't under the strict auth limiter (300 req/15 min cap).
+    staleTime: 60 * 1000,
+    refetchInterval: 90 * 1000,
+    refetchOnWindowFocus: true,
     retry: false,
   });
+}
+
+// If an admin reassigns this user's role, /auth/me (polled above) reports the new
+// role; refresh the access token so the JWT — and the proxy's area routing —
+// follows the change without the user re-logging in.
+export function useRoleSync() {
+  const { data: me } = useGetMe();
+  const lastRole = useRef<string | undefined>(undefined);
+  const role = me?.role.name;
+
+  useEffect(() => {
+    if (!role) return;
+    if (lastRole.current !== undefined && lastRole.current !== role) {
+      void api.post("/auth/refresh-token").catch(() => {});
+    }
+    lastRole.current = role;
+  }, [role]);
 }
 
 // /auth/me once loaded, the server-decoded JWT until then (instant first paint)

@@ -56,6 +56,7 @@ export const employeeEditSchema = z
 	.object({
 		jobTitle: z.string().min(2, "Job title must be at least 2 characters").max(100),
 		departmentId: z.string().optional(),
+		roleId: z.string().optional(),
 	})
 	.merge(salaryBaseSchema)
 	.superRefine(salaryRefine);

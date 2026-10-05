@@ -22,7 +22,9 @@ const createQueryClient = () => {
   // Re-checking /auth/me makes RoleGuard send the user to /login.
   const onError = (error: Error, queryKey?: readonly unknown[]) => {
     const isAuthQuery = queryKey?.[0] === "auth";
-    if (error instanceof ApiError && error.statusCode === 401 && !isAuthQuery) {
+    // 401 → session ended (RoleGuard sends to login). 403 → permission likely
+    // changed under the user, so refetch /auth/me to correct the UI immediately.
+    if (error instanceof ApiError && !isAuthQuery && (error.statusCode === 401 || error.statusCode === 403)) {
       void client.invalidateQueries({ queryKey: ["auth", "me"] });
     }
   };

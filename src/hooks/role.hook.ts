@@ -7,7 +7,7 @@ import { formatRoleName } from "@/lib/utils";
 import type { Permission, Role, RoleDetail } from "@/types/role.type";
 import type { RoleFormValues } from "@/validation/role.validation";
 
-export function useRoles() {
+export function useRoles(enabled = true) {
 	return useQuery({
 		queryKey: ["roles"],
 		queryFn: async () => {
@@ -15,6 +15,7 @@ export function useRoles() {
 			return data;
 		},
 		staleTime: 5 * 60 * 1000,
+		enabled,
 	});
 }
 

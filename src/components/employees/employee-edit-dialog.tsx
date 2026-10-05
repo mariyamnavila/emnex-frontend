@@ -25,8 +25,10 @@ import {
 import { fieldClass, FormField } from "@/components/shared";
 import { useDepartments } from "@/hooks/department.hook";
 import { useUpdateEmployee } from "@/hooks/employee.hook";
+import { useRoles } from "@/hooks/role.hook";
+import { useCan } from "@/hooks/auth.hook";
 import { ESTIMATED_HOURS_PER_MONTH, formatCurrency, getPaySummary, toAmount } from "@/lib/pay";
-import { cn } from "@/lib/utils";
+import { cn, formatRoleName } from "@/lib/utils";
 import { employeeEditSchema, type EmployeeEditValues } from "@/validation/employee.validation";
 import type { Employee } from "@/types/employee.type";
 
@@ -53,6 +55,8 @@ export function EmployeeEditDialog({ employee, open, onOpenChange }: EmployeeEdi
 
 function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void }) {
 	const { data: departments = [] } = useDepartments();
+	const canEditRole = useCan()("role.update");
+	const { data: roles = [] } = useRoles(canEditRole);
 	const update = useUpdateEmployee();
 
 	const {
@@ -66,15 +70,16 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 		defaultValues: {
 			jobTitle: employee.jobTitle,
 			departmentId: employee.department?.id ?? NO_DEPARTMENT,
+			roleId: employee.user.roleId,
 			salaryType: employee.salaryType,
 			salary: employee.salary != null ? String(employee.salary) : "",
 			hourlyRate: employee.hourlyRate != null ? String(employee.hourlyRate) : "",
 		},
 	});
 
-	const [salaryType, salary, hourlyRate, departmentId] = useWatch({
+	const [salaryType, salary, hourlyRate, departmentId, roleId] = useWatch({
 		control,
-		name: ["salaryType", "salary", "hourlyRate", "departmentId"],
+		name: ["salaryType", "salary", "hourlyRate", "departmentId", "roleId"],
 	});
 	const pay = getPaySummary(salaryType, toAmount(salary), toAmount(hourlyRate));
 
@@ -85,6 +90,7 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 				jobTitle: values.jobTitle,
 				departmentId:
 					values.departmentId && values.departmentId !== NO_DEPARTMENT ? values.departmentId : undefined,
+				roleId: canEditRole ? values.roleId : undefined,
 				salaryType: values.salaryType,
 				salary: values.salaryType === "MONTHLY" ? Number(values.salary) : undefined,
 				hourlyRate: values.salaryType === "HOURLY" ? Number(values.hourlyRate) : undefined,
@@ -98,7 +104,7 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 			<DialogHeader>
 				<DialogTitle className="text-[#0F172A] dark:text-white">Edit employee</DialogTitle>
 				<DialogDescription>
-					{employee.user.name} ({employee.employeeCode}). Name, email and role can&apos;t be changed here.
+					{employee.user.name} ({employee.employeeCode}). Name and email can&apos;t be changed here.
 				</DialogDescription>
 			</DialogHeader>
 
@@ -130,6 +136,26 @@ function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void
 					</SelectContent>
 				</Select>
 			</FormField>
+
+			{canEditRole ? (
+				<FormField id="edit-role" label="Role" error={errors.roleId?.message} hint="Changing the role takes effect without the employee re-logging in">
+					<Select
+						value={roleId}
+						onValueChange={(value) => setValue("roleId", value, { shouldValidate: true, shouldDirty: true })}
+					>
+						<SelectTrigger id="edit-role" className={cn("h-10 w-full", fieldClass)}>
+							<SelectValue placeholder="Select a role" />
+						</SelectTrigger>
+						<SelectContent>
+							{roles.map((role) => (
+								<SelectItem key={role.id} value={role.id}>
+									{formatRoleName(role.name)}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</FormField>
+			) : null}
 
 			<RadioGroup
 				value={salaryType}
