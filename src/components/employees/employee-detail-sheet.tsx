@@ -13,7 +13,7 @@ import {
 	StatusBadge,
 	UserAvatar,
 } from "@/components/shared";
-import { formatDate } from "@/lib/utils";
+import { formatDay } from "@/lib/utils";
 import { formatCurrency, getPaySummary } from "@/lib/pay";
 import { useEmployee } from "@/hooks/employee.hook";
 import type { Employee } from "@/types/employee.type";
@@ -29,8 +29,8 @@ interface EmployeeDetailSheetProps {
 // "Jul 15, 2025 · 1 year" — or "Starts Oct 20, 2026" for future hires
 function joinedLabel(joiningDate: string): string {
 	const date = new Date(joiningDate);
-	if (date > new Date()) return `Starts ${formatDate(date)}`;
-	return `${formatDate(date)} · ${formatDistanceToNowStrict(date)}`;
+	if (date > new Date()) return `Starts ${formatDay(date)}`;
+	return `${formatDay(date)} · ${formatDistanceToNowStrict(date)}`;
 }
 
 export function EmployeeDetailSheet({

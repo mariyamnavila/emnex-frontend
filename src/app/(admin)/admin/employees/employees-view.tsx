@@ -53,7 +53,7 @@ import {
 } from "@/hooks/employee.hook";
 import { useDepartments } from "@/hooks/department.hook";
 import { formatCurrency } from "@/lib/pay";
-import { formatDate, plural, sumByStatus } from "@/lib/utils";
+import { formatDay, plural, sumByStatus } from "@/lib/utils";
 import type { Employee, EmployeeStatus } from "@/types/employee.type";
 import { EmployeeDetailSheet } from "@/components/employees/employee-detail-sheet";
 import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
@@ -210,7 +210,7 @@ export function EmployeesView() {
 			header: "Joined",
 			headerClassName: "hidden @5xl:table-cell",
 			className: "hidden @5xl:table-cell whitespace-nowrap tabular-nums",
-			cell: (row) => formatDate(row.joiningDate),
+			cell: (row) => formatDay(row.joiningDate),
 		},
 		{
 			key: "status",

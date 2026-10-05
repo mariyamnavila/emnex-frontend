@@ -53,7 +53,7 @@ import {
 	getPaySummary,
 	toAmount,
 } from "@/lib/pay";
-import { cn, formatDate, formatRoleName } from "@/lib/utils";
+import { cn, formatDay, formatRoleName } from "@/lib/utils";
 
 const STEPS = [
 	{ number: 1, label: "Personal", hint: "Name & login email" },
@@ -515,7 +515,7 @@ export function EmployeeWizard() {
 								<DetailRow variant="split" label="Department">{departmentName ?? "No department"}</DetailRow>
 								<DetailRow variant="split" label="Joining date">
 									{/* "T00:00:00" = read the picked date as local time, not UTC */}
-									{values.joiningDate ? formatDate(`${values.joiningDate}T00:00:00`) : "—"}
+									{values.joiningDate ? formatDay(values.joiningDate) : "—"}
 								</DetailRow>
 								<DetailRow variant="split" label="Pay">
 									{pay ? (
