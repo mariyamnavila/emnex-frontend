@@ -18,29 +18,28 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getSidebarRoutes } from "@/config/sidebar-routes";
+import {
+  canViewItem,
+  firstAccessibleHref,
+  getSidebarRoutes,
+  sidebarRoutesByRole,
+} from "@/config/sidebar-routes";
 import { getHomePath, useCurrentUser } from "@/hooks/auth.hook";
-import type { SidebarItem } from "@/types/sidebar.type";
 import { UserMenu } from "./user-menu";
-
-// permissions === null → /auth/me not loaded yet: show the role's full menu
-function canView(item: SidebarItem, permissions: string[] | null): boolean {
-  if (permissions === null) return true;
-  if (!item.permission && !item.anyOf) return true;
-  if (item.permission && permissions.includes(item.permission)) return true;
-  return Boolean(item.anyOf?.some((p) => permissions.includes(p)));
-}
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
   const { role, permissions, organizationName } = useCurrentUser();
-  const home = getHomePath(role);
+  // System roles have a fixed home; custom roles land on their first allowed page
+  const home = sidebarRoutesByRole[role]
+    ? getHomePath(role)
+    : (firstAccessibleHref(role, permissions) ?? "/dashboard/profile");
 
-  const routes = getSidebarRoutes(role)
+  const routes = getSidebarRoutes(role, permissions)
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => canView(item, permissions)),
+      items: group.items.filter((item) => canViewItem(item, permissions)),
     }))
     .filter((group) => group.items.length > 0);
 

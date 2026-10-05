@@ -8,7 +8,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import RoleGuard from "@/components/auth/role-guard";
-import { getSidebarRoutes } from "@/config/sidebar-routes";
+import { firstAccessibleHref, getSidebarRoutes, sidebarRoutesByRole } from "@/config/sidebar-routes";
 import { getHomePath, useCurrentUser } from "@/hooks/auth.hook";
 import type { SessionUser } from "@/lib/session";
 import { SessionProvider } from "@/providers/session.provider";
@@ -20,6 +20,8 @@ interface DashboardShellProps {
   title?: string;
   /** Roles allowed in this section — omit for any signed-in user */
   roles?: string[];
+  /** Permissions (any one) that also grant access — lets custom roles in */
+  permissions?: string[];
   /** Decoded on the server so the shell renders before /auth/me answers */
   session: SessionUser | null;
   /** Saved collapsed/expanded state (sidebar_state cookie) */
@@ -30,12 +32,13 @@ export default function DashboardShell({
   children,
   title,
   roles,
+  permissions,
   session,
   sidebarOpen = true,
 }: DashboardShellProps) {
   return (
     <SessionProvider session={session}>
-      <RoleGuard roles={roles}>
+      <RoleGuard roles={roles} permissions={permissions}>
         <TooltipProvider>
         <SidebarProvider defaultOpen={sidebarOpen}>
           <DashboardSidebar />
@@ -60,10 +63,12 @@ export default function DashboardShell({
 // "Admin › Projects › Details", derived from the sidebar routes
 function Breadcrumbs({ section }: { section: string }) {
   const pathname = usePathname();
-  const { role } = useCurrentUser();
-  const home = getHomePath(role);
+  const { role, permissions } = useCurrentUser();
+  const home = sidebarRoutesByRole[role]
+    ? getHomePath(role)
+    : (firstAccessibleHref(role, permissions) ?? "/dashboard/profile");
 
-  const match = getSidebarRoutes(role)
+  const match = getSidebarRoutes(role, permissions)
     .flatMap((group) => group.items)
     .filter((item) => pathname === item.url || pathname.startsWith(`${item.url}/`))
     .sort((a, b) => b.url.length - a.url.length)[0];

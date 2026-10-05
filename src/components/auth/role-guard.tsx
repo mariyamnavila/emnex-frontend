@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { getHomePath, isSessionInvalid, useGetMe } from "@/hooks/auth.hook";
 import { useSession } from "@/providers/session.provider";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
-import AccessDenied from "./access-denied";
 import SessionError from "./session-error";
 
 interface RoleGuardProps {
@@ -25,19 +24,30 @@ export default function RoleGuard({ children, roles, permissions }: RoleGuardPro
 
   // The server-verified JWT lets us render right away; /auth/me confirms in the background
   const role = data?.role.name ?? session?.role;
-  const roleMatch = !roles || !role || roles.includes(role);
-  const permissionMatch =
-    !permissions || !data || permissions.some((p) => data.permissions.includes(p));
+  const roleAllowed = !roles || !role || roles.includes(role);
+  // Permission path only resolves once /auth/me loads (null = still deciding)
+  const permAllowed = permissions
+    ? data
+      ? permissions.some((p) => data.permissions.includes(p))
+      : null
+    : false;
+
+  // Access = no constraints, OR a matching role, OR (role mismatch but the user
+  // has the area permission — this is how custom roles reach management areas).
+  let allowed: boolean | null;
+  if (!roles && !permissions) allowed = true;
+  else if (roleAllowed) allowed = true;
+  else allowed = permAllowed;
 
   useEffect(() => {
     if (loggedOut) {
       router.replace(`/login?redirectTo=${encodeURIComponent(pathname)}`);
-    } else if (role && !roleMatch) {
+    } else if (allowed === false && role) {
       router.replace(getHomePath(role));
     }
-  }, [loggedOut, role, roleMatch, router, pathname]);
+  }, [loggedOut, allowed, role, router, pathname]);
 
-  if (loggedOut || !roleMatch) return <DashboardSkeleton />;
+  if (loggedOut) return <DashboardSkeleton />;
 
   if (!data && !session) {
     if (isPending) return <DashboardSkeleton />;
@@ -50,7 +60,8 @@ export default function RoleGuard({ children, roles, permissions }: RoleGuardPro
     );
   }
 
-  if (!permissionMatch) return <AccessDenied homeHref={getHomePath(role ?? "")} />;
+  // Still deciding (waiting for /auth/me on a role mismatch), or denied → bounce
+  if (allowed !== true) return <DashboardSkeleton />;
 
   return <>{children}</>;
 }

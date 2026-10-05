@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { EmployeeOverview } from "./employee-overview";
+import { EmployeeHome } from "./employee-home";
 
 export const metadata: Metadata = { title: "Overview" };
 
 export default function EmployeeOverviewPage() {
-	return <EmployeeOverview />;
+	return <EmployeeHome />;
 }

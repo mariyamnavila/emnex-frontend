@@ -10,7 +10,13 @@ export default async function ManagerLayout({ children }: { children: React.Reac
   const [session, sidebarOpen] = await Promise.all([getSessionUser(), getSidebarOpen()]);
 
   return (
-    <DashboardShell session={session} sidebarOpen={sidebarOpen} title="Manager" roles={["HR_MANAGER"]}>
+    <DashboardShell
+      session={session}
+      sidebarOpen={sidebarOpen}
+      title="Manager"
+      roles={["HR_MANAGER"]}
+      permissions={["task.view", "submission.view", "submission.approve", "submission.reject"]}
+    >
       {children}
     </DashboardShell>
   );

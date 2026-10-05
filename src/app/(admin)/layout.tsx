@@ -10,7 +10,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const [session, sidebarOpen] = await Promise.all([getSessionUser(), getSidebarOpen()]);
 
   return (
-    <DashboardShell session={session} sidebarOpen={sidebarOpen} title="Admin" roles={["ADMIN"]}>
+    <DashboardShell
+      session={session}
+      sidebarOpen={sidebarOpen}
+      title="Admin"
+      roles={["ADMIN"]}
+      permissions={[
+        "employee.view",
+        "department.view",
+        "project.view",
+        "payroll.view",
+        "role.view",
+        "organization.view",
+        "organization.update",
+        "audit.view",
+        "analytics.view",
+      ]}
+    >
       {children}
     </DashboardShell>
   );
