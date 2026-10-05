@@ -45,6 +45,7 @@ import {
 	UserAvatar,
 } from "@/components/shared";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { errorMessage } from "@/lib/api";
 import {
 	useEmployeeAnalytics,
 	useEmployees,
@@ -109,7 +110,7 @@ export function EmployeesView() {
 	const status = get("status");
 	const departmentId = get("departmentId");
 
-	const { data, isLoading } = useEmployees({
+	const { data, isLoading, isError, error } = useEmployees({
 		page,
 		search,
 		status,
@@ -393,11 +394,13 @@ export function EmployeesView() {
 					empty={
 						<EmptyState
 							icon={Users}
-							title="No employees found"
+							title={isError ? "Couldn't load employees" : "No employees found"}
 							description={
-								hasFilters
-									? "No one matches these filters. Try a different search or status."
-									: "Add your first employee to start assigning tasks and running payroll."
+								isError
+									? errorMessage(error, "Please try again in a moment.")
+									: hasFilters
+										? "No one matches these filters. Try a different search or status."
+										: "Add your first employee to start assigning tasks and running payroll."
 							}
 							action={
 								hasFilters ? (

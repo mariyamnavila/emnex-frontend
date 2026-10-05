@@ -6,7 +6,7 @@ import { Check, CheckCircle2, Loader2, X } from "lucide-react";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { UserAvatar } from "@/components/shared";
 import { Button } from "@/components/ui/button";
-import { useCurrentUser } from "@/hooks/auth.hook";
+import { useCan, useCurrentUser } from "@/hooks/auth.hook";
 import { useApproveSubmission, useSubmissions } from "@/hooks/submission.hook";
 import { formatDay, plural, timeAgo } from "@/lib/utils";
 import type { Submission } from "@/types/submission.type";
@@ -22,6 +22,9 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 	const { data, isLoading, isError } = useSubmissions({ status: "PENDING", limit, oldestFirst: true });
 	const approve = useApproveSubmission();
 	const currentUser = useCurrentUser();
+	const can = useCan();
+	const canApprove = can("submission.approve");
+	const canReject = can("submission.reject");
 	const [rejecting, setRejecting] = useState<Submission | null>(null);
 	const [rejectOpen, setRejectOpen] = useState(false);
 	const rows = data?.rows ?? [];
@@ -90,30 +93,34 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 									</p>
 								</div>
 								<div className="flex shrink-0 gap-2 sm:flex-col">
-									<Button
-										size="sm"
-										disabled={isOwn || approve.isPending}
-										title={isOwn ? "You can't review your own work" : undefined}
-										onClick={() => approve.mutate(submission)}
-										className="flex-1 bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8] sm:w-24 sm:flex-none"
-									>
-										{isApproving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-										Approve
-									</Button>
-									<Button
-										size="sm"
-										variant="outline"
-										disabled={isOwn || isApproving}
-										title={isOwn ? "You can't review your own work" : undefined}
-										onClick={() => {
-											setRejecting(submission);
-											setRejectOpen(true);
-										}}
-										className="flex-1 border-[#E2E8F0] text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C] sm:w-24 sm:flex-none dark:border-[#1E293B]"
-									>
-										<X className="size-3.5" />
-										Reject
-									</Button>
+									{canApprove ? (
+										<Button
+											size="sm"
+											disabled={isOwn || approve.isPending}
+											title={isOwn ? "You can't review your own work" : undefined}
+											onClick={() => approve.mutate(submission)}
+											className="flex-1 bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8] sm:w-24 sm:flex-none"
+										>
+											{isApproving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+											Approve
+										</Button>
+									) : null}
+									{canReject ? (
+										<Button
+											size="sm"
+											variant="outline"
+											disabled={isOwn || isApproving}
+											title={isOwn ? "You can't review your own work" : undefined}
+											onClick={() => {
+												setRejecting(submission);
+												setRejectOpen(true);
+											}}
+											className="flex-1 border-[#E2E8F0] text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C] sm:w-24 sm:flex-none dark:border-[#1E293B]"
+										>
+											<X className="size-3.5" />
+											Reject
+										</Button>
+									) : null}
 								</div>
 							</li>
 						);

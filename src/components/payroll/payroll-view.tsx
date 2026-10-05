@@ -43,6 +43,7 @@ import { GeneratePayrollDialog } from "@/components/payroll/generate-payroll-dia
 import { usePayrollAnalytics } from "@/hooks/analytics.hook";
 import { useCan, useGetMe } from "@/hooks/auth.hook";
 import { useApprovePayroll, usePayrolls, useRejectPayroll } from "@/hooks/payroll.hook";
+import { errorMessage } from "@/lib/api";
 import { useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { formatCurrency } from "@/lib/pay";
@@ -98,7 +99,7 @@ export function PayrollView() {
 	// Finance managers are employees too; nobody approves or pays their own payroll
 	const isOwn = (payroll: Payroll) => payroll.employee.user.id === me?.id;
 
-	const { data, isLoading } = usePayrolls({ page, status, employeeId });
+	const { data, isLoading, isError, error } = usePayrolls({ page, status, employeeId });
 	const { data: analytics, isLoading: analyticsLoading } = usePayrollAnalytics();
 	const approve = useApprovePayroll();
 	const reject = useRejectPayroll();
@@ -340,11 +341,13 @@ export function PayrollView() {
 					empty={
 						<EmptyState
 							icon={Wallet}
-							title="No payroll records"
+							title={isError ? "Couldn't load payroll" : "No payroll records"}
 							description={
-								hasFilters
-									? "Nothing matches these filters."
-									: "Generate a payroll draft for an employee to get started."
+								isError
+									? errorMessage(error, "Please try again in a moment.")
+									: hasFilters
+										? "Nothing matches these filters."
+										: "Generate a payroll draft for an employee to get started."
 							}
 							action={
 								hasFilters ? (

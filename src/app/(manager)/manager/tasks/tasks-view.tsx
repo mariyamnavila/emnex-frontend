@@ -11,6 +11,7 @@ import { useCan } from "@/hooks/auth.hook";
 import { useProjectOptions } from "@/hooks/project.hook";
 import { BOARD_LIMIT, useTaskBoard } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { errorMessage } from "@/lib/api";
 import { STATUS_CHART_COLORS } from "@/lib/chart-theme";
 import { isTaskOverdue } from "@/lib/task";
 import { cn } from "@/lib/utils";
@@ -45,7 +46,7 @@ export function TasksView() {
 	const hasFilters = Boolean(search || projectId || employeeId || priority);
 
 	// Status is filtered here, not by the API, so every tab can show its count
-	const { data, isLoading } = useTaskBoard({ search, projectId, employeeId, priority });
+	const { data, isLoading, isError, error } = useTaskBoard({ search, projectId, employeeId, priority });
 	const { data: projects = [] } = useProjectOptions();
 	const can = useCan();
 	const canUpdateStatus = can("task.update");
@@ -192,9 +193,13 @@ export function TasksView() {
 					<div className="rounded-lg border border-[#E2E8F0] bg-white dark:border-[#1E293B] dark:bg-[#0F172A]">
 						<EmptyState
 							icon={ListTodo}
-							title={hasFilters ? "No tasks match" : "No tasks yet"}
+							title={isError ? "Couldn't load tasks" : hasFilters ? "No tasks match" : "No tasks yet"}
 							description={
-								hasFilters ? "Try different filters." : "Tasks appear here once they're created inside a project."
+								isError
+									? errorMessage(error, "Please try again in a moment.")
+									: hasFilters
+										? "Try different filters."
+										: "Tasks appear here once they're created inside a project."
 							}
 							action={
 								hasFilters ? (

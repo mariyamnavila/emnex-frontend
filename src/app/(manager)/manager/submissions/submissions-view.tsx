@@ -16,7 +16,8 @@ import {
 } from "@/components/shared";
 import { RejectSubmissionDialog } from "@/components/submissions/reject-submission-dialog";
 import { SubmissionSheet } from "@/components/submissions/submission-sheet";
-import { useCurrentUser } from "@/hooks/auth.hook";
+import { useCan, useCurrentUser } from "@/hooks/auth.hook";
+import { errorMessage } from "@/lib/api";
 import { useEmployeeOptions } from "@/hooks/employee.hook";
 import { useApproveSubmission, useSubmissions } from "@/hooks/submission.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -37,7 +38,7 @@ export function SubmissionsView() {
 	const employeeId = get("employeeId");
 	const isQueue = status === "PENDING";
 
-	const { data, isLoading } = useSubmissions({
+	const { data, isLoading, isError, error } = useSubmissions({
 		page,
 		status: status === "ALL" ? undefined : status,
 		employeeId: employeeId || undefined,
@@ -45,6 +46,9 @@ export function SubmissionsView() {
 	});
 	const { data: employees = [] } = useEmployeeOptions();
 	const currentUser = useCurrentUser();
+	const can = useCan();
+	const canApprove = can("submission.approve");
+	const canReject = can("submission.reject");
 	const approve = useApproveSubmission();
 
 	const [selected, setSelected] = useState<Submission | null>(null);
@@ -152,7 +156,7 @@ export function SubmissionsView() {
 			headerClassName: "w-24 pl-0",
 			className: "w-24 pl-0 text-right",
 			cell: (row) => {
-				if (row.status !== "PENDING" || isOwn(row)) {
+				if (row.status !== "PENDING" || isOwn(row) || (!canApprove && !canReject)) {
 					return (
 						<ChevronRight
 							aria-hidden="true"
@@ -163,27 +167,31 @@ export function SubmissionsView() {
 				const isApproving = approve.isPending && approve.variables?.id === row.id;
 				return (
 					<div className="flex justify-end gap-1.5" onClick={(event) => event.stopPropagation()}>
-						<Button
-							size="icon"
-							variant="outline"
-							disabled={isApproving}
-							onClick={() => startReject(row)}
-							aria-label={`Reject ${row.employee.user.name}'s ${row.hoursWorked} h`}
-							title="Reject"
-							className="size-8 border-[#E2E8F0] text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C] dark:border-[#1E293B]"
-						>
-							<X className="size-4" />
-						</Button>
-						<Button
-							size="icon"
-							disabled={approve.isPending}
-							onClick={() => approveSubmission(row)}
-							aria-label={`Approve ${row.employee.user.name}'s ${row.hoursWorked} h`}
-							title="Approve"
-							className="size-8 bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
-						>
-							{isApproving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-						</Button>
+						{canReject ? (
+							<Button
+								size="icon"
+								variant="outline"
+								disabled={isApproving}
+								onClick={() => startReject(row)}
+								aria-label={`Reject ${row.employee.user.name}'s ${row.hoursWorked} h`}
+								title="Reject"
+								className="size-8 border-[#E2E8F0] text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C] dark:border-[#1E293B]"
+							>
+								<X className="size-4" />
+							</Button>
+						) : null}
+						{canApprove ? (
+							<Button
+								size="icon"
+								disabled={approve.isPending}
+								onClick={() => approveSubmission(row)}
+								aria-label={`Approve ${row.employee.user.name}'s ${row.hoursWorked} h`}
+								title="Approve"
+								className="size-8 bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
+							>
+								{isApproving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+							</Button>
+						) : null}
 					</div>
 				);
 			},
@@ -235,8 +243,14 @@ export function SubmissionsView() {
 					empty={
 						<EmptyState
 							icon={ClipboardCheck}
-							title={employeeId ? "Nothing for this employee" : emptyCopy.title}
-							description={employeeId ? "Try another status or clear the employee filter." : emptyCopy.description}
+							title={isError ? "Couldn't load submissions" : employeeId ? "Nothing for this employee" : emptyCopy.title}
+							description={
+								isError
+									? errorMessage(error, "Please try again in a moment.")
+									: employeeId
+										? "Try another status or clear the employee filter."
+										: emptyCopy.description
+							}
 							action={
 								employeeId ? (
 									<Button variant="outline" onClick={() => apply({ employeeId: null })}>

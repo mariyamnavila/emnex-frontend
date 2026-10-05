@@ -21,6 +21,7 @@ import { usePaymentAnalytics, usePayrollAnalytics } from "@/hooks/analytics.hook
 import { useCan, useGetMe } from "@/hooks/auth.hook";
 import { usePayments, useStartCheckout, warmUpStripe } from "@/hooks/payment.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { errorMessage } from "@/lib/api";
 import { formatCurrency } from "@/lib/pay";
 import type { Payment, PaymentStatus } from "@/types/payment.type";
 import { formatMonth, sumByStatus, timeAgo } from "@/lib/utils";
@@ -40,7 +41,7 @@ export function PaymentsView() {
 	const employeeId = get("employeeId");
 	const hasFilters = Boolean(status || employeeId);
 
-	const { data, isLoading } = usePayments({ page, status: status || undefined, employeeId: employeeId || undefined });
+	const { data, isLoading, isError, error } = usePayments({ page, status: status || undefined, employeeId: employeeId || undefined });
 	const analytics = usePaymentAnalytics();
 	const payroll = usePayrollAnalytics();
 	const { data: me } = useGetMe();
@@ -236,11 +237,13 @@ export function PaymentsView() {
 					empty={
 						<EmptyState
 							icon={CreditCard}
-							title={hasFilters ? "No payments match" : "No payments yet"}
+							title={isError ? "Couldn't load payments" : hasFilters ? "No payments match" : "No payments yet"}
 							description={
-								hasFilters
-									? "Try another status or employee."
-									: "Payments appear here once approved payroll is paid through Stripe."
+								isError
+									? errorMessage(error, "Please try again in a moment.")
+									: hasFilters
+										? "Try another status or employee."
+										: "Payments appear here once approved payroll is paid through Stripe."
 							}
 							action={
 								hasFilters ? (

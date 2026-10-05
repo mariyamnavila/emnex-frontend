@@ -47,6 +47,7 @@ import { useProjectAnalytics } from "@/hooks/analytics.hook";
 import { useCan } from "@/hooks/auth.hook";
 import { useDeleteProject, useProjects } from "@/hooks/project.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
+import { errorMessage } from "@/lib/api";
 import { formatCurrency } from "@/lib/pay";
 import { formatDay } from "@/lib/utils";
 import type { Project, ProjectStatus } from "@/types/project.type";
@@ -90,7 +91,7 @@ export function ProjectsView() {
 
 	const can = useCan();
 
-	const { data, isLoading } = useProjects({ page, search, status });
+	const { data, isLoading, isError, error } = useProjects({ page, search, status });
 	const { data: analytics, isLoading: analyticsLoading } = useProjectAnalytics();
 	const deleteProject = useDeleteProject();
 	const router = useRouter();
@@ -319,11 +320,13 @@ export function ProjectsView() {
 					empty={
 						<EmptyState
 							icon={FolderKanban}
-							title="No projects found"
+							title={isError ? "Couldn't load projects" : "No projects found"}
 							description={
-								hasFilters
-									? "Nothing matches these filters."
-									: "Create a project to start assigning tasks."
+								isError
+									? errorMessage(error, "Please try again in a moment.")
+									: hasFilters
+										? "Nothing matches these filters."
+										: "Create a project to start assigning tasks."
 							}
 							action={
 								hasFilters ? (
