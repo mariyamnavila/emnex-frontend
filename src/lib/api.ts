@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+// Same-origin by default: next.config.ts forwards /api/v1 to the backend
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 // Every backend response looks like this
 export type ApiEnvelope<T> = {

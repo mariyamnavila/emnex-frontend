@@ -1,9 +1,9 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryKey, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { toIsoDay } from "@/lib/utils";
-import { api, errorMessage, toQuery } from "@/lib/api";
+import { type ApiEnvelope, api, errorMessage, toQuery } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
 import type { LogHoursValues } from "@/validation/submission.validation";
 import type {
@@ -74,37 +74,75 @@ export function useSubmissions(params: SubmissionParams) {
 	});
 }
 
-// Reviews change the dashboard counts too (the task's own status is untouched)
-function useInvalidateReviews() {
+type SubmissionList = { rows: Submission[]; meta?: ApiEnvelope<unknown>["meta"] };
+type ListSnapshot = [QueryKey, SubmissionList | undefined][];
+
+// Optimistic review: the log leaves "pending" lists and shows its new status
+// everywhere else at once; rollback() restores the lists if the API refuses
+function useOptimisticReview() {
 	const queryClient = useQueryClient();
-	return () => {
+	const listKey = ["submissions", "list"];
+
+	const apply = async (id: string, status: SubmissionStatus, reviewNote?: string): Promise<ListSnapshot> => {
+		await queryClient.cancelQueries({ queryKey: listKey });
+		const snapshot = queryClient.getQueriesData<SubmissionList>({ queryKey: listKey });
+		for (const [key, list] of snapshot) {
+			if (!list?.rows.some((row) => row.id === id)) continue;
+			const filter = (key[2] as SubmissionParams | undefined)?.status;
+			const rows =
+				filter === "PENDING"
+					? list.rows.filter((row) => row.id !== id)
+					: list.rows.map((row) => (row.id === id ? { ...row, status, reviewNote: reviewNote ?? row.reviewNote } : row));
+			const meta =
+				filter === "PENDING" && list.meta ? { ...list.meta, total: Math.max(0, list.meta.total - 1) } : list.meta;
+			queryClient.setQueryData<SubmissionList>(key, { rows, meta });
+		}
+		return snapshot;
+	};
+
+	const rollback = (snapshot?: ListSnapshot) => {
+		for (const [key, list] of snapshot ?? []) queryClient.setQueryData(key, list);
+	};
+
+	// Reviews change the dashboard counts too (the task's own status is untouched)
+	const sync = () => {
 		void queryClient.invalidateQueries({ queryKey: ["submissions"] });
 		void queryClient.invalidateQueries({ queryKey: ["analytics"] });
 	};
+
+	return { apply, rollback, sync };
 }
 
 export function useApproveSubmission() {
-	const invalidate = useInvalidateReviews();
+	const review = useOptimisticReview();
 	return useMutation({
 		mutationFn: (submission: Submission) => api.post(`/submissions/${submission.id}/approve`),
+		onMutate: (submission) => review.apply(submission.id, "APPROVED"),
 		onSuccess: (_, submission) => {
 			toast.success(`Approved ${submission.hoursWorked} h for ${submission.employee.user.name}`);
-			invalidate();
 		},
-		onError: (error) => toast.error(errorMessage(error, "Failed to approve work hours")),
+		onError: (error, _, snapshot) => {
+			review.rollback(snapshot);
+			toast.error(errorMessage(error, "Failed to approve work hours"));
+		},
+		onSettled: review.sync,
 	});
 }
 
 export function useRejectSubmission() {
-	const invalidate = useInvalidateReviews();
+	const review = useOptimisticReview();
 	return useMutation({
 		mutationFn: ({ submission, reason }: { submission: Submission; reason: string }) =>
 			api.post(`/submissions/${submission.id}/reject`, { reason }),
+		onMutate: ({ submission, reason }) => review.apply(submission.id, "REJECTED", reason),
 		onSuccess: (_, { submission }) => {
 			toast.success(`Sent back to ${submission.employee.user.name} with your note`);
-			invalidate();
 		},
-		onError: (error) => toast.error(errorMessage(error, "Failed to reject work hours")),
+		onError: (error, _, snapshot) => {
+			review.rollback(snapshot);
+			toast.error(errorMessage(error, "Failed to reject work hours"));
+		},
+		onSettled: review.sync,
 	});
 }
 
