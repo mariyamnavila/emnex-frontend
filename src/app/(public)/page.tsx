@@ -10,6 +10,7 @@ import {
   FaqSection,
   CtaBanner,
 } from "@/components/landing";
+import { Reveal } from "@/components/landing/reveal";
 
 export const metadata: Metadata = {
   title: "EmNex | Enterprise Workforce & Field Operations Platform",
@@ -28,14 +29,14 @@ export default function Home() {
   return (
     <div className="flex flex-col bg-[#F8FAFC] dark:bg-[#0B1120]">
       <HeroSection />
-      <LogoCloud />
-      <StatsRibbon />
-      <CoreEngines />
-      <RoleShowcase />
-      <TestimonialsSection />
-      <SecuritySection />
-      <FaqSection />
-      <CtaBanner />
+      <Reveal><LogoCloud /></Reveal>
+      <Reveal><StatsRibbon /></Reveal>
+      <Reveal><CoreEngines /></Reveal>
+      <Reveal><RoleShowcase /></Reveal>
+      <Reveal><TestimonialsSection /></Reveal>
+      <Reveal><SecuritySection /></Reveal>
+      <Reveal><FaqSection /></Reveal>
+      <Reveal><CtaBanner /></Reveal>
     </div>
   );
 }

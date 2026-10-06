@@ -114,7 +114,7 @@ function LogHoursForm({
 				error={errors.taskId?.message}
 				hint={
 					selected
-						? `${selected.project.name} · ${logged} h logged so far${selected.estimatedHours ? ` of ${selected.estimatedHours} h estimated` : ""}`
+						? `${selected.project.name}${selected.estimatedHours ? ` · ${logged}h of ${selected.estimatedHours}h estimated` : ` · ${logged}h logged`}`
 						: undefined
 				}
 			>

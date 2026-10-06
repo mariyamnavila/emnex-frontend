@@ -343,12 +343,22 @@ export function ProjectDetailView({ id }: { id: string }) {
 				/>
 				<StatCard
 					title="Timeline"
-					value={project.endDate ? formatDay(project.endDate) : "Open-ended"}
+					value={
+						project.endDate
+							? formatDay(project.endDate)
+							: project.startDate
+								? "Open-ended"
+								: "Not scheduled"
+					}
 					icon={CalendarRange}
 					hint={
-						project.startDate
+						project.startDate && project.endDate
 							? `From ${formatDay(project.startDate)} · ${timelineHint(project.endDate)}`
-							: timelineHint(project.endDate)
+							: project.startDate
+								? `Started ${formatDay(project.startDate)}`
+								: project.endDate
+									? timelineHint(project.endDate)
+									: "No dates set — add them with Edit"
 					}
 				/>
 				<StatCard

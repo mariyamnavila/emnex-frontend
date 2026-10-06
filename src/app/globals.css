@@ -146,3 +146,40 @@ input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;
 }
+
+/* Premium ambient motion — used on the auth brand panel and the landing hero */
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(8%, -7%, 0) scale(1.22);
+  }
+  66% {
+    transform: translate3d(-7%, 6%, 0) scale(0.88);
+  }
+}
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+.animate-aurora {
+  animation: aurora-drift 22s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora,
+  .animate-float-slow {
+    animation: none;
+  }
+}

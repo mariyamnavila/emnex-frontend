@@ -31,12 +31,16 @@ export function useRole(id: string | null) {
 }
 
 // The full permission catalog never changes at runtime
+// Permissions for features we haven't built yet — hidden from the role editor
+// so they can't be assigned (payment refunds aren't implemented).
+const HIDDEN_PERMISSIONS = new Set(["payment.refund"]);
+
 export function usePermissions() {
 	return useQuery({
 		queryKey: ["permissions"],
 		queryFn: async () => {
 			const { data } = await api.get<Permission[]>("/roles/permissions/all");
-			return data;
+			return data.filter((permission) => !HIDDEN_PERMISSIONS.has(permission.name));
 		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
