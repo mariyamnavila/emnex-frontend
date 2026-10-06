@@ -18,6 +18,16 @@ import type { SidebarItems } from "@/types/sidebar.type";
 // Items without a permission are visible to every authenticated user.
 // `anyOf` means "any one of these permissions suffices" (e.g. view OR view_own).
 
+// Self-service "My ___" items. Shown to employees AND to any management user who
+// can view their own of that resource (view or view_own) — everyone has their own
+// tasks/hours/pay, so holding the view permission earns the self-service link.
+const MY_WORK_ITEMS: SidebarItems[number]["items"] = [
+  { title: "My Tasks", url: "/dashboard/tasks", icon: ListTodo, permission: "task.view" },
+  { title: "My Work Hours", url: "/dashboard/submissions", icon: ClipboardCheck, permission: "submission.view" },
+  { title: "My Payroll", url: "/dashboard/payroll", icon: Wallet, permission: "payroll.view_own" },
+  { title: "My Payments", url: "/dashboard/payments", icon: CreditCard, permission: "payment.view_own" },
+];
+
 export const employeeRoutes: SidebarItems = [
   {
     title: "Overview",
@@ -27,13 +37,7 @@ export const employeeRoutes: SidebarItems = [
   },
   {
     title: "My Work",
-    items: [
-      { title: "My Tasks", url: "/dashboard/tasks", icon: ListTodo, permission: "task.view" },
-      { title: "My Submissions", url: "/dashboard/submissions", icon: ClipboardCheck, anyOf: ["submission.view", "submission.create"] },
-      { title: "My Payroll", url: "/dashboard/payroll", icon: Wallet, anyOf: ["payroll.view", "payroll.view_own"] },
-      { title: "My Payments", url: "/dashboard/payments", icon: CreditCard, anyOf: ["payment.view", "payment.view_own"] },
-      { title: "Profile", url: "/dashboard/profile", icon: User },
-    ],
+    items: [...MY_WORK_ITEMS, { title: "Profile", url: "/dashboard/profile", icon: User }],
   },
 ];
 
@@ -50,7 +54,7 @@ export const managementRoutes: SidebarItems = [
       { title: "Projects", url: "/admin/projects", icon: FolderKanban, permission: "project.view" },
       { title: "Tasks", url: "/manager/tasks", icon: ListTodo, permission: "task.view" },
       {
-        title: "Submissions",
+        title: "Work Hours",
         url: "/manager/submissions",
         icon: ClipboardCheck,
         anyOf: ["submission.view", "submission.approve", "submission.reject"],
@@ -114,18 +118,27 @@ export function isSystemRole(role: string): boolean {
 // System management roles (Admin/HR/Finance) keep a Dashboard link to their own
 // overview page. permissions === null → /auth/me not loaded yet: assume
 // management so the menu doesn't flash; items filter once permissions arrive.
-export function getSidebarRoutes(role: string, permissions: string[] | null = null): SidebarItems {
+export function getSidebarRoutes(
+  role: string,
+  permissions: string[] | null = null,
+  isEmployee = false,
+): SidebarItems {
   if (role === "EMPLOYEE") return employeeRoutes;
   if (permissions !== null && !hasManagementPermission(permissions)) return employeeRoutes;
 
+  // Management users who ALSO have an employee record (their own work data) get
+  // the self-service links; the org owner / admin has none, so skip them. Each
+  // item still gates on its endpoint's permission, and empty groups are dropped.
+  const myWork = isEmployee ? [{ title: "My Work", items: MY_WORK_ITEMS }] : [];
   const dashboard = SYSTEM_ROLE_HOME[role];
   if (dashboard && dashboard !== "/dashboard") {
     return [
       { title: "Overview", items: [{ title: "Dashboard", url: dashboard, icon: LayoutDashboard }] },
       ...managementRoutes,
+      ...myWork,
     ];
   }
-  return managementRoutes;
+  return [...managementRoutes, ...myWork];
 }
 
 // Can this user see a nav item? (null permissions = not loaded → show it)
@@ -137,8 +150,12 @@ export function canViewItem(item: SidebarItems[number]["items"][number], permiss
 }
 
 // The first page this user can actually open — used as their "home".
-export function firstAccessibleHref(role: string, permissions: string[] | null): string | null {
-  for (const group of getSidebarRoutes(role, permissions)) {
+export function firstAccessibleHref(
+  role: string,
+  permissions: string[] | null,
+  isEmployee = false,
+): string | null {
+  for (const group of getSidebarRoutes(role, permissions, isEmployee)) {
     for (const item of group.items) {
       if (canViewItem(item, permissions)) return item.url;
     }

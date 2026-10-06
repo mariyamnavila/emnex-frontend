@@ -27,16 +27,24 @@ interface TaskSheetProps {
 	onOpenChange: (open: boolean) => void;
 	/** Reviewer buttons for the allowed next statuses */
 	canUpdateStatus?: boolean;
+	/** The viewer is the assignee — they move their own work forward but can't review it */
+	ownTask?: boolean;
 	/** Replaces the footer, e.g. the assignee's own actions */
 	actions?: ReactNode;
 }
 
-export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, actions }: TaskSheetProps) {
+// What an assignee may move their OWN task to (the backend blocks self-review)
+const ASSIGNEE_STATUSES = ["IN_PROGRESS", "SUBMITTED"];
+
+export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, ownTask = false, actions }: TaskSheetProps) {
 	const { data: logs = [], isLoading: logsLoading } = useTaskSubmissions(open && task ? task.id : null);
 	const updateStatus = useUpdateTaskStatus();
 
 	const { approved: approvedHours, pending: pendingHours } = hoursByStatus(logs);
-	const nextStatuses = task && canUpdateStatus ? TASK_TRANSITIONS[task.status] : [];
+	const nextStatuses =
+		task && canUpdateStatus
+			? TASK_TRANSITIONS[task.status].filter((status) => !ownTask || ASSIGNEE_STATUSES.includes(status))
+			: [];
 
 	const footer =
 		actions ??

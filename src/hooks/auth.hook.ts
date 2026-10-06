@@ -38,6 +38,8 @@ export interface MeUser {
   role: { id: string; name: string; description: string | null };
   organization: { id: string; name: string; slug: string };
   permissions: string[];
+  /** null for the org owner / users with no employee record (no own work data) */
+  employeeId: string | null;
 }
 
 // Where each role lands after logging in
@@ -160,6 +162,8 @@ export function useCurrentUser() {
     organizationName: me?.organization.name ?? null,
     /** null until /auth/me answers */
     permissions: me?.permissions ?? null,
+    /** has an employee record → gets the "My tasks/hours/pay" self-service pages */
+    isEmployee: Boolean(me?.employeeId),
   };
 }
 

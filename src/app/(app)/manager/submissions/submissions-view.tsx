@@ -208,7 +208,7 @@ export function SubmissionsView() {
 	return (
 		<div className="space-y-6">
 			<PageHeader
-				title="Submissions"
+				title="Work hours"
 				description="Review the hours your team logs. Approved hours are what hourly payroll pays."
 			/>
 
@@ -243,7 +243,7 @@ export function SubmissionsView() {
 					empty={
 						<EmptyState
 							icon={ClipboardCheck}
-							title={isError ? "Couldn't load submissions" : employeeId ? "Nothing for this employee" : emptyCopy.title}
+							title={isError ? "Couldn't load work hours" : employeeId ? "Nothing for this employee" : emptyCopy.title}
 							description={
 								isError
 									? errorMessage(error, "Please try again in a moment.")

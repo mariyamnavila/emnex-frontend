@@ -72,13 +72,13 @@ const SECTION_LABEL: Record<string, string> = {
 // "Admin › Projects › Details", derived from the sidebar routes
 function Breadcrumbs() {
   const pathname = usePathname();
-  const { role, permissions } = useCurrentUser();
+  const { role, permissions, isEmployee } = useCurrentUser();
   const section = SECTION_LABEL[pathname.split("/")[1] ?? ""] ?? "Workspace";
   const home = isSystemRole(role)
     ? getHomePath(role)
-    : (firstAccessibleHref(role, permissions) ?? "/dashboard/profile");
+    : (firstAccessibleHref(role, permissions, isEmployee) ?? "/dashboard/profile");
 
-  const match = getSidebarRoutes(role, permissions)
+  const match = getSidebarRoutes(role, permissions, isEmployee)
     .flatMap((group) => group.items)
     .filter((item) => pathname === item.url || pathname.startsWith(`${item.url}/`))
     .sort((a, b) => b.url.length - a.url.length)[0];

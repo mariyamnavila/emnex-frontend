@@ -16,7 +16,7 @@ const MODULES: Record<string, string> = {
 	department: "Departments",
 	project: "Projects",
 	task: "Tasks",
-	submission: "Work submissions",
+	submission: "Work hours",
 	payroll: "Payroll",
 	payment: "Payments",
 	role: "Roles",

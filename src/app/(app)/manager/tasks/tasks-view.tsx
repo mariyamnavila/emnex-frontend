@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmployeeFilter, EmptyState, FilterSelect, PageHeader, SearchInput, StatusFilter } from "@/components/shared";
 import { TaskCard } from "@/components/tasks/task-card";
 import { TaskSheet } from "@/components/tasks/task-sheet";
-import { useCan } from "@/hooks/auth.hook";
+import { useCan, useCurrentUser } from "@/hooks/auth.hook";
 import { useProjectOptions } from "@/hooks/project.hook";
 import { BOARD_LIMIT, useTaskBoard } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -49,6 +49,7 @@ export function TasksView() {
 	const { data, isLoading, isError, error } = useTaskBoard({ search, projectId, employeeId, priority });
 	const { data: projects = [] } = useProjectOptions();
 	const can = useCan();
+	const currentUser = useCurrentUser();
 	// Mirror the backend: the status route needs task.update, and changing someone
 	// else's task also needs assign or review rights. Without task.update (e.g. HR)
 	// the button would only 403, so don't show it.
@@ -281,7 +282,13 @@ export function TasksView() {
 				)}
 			</section>
 
-			<TaskSheet task={selected} open={sheetOpen} onOpenChange={setSheetOpen} canUpdateStatus={canUpdateStatus} />
+			<TaskSheet
+				task={selected}
+				open={sheetOpen}
+				onOpenChange={setSheetOpen}
+				canUpdateStatus={canUpdateStatus}
+				ownTask={Boolean(selected && selected.employee.user.id === currentUser.id)}
+			/>
 		</div>
 	);
 }

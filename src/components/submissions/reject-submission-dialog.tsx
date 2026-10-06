@@ -83,7 +83,7 @@ function RejectForm({
 			noValidate
 		>
 			<DialogHeader>
-				<DialogTitle className="text-[#0F172A] dark:text-white">Reject submission</DialogTitle>
+				<DialogTitle className="text-[#0F172A] dark:text-white">Reject work hours</DialogTitle>
 				<DialogDescription>
 					{submission.employee.user.name} logged {submission.hoursWorked} h on “{submission.task.title}” for{" "}
 					{formatDay(new Date(submission.workDate))}. They&apos;ll see your reason.

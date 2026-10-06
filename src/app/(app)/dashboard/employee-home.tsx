@@ -11,10 +11,10 @@ import { EmployeeOverview } from "./employee-overview";
 // here (its home defaults to /dashboard) is sent to its first allowed page.
 export function EmployeeHome() {
 	const router = useRouter();
-	const { role, permissions } = useCurrentUser();
+	const { role, permissions, isEmployee } = useCurrentUser();
 	const redirectHref =
 		role && !isSystemRole(role) && hasManagementPermission(permissions)
-			? firstAccessibleHref(role, permissions)
+			? firstAccessibleHref(role, permissions, isEmployee)
 			: null;
 
 	useEffect(() => {

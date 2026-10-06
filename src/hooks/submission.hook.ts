@@ -91,7 +91,7 @@ export function useApproveSubmission() {
 			toast.success(`Approved ${submission.hoursWorked} h for ${submission.employee.user.name}`);
 			invalidate();
 		},
-		onError: (error) => toast.error(errorMessage(error, "Failed to approve submission")),
+		onError: (error) => toast.error(errorMessage(error, "Failed to approve work hours")),
 	});
 }
 
@@ -104,7 +104,7 @@ export function useRejectSubmission() {
 			toast.success(`Sent back to ${submission.employee.user.name} with your note`);
 			invalidate();
 		},
-		onError: (error) => toast.error(errorMessage(error, "Failed to reject submission")),
+		onError: (error) => toast.error(errorMessage(error, "Failed to reject work hours")),
 	});
 }
 

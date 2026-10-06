@@ -161,7 +161,7 @@ export function EmployeeDetailSheet({
 								: [
 										{ label: "Tasks", value: detail._count.tasks, icon: ListTodo },
 										{
-											label: "Submissions",
+											label: "Work hours",
 											value: detail._count.submissions,
 											icon: ClipboardCheck,
 										},

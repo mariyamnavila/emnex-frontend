@@ -153,7 +153,7 @@ export function MySubmissionsView() {
 	return (
 		<div className="space-y-6">
 			<PageHeader
-				title="My Submissions"
+				title="My Work Hours"
 				description="Every work log you've sent, and how your manager reviewed it."
 				actions={
 					<Button

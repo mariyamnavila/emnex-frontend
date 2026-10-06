@@ -30,13 +30,13 @@ import { UserMenu } from "./user-menu";
 export function DashboardSidebar() {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
-  const { role, permissions, organizationName } = useCurrentUser();
+  const { role, permissions, organizationName, isEmployee } = useCurrentUser();
   // System roles have a fixed home; custom roles land on their first allowed page
   const home = isSystemRole(role)
     ? getHomePath(role)
-    : (firstAccessibleHref(role, permissions) ?? "/dashboard/profile");
+    : (firstAccessibleHref(role, permissions, isEmployee) ?? "/dashboard/profile");
 
-  const routes = getSidebarRoutes(role, permissions)
+  const routes = getSidebarRoutes(role, permissions, isEmployee)
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => canViewItem(item, permissions)),

@@ -53,7 +53,7 @@ export function AdminOverview() {
 					isLoading={dashboard.isLoading}
 					value={statValue(stats?.pendingSubmissions)}
 					icon={ClipboardCheck}
-					hint="Work submissions to approve"
+					hint="Work hours to approve"
 				/>
 				<StatCard
 					title="Total payroll"

@@ -32,6 +32,9 @@ export function useTaskBoard(params: TaskBoardParams) {
 			return { tasks, total: res.meta?.total ?? tasks.length };
 		},
 		placeholderData: (prev) => prev,
+		// Someone else assigns/moves tasks, so refresh without a manual reload
+		refetchOnWindowFocus: true,
+		refetchInterval: 60 * 1000,
 	});
 }
 
@@ -43,6 +46,9 @@ export function useMyTasks() {
 			const { data } = await api.get<ApiMyTask[]>("/tasks/my");
 			return data.map((task): MyTask => ({ ...task, estimatedHours: toAmount(task.estimatedHours) }));
 		},
+		// A task assigned by someone else should appear without a manual reload
+		refetchOnWindowFocus: true,
+		refetchInterval: 60 * 1000,
 	});
 }
 
