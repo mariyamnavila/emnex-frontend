@@ -5,8 +5,9 @@ import { Info, Loader2, RotateCcw, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAssignPermissions, usePermissions, useRole } from "@/hooks/role.hook";
-import { cn, plural } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/shared";
+import { useAssignPermissions, usePermissions, useResetRolePermissions, useRole } from "@/hooks/role.hook";
+import { cn, formatRoleName, plural } from "@/lib/utils";
 import type { Permission } from "@/types/role.type";
 
 // Display order + names for the "<module>.<action>" permission names
@@ -56,6 +57,8 @@ interface PermissionEditorProps {
 export function PermissionEditor({ roleId, userCount, readOnlyReason }: PermissionEditorProps) {
 	const role = useRole(roleId);
 	const catalog = usePermissions();
+	const reset = useResetRolePermissions();
+	const [resetOpen, setResetOpen] = useState(false);
 
 	if (role.isLoading || catalog.isLoading) {
 		return (
@@ -76,16 +79,49 @@ export function PermissionEditor({ roleId, userCount, readOnlyReason }: Permissi
 	}
 
 	const saved = role.data.permissions.map((rp) => rp.permission.id).sort();
+	// Built-in roles can be restored to their seed defaults (not your own role)
+	const canReset = role.data.isSystem && readOnlyReason === null;
+
 	// Remount (and reset edits) whenever the saved set changes, e.g. after saving
 	return (
-		<PermissionMatrix
-			key={`${roleId}:${saved.join(",")}`}
-			roleId={roleId}
-			saved={saved}
-			catalog={catalog.data}
-			userCount={userCount}
-			readOnlyReason={readOnlyReason}
-		/>
+		<div className="space-y-4">
+			{canReset ? (
+				<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-2.5 dark:border-[#1E293B] dark:bg-[#0F172A]">
+					<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
+						Built-in role — restore its original permissions anytime.
+					</p>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setResetOpen(true)}
+						className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
+					>
+						<RotateCcw className="size-3.5" />
+						Reset to defaults
+					</Button>
+				</div>
+			) : null}
+
+			<PermissionMatrix
+				key={`${roleId}:${saved.join(",")}`}
+				roleId={roleId}
+				saved={saved}
+				catalog={catalog.data}
+				userCount={userCount}
+				readOnlyReason={readOnlyReason}
+			/>
+
+			<ConfirmDialog
+				open={resetOpen}
+				onOpenChange={setResetOpen}
+				title="Reset to default permissions?"
+				description={`${formatRoleName(role.data.name)} will be restored to its built-in permission set. Any customizations will be lost.`}
+				confirmLabel="Reset"
+				pendingLabel="Resetting..."
+				isPending={reset.isPending}
+				onConfirm={() => reset.mutate(roleId, { onSuccess: () => setResetOpen(false) })}
+			/>
+		</div>
 	);
 }
 

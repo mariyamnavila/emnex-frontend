@@ -106,3 +106,18 @@ export function useAssignPermissions() {
 		onError: (error) => toast.error(errorMessage(error, "Failed to save permissions")),
 	});
 }
+
+// Restore a built-in role's permissions to its default set
+export function useResetRolePermissions() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (roleId: string) =>
+			api.post<RoleDetail>(`/roles/${roleId}/reset-permissions`),
+		onSuccess: ({ data }) => {
+			toast.success(`${formatRoleName(data.name)} reset to its default permissions`);
+			void queryClient.invalidateQueries({ queryKey: ["roles"] });
+		},
+		onError: (error) => toast.error(errorMessage(error, "Failed to reset permissions")),
+	});
+}
