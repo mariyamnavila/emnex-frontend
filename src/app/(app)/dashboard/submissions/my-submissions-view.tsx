@@ -16,6 +16,7 @@ import {
 import { SubmissionSheet } from "@/components/submissions/submission-sheet";
 import { LogHoursDialog } from "@/components/tasks/log-hours-dialog";
 import { canLogHours } from "@/components/tasks/my-task-actions";
+import { useCan } from "@/hooks/auth.hook";
 import { useMySubmissions } from "@/hooks/submission.hook";
 import { useMyTasks } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
@@ -38,6 +39,7 @@ export function MySubmissionsView() {
 	const { get, apply, page } = useUrlFilters();
 	const status = get("status") as SubmissionStatus | "";
 
+	const can = useCan();
 	const logs = useMySubmissions();
 	const tasks = useMyTasks();
 
@@ -156,6 +158,7 @@ export function MySubmissionsView() {
 				title="My Work Hours"
 				description="Every work log you've sent, and how your manager reviewed it."
 				actions={
+					can("submission.create") ? (
 					<Button
 						onClick={() => openLog({})}
 						disabled={loggable.length === 0}
@@ -164,7 +167,7 @@ export function MySubmissionsView() {
 						<Clock className="size-4" />
 						Log hours
 					</Button>
-				}
+				) : null}
 			/>
 
 			<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">

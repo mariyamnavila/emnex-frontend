@@ -111,7 +111,8 @@ export function PermissionGrid({ catalog, selected, onChange, readOnly = false, 
 		for (const permission of catalog) {
 			const [moduleName, action] = permission.name.split(".");
 			if (action === "view") viewIds.add(permission.id);
-			if (action && action !== "view" && action !== "view_own") {
+			// *_own and view/view_own are self-service — they don't require the all-view
+			if (action && action !== "view" && action !== "view_own" && !action.endsWith("_own")) {
 				const viewId = idByName.get(`${moduleName}.view`);
 				if (viewId) {
 					requiredView.set(permission.id, viewId);

@@ -22,8 +22,8 @@ import type { SidebarItems } from "@/types/sidebar.type";
 // can view their own of that resource (view or view_own) — everyone has their own
 // tasks/hours/pay, so holding the view permission earns the self-service link.
 const MY_WORK_ITEMS: SidebarItems[number]["items"] = [
-  { title: "My Tasks", url: "/dashboard/tasks", icon: ListTodo, permission: "task.view" },
-  { title: "My Work Hours", url: "/dashboard/submissions", icon: ClipboardCheck, permission: "submission.view" },
+  { title: "My Tasks", url: "/dashboard/tasks", icon: ListTodo, permission: "task.view_own" },
+  { title: "My Work Hours", url: "/dashboard/submissions", icon: ClipboardCheck, permission: "submission.view_own" },
   { title: "My Payroll", url: "/dashboard/payroll", icon: Wallet, permission: "payroll.view_own" },
   { title: "My Payments", url: "/dashboard/payments", icon: CreditCard, permission: "payment.view_own" },
 ];

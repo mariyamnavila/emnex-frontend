@@ -2,6 +2,7 @@
 
 import { ArrowRight, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCan } from "@/hooks/auth.hook";
 import { nextAssigneeStep } from "@/lib/task";
 import { cn } from "@/lib/utils";
 import type { MyTask, TaskStatus } from "@/types/task.type";
@@ -24,8 +25,10 @@ interface MyTaskActionsProps {
 
 // The assignee's buttons: log hours + the one next step for the current status
 export function MyTaskActions({ task, onLogHours, onMove, movingTo = null, className }: MyTaskActionsProps) {
-	const step = nextAssigneeStep(task.status);
-	const loggable = canLogHours(task);
+	const can = useCan();
+	// Logging hours needs submission.create; progressing your task needs task.update_own
+	const step = can("task.update_own") ? nextAssigneeStep(task.status) : null;
+	const loggable = can("submission.create") && canLogHours(task);
 	if (!step && !loggable) return null;
 
 	return (
