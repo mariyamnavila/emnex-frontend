@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ListTodo } from "lucide-react";
+import { ChevronLeft, ChevronRight, ListTodo, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmployeeFilter, EmptyState, FilterSelect, PageHeader, SearchInput, StatusFilter } from "@/components/shared";
+import { AssignTaskDialog } from "@/components/projects/assign-task-dialog";
+import { TaskFormDialog } from "@/components/projects/task-form-dialog";
 import { TaskCard } from "@/components/tasks/task-card";
 import { TaskSheet } from "@/components/tasks/task-sheet";
 import { useCan, useCurrentUser } from "@/hooks/auth.hook";
@@ -58,6 +60,11 @@ export function TasksView() {
 	const [selectedId, setSelectedId] = useState<string | null>(null);
 	const [snapshot, setSnapshot] = useState<BoardTask | null>(null);
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const [assigning, setAssigning] = useState<BoardTask | null>(null);
+	const [assignOpen, setAssignOpen] = useState(false);
+	const [createOpen, setCreateOpen] = useState(false);
+	const canAssign = can("task.assign");
+	const canCreate = can("task.create");
 
 	const tasks = data?.tasks ?? [];
 	// Read the open task from fresh data so a status change shows up in the sheet
@@ -105,7 +112,21 @@ export function TasksView() {
 
 	return (
 		<div className="min-w-0 max-w-full space-y-6">
-			<PageHeader title="Tasks" description="Every task across your projects, grouped by status." />
+			<PageHeader
+				title="Tasks"
+				description="Every task across your projects, grouped by status."
+				actions={
+					canCreate ? (
+						<Button
+							onClick={() => setCreateOpen(true)}
+							className="h-9 bg-[#2563EB] text-sm font-semibold text-white shadow-none hover:bg-[#1D4ED8]"
+						>
+							<Plus className="size-4" />
+							New task
+						</Button>
+					) : null
+				}
+			/>
 
 			{/* Breakpoints below are container queries: they follow the content width, so the
 			    layout stays right whether the sidebar is open or not */}
@@ -288,7 +309,19 @@ export function TasksView() {
 				onOpenChange={setSheetOpen}
 				canUpdateStatus={canUpdateStatus}
 				ownTask={Boolean(selected && selected.employee.user.id === currentUser.id)}
+				onReassign={
+					canAssign && selected
+						? () => {
+								setAssigning(selected);
+								setSheetOpen(false);
+								setAssignOpen(true);
+							}
+						: undefined
+				}
 			/>
+
+			<AssignTaskDialog task={assigning} open={assignOpen} onOpenChange={setAssignOpen} />
+			<TaskFormDialog open={createOpen} onOpenChange={setCreateOpen} />
 		</div>
 	);
 }

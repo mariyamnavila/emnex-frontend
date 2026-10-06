@@ -10,6 +10,7 @@ import type {
 	ApiProjectDetail,
 	Project,
 	ProjectDetail,
+	ProjectOption,
 } from "@/types/project.type";
 import type { ProjectFormValues } from "@/validation/project.validation";
 
@@ -46,12 +47,14 @@ export function useProjects(params: ProjectListParams) {
 }
 
 // Every project, for filter dropdowns
+// Pay/budget-free list from /projects/options so a dispatcher with task.create
+// (but no project.view) can pick a project to attach a new task to.
 export function useProjectOptions() {
 	return useQuery({
 		queryKey: ["projects", "options"],
 		queryFn: async () => {
-			const { data } = await api.get<ApiProject[]>("/projects?limit=100");
-			return data.map(normalizeProject);
+			const { data } = await api.get<ProjectOption[]>("/projects/options");
+			return data;
 		},
 		staleTime: 60 * 1000,
 	});

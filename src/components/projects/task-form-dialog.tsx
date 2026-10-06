@@ -1,6 +1,7 @@
 "use client";
 import { focusNextOnEnter } from "@/lib/form";
 
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -25,6 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker, formatStatus } from "@/components/shared";
 import { useActiveEmployees } from "@/hooks/employee.hook";
+import { useProjectOptions } from "@/hooks/project.hook";
 import { useCreateTask, useUpdateTask } from "@/hooks/task.hook";
 import type { Task, TaskPriority } from "@/types/task.type";
 import { taskSchema, type TaskFormValues } from "@/validation/task.validation";
@@ -68,9 +70,13 @@ function TaskForm({
 	onDone: () => void;
 }) {
 	const isEdit = Boolean(task);
-	const createTask = useCreateTask(projectId ?? "");
+	// On the task board there's no fixed project, so the user picks one here.
+	const needsProject = !isEdit && !projectId;
+	const [projectForNew, setProjectForNew] = useState("");
+	const createTask = useCreateTask(projectId ?? projectForNew);
 	const updateTask = useUpdateTask(task?.id ?? "");
 	const { data: employees = [], isLoading: employeesLoading } = useActiveEmployees();
+	const { data: projects = [], isLoading: projectsLoading } = useProjectOptions();
 	const mutation = isEdit ? updateTask : createTask;
 
 	const {
@@ -136,6 +142,24 @@ function TaskForm({
 			</div>
 
 			<div className="grid gap-4 sm:grid-cols-2">
+				{needsProject ? (
+					<div className="space-y-1.5 sm:col-span-2">
+						<Label className="text-xs font-semibold">Project</Label>
+						<Select value={projectForNew} onValueChange={setProjectForNew}>
+							<SelectTrigger className={`h-10 w-full ${fieldClass}`}>
+								<SelectValue placeholder={projectsLoading ? "Loading..." : "Choose a project"} />
+							</SelectTrigger>
+							<SelectContent>
+								{projects.map((project) => (
+									<SelectItem key={project.id} value={project.id}>
+										{project.name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				) : null}
+
 				{!isEdit ? (
 					<div className="space-y-1.5">
 						<Label className="text-xs font-semibold">Assignee</Label>
@@ -239,7 +263,7 @@ function TaskForm({
 				</Button>
 				<Button
 					type="submit"
-					disabled={mutation.isPending || (isEdit && !isDirty)}
+					disabled={mutation.isPending || (isEdit && !isDirty) || (needsProject && !projectForNew)}
 					className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
 				>
 					{mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}

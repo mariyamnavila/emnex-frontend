@@ -9,6 +9,7 @@ import type {
 	Employee,
 	EmployeeAnalytics,
 	EmployeeDetail,
+	EmployeeOption,
 	EmployeeStatus,
 } from "@/types/employee.type";
 
@@ -71,13 +72,15 @@ export function useEmployeeOptions() {
 	});
 }
 
-// Only ACTIVE employees can be given tasks
+// Only ACTIVE employees can be given tasks. Uses the pay-free /options endpoint,
+// so a dispatcher with task.assign/create (but no employee.view) can pick an
+// assignee without seeing salaries.
 export function useActiveEmployees() {
 	return useQuery({
-		queryKey: ["employees", "active-options"],
+		queryKey: ["employees", "assignable-options"],
 		queryFn: async () => {
-			const { data } = await api.get<ApiEmployee[]>("/employees?status=ACTIVE&limit=100");
-			return data.map(normalizePay);
+			const { data } = await api.get<EmployeeOption[]>("/employees/options");
+			return data.filter((employee) => employee.status === "ACTIVE");
 		},
 		staleTime: 60 * 1000,
 	});

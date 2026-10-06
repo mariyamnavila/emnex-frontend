@@ -2,6 +2,13 @@ import type { ApiTask, Task } from "./task.type";
 
 export type ProjectStatus = "PLANNED" | "ACTIVE" | "ON_HOLD" | "COMPLETED" | "CANCELLED";
 
+// Minimal row from GET /projects/options, for the task-create project picker
+export interface ProjectOption {
+	id: string;
+	name: string;
+	status: ProjectStatus;
+}
+
 export interface Project {
 	id: string;
 	name: string;

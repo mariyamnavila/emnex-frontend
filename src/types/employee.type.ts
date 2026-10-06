@@ -13,6 +13,14 @@ export interface EmployeeDepartment {
 
 export type EmployeeStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "TERMINATED";
 
+// Pay-free row from GET /employees/options, for task-assignment pickers
+export interface EmployeeOption {
+	id: string;
+	jobTitle: string;
+	status: EmployeeStatus;
+	user: { id: string; name: string };
+}
+
 // Employee as the UI uses it — pay already converted to numbers (see hooks/employee.hook.ts)
 export interface Employee {
 	id: string;

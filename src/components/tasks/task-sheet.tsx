@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Users } from "lucide-react";
 import {
 	DetailList,
 	DetailRow,
@@ -29,6 +29,8 @@ interface TaskSheetProps {
 	canUpdateStatus?: boolean;
 	/** The viewer is the assignee — they move their own work forward but can't review it */
 	ownTask?: boolean;
+	/** Open the reassign dialog (shown when the viewer has task.assign) */
+	onReassign?: () => void;
 	/** Replaces the footer, e.g. the assignee's own actions */
 	actions?: ReactNode;
 }
@@ -36,7 +38,7 @@ interface TaskSheetProps {
 // What an assignee may move their OWN task to (the backend blocks self-review)
 const ASSIGNEE_STATUSES = ["IN_PROGRESS", "SUBMITTED"];
 
-export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, ownTask = false, actions }: TaskSheetProps) {
+export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, ownTask = false, onReassign, actions }: TaskSheetProps) {
 	const { data: logs = [], isLoading: logsLoading } = useTaskSubmissions(open && task ? task.id : null);
 	const updateStatus = useUpdateTaskStatus();
 
@@ -46,9 +48,8 @@ export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, o
 			? TASK_TRANSITIONS[task.status].filter((status) => !ownTask || ASSIGNEE_STATUSES.includes(status))
 			: [];
 
-	const footer =
-		actions ??
-		(task && nextStatuses.length > 0 ? (
+	const statusActions =
+		task && nextStatuses.length > 0 ? (
 			<div className="flex flex-wrap gap-2">
 				{nextStatuses.map((status) => {
 					const isMoving = updateStatus.isPending && updateStatus.variables?.status === status;
@@ -70,6 +71,25 @@ export function TaskSheet({ task, open, onOpenChange, canUpdateStatus = false, o
 						</Button>
 					);
 				})}
+			</div>
+		) : null;
+
+	const footer =
+		actions ??
+		(statusActions || (task && onReassign) ? (
+			<div className="flex flex-col gap-2">
+				{statusActions}
+				{task && onReassign ? (
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onReassign}
+						className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
+					>
+						<Users className="size-4" />
+						Reassign
+					</Button>
+				) : null}
 			</div>
 		) : null);
 
