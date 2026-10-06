@@ -1,34 +1,29 @@
 import Link from "next/link";
-import { ShieldAlert, ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { StatusScreen } from "@/components/shared/status-screen";
 import { Button } from "@/components/ui/button";
 
 /** `homeHref` = the viewer's role home (e.g. /admin) — defaults to /dashboard */
-export default function AccessDenied({
-  homeHref = "/dashboard",
-}: {
-  homeHref?: string;
-}) {
+export default function AccessDenied({ homeHref = "/dashboard" }: { homeHref?: string }) {
   return (
-    <div className="flex h-screen w-full items-center justify-center px-4">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="flex size-16 items-center justify-center rounded-full bg-[#FEF2F2] dark:bg-[#450A0A]">
-          <ShieldAlert className="size-8 text-[#DC2626]" />
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold text-[#0F172A] dark:text-white">
-            You don&apos;t have access to this page
-          </h1>
-          <p className="mt-1 text-sm text-[#64748B] dark:text-[#94A3B8]">
-            Your role doesn&apos;t include the required permissions.
-          </p>
-        </div>
-        <Button asChild variant="outline" className="gap-2">
-          <Link href={homeHref}>
+    <StatusScreen
+      embedded
+      code="403"
+      icon={ShieldAlert}
+      tone="amber"
+      title="Access denied"
+      message="You don't have permission to view this page. Your role doesn't include the required access — ask an admin if you think this is a mistake."
+      actions={
+        <Button
+          asChild
+          className="h-10 rounded-lg bg-[#2563EB] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_-10px_rgba(37,99,235,0.7)] transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8]"
+        >
+          <Link href={homeHref} className="inline-flex items-center gap-1.5">
             <ArrowLeft className="size-4" />
-            Back to Dashboard
+            Back to your dashboard
           </Link>
         </Button>
-      </div>
-    </div>
+      }
+    />
   );
 }

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getHomePath, isSessionInvalid, useGetMe } from "@/hooks/auth.hook";
 import { useSession } from "@/providers/session.provider";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
+import AccessDenied from "./access-denied";
 import SessionError from "./session-error";
 
 interface RoleGuardProps {
@@ -42,10 +43,8 @@ export default function RoleGuard({ children, roles, permissions }: RoleGuardPro
   useEffect(() => {
     if (loggedOut) {
       router.replace(`/login?redirectTo=${encodeURIComponent(pathname)}`);
-    } else if (allowed === false && role) {
-      router.replace(getHomePath(role));
     }
-  }, [loggedOut, allowed, role, router, pathname]);
+  }, [loggedOut, router, pathname]);
 
   if (loggedOut) return <DashboardSkeleton />;
 
@@ -60,7 +59,10 @@ export default function RoleGuard({ children, roles, permissions }: RoleGuardPro
     );
   }
 
-  // Still deciding (waiting for /auth/me on a role mismatch), or denied → bounce
+  // Logged in but not allowed in this area → show the forbidden page
+  if (allowed === false && role) return <AccessDenied homeHref={getHomePath(role)} />;
+
+  // Still deciding (waiting for /auth/me on a role mismatch) → keep the skeleton
   if (allowed !== true) return <DashboardSkeleton />;
 
   return <>{children}</>;

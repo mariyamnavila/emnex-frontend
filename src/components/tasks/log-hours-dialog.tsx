@@ -87,7 +87,6 @@ function LogHoursForm({
 	});
 	const [selectedId, description] = useWatch({ control, name: ["taskId", "description"] });
 	const selected = tasks.find((task) => task.id === selectedId);
-	const logged = selected ? (loggedHours[selected.id] ?? 0) : 0;
 
 	return (
 		<form onKeyDown={focusNextOnEnter}
@@ -114,7 +113,7 @@ function LogHoursForm({
 				error={errors.taskId?.message}
 				hint={
 					selected
-						? `${selected.project.name}${selected.estimatedHours ? ` · ${logged}h of ${selected.estimatedHours}h estimated` : ` · ${logged}h logged`}`
+						? `${selected.project.name}${selected.estimatedHours ? ` · ${selected.estimatedHours}h estimated` : ""}`
 						: undefined
 				}
 			>
