@@ -101,7 +101,6 @@ Copy `.env.example` to `.env.local`:
 | Variable | Required | Notes |
 | :--- | :---: | :--- |
 | `BACKEND_URL` | ✓ | Backend origin, e.g. `http://localhost:5000`. The app forwards `/api/v1/*` there (see [Deployment](#deployment)) |
-| `NEXT_PUBLIC_API_URL` | – | Leave unset — defaults to `/api/v1`. Setting it to the backend's own URL bypasses the forwarding and breaks login on separate domains |
 | `JWT_ACCESS_SECRET` | ✓ | **Exactly the backend's `JWT_ACCESS_SECRET`.** Server-only (no `NEXT_PUBLIC_`): `proxy.ts` uses it to verify the session cookie. If it doesn't match, every page redirects to `/login` |
 | `NEXT_PUBLIC_DEMO_*_EMAIL` / `_PASSWORD` | – | Credentials behind the one-click demo buttons (ADMIN, MANAGER, FINANCE, EMPLOYEE). Prefilled with the seeded demo accounts |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | – | Same client ID as the backend's `GOOGLE_CLIENT_ID`; shows the Google button |
@@ -202,7 +201,6 @@ Deploy to **Vercel** (or any Next.js host) with:
 - `BACKEND_URL` = the production API origin (e.g. `https://emnex-api.vercel.app`)
 - `JWT_ACCESS_SECRET` = the production backend's value
 - the demo and Google variables from `.env.example`
-- **no** `NEXT_PUBLIC_API_URL`
 
 Then set the backend's `APP_URL` (Stripe redirects) and `FRONTEND_URL` to this app's URL.
 

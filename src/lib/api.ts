@@ -1,5 +1,6 @@
-// Same-origin by default: next.config.ts forwards /api/v1 to the backend
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
+// Always same-origin: next.config.ts forwards /api/v1 to BACKEND_URL, so the
+// login cookies land on this app's domain (never point this at the API directly)
+const API_URL = "/api/v1";
 
 // Every backend response looks like this
 export type ApiEnvelope<T> = {

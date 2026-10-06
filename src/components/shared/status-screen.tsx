@@ -50,9 +50,9 @@ export function StatusScreen({ code, icon: Icon, tone = "blue", title, message, 
     >
       {/* Ambient background */}
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,#E2E8F0_1px,transparent_1px),linear-gradient(to_bottom,#E2E8F0_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-40 [mask-image:radial-gradient(ellipse_55%_45%_at_50%_45%,#000_60%,transparent_100%)] dark:bg-[linear-gradient(to_right,#1E293B_1px,transparent_1px),linear-gradient(to_bottom,#1E293B_1px,transparent_1px)] dark:opacity-25"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(to_right,#E2E8F0_1px,transparent_1px),linear-gradient(to_bottom,#E2E8F0_1px,transparent_1px)] bg-size-[3.5rem_3.5rem] opacity-40 mask-[radial-gradient(ellipse_55%_45%_at_50%_45%,#000_60%,transparent_100%)] dark:bg-[linear-gradient(to_right,#1E293B_1px,transparent_1px),linear-gradient(to_bottom,#1E293B_1px,transparent_1px)] dark:opacity-25"
       />
-      <div className={cn("animate-aurora pointer-events-none absolute left-1/2 top-1/3 -z-10 size-[30rem] -translate-x-1/2 rounded-full blur-[110px]", t.glow)} />
+      <div className={cn("animate-aurora pointer-events-none absolute left-1/2 top-1/3 -z-10 size-120 -translate-x-1/2 rounded-full blur-[110px]", t.glow)} />
 
       {embedded ? null : (
         <Link href="/" className="absolute top-6 left-6 flex items-center gap-2">
