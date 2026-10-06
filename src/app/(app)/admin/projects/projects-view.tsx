@@ -49,6 +49,7 @@ import { useDeleteProject, useProjects } from "@/hooks/project.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { errorMessage } from "@/lib/api";
 import { formatCurrency } from "@/lib/pay";
+import { isProjectClosed } from "@/lib/task";
 import { formatDay } from "@/lib/utils";
 import type { Project, ProjectStatus } from "@/types/project.type";
 
@@ -62,9 +63,7 @@ const STATUS_TABS: { value: ProjectStatus | ""; label: string }[] = [
 ];
 
 const isOverdue = (project: Project) =>
-	project.endDate !== null &&
-	new Date(project.endDate) < new Date() &&
-	!["COMPLETED", "CANCELLED"].includes(project.status);
+	project.endDate !== null && new Date(project.endDate) < new Date() && !isProjectClosed(project.status);
 
 function Timeline({ project }: { project: Project }) {
 	if (!project.startDate && !project.endDate) {

@@ -54,7 +54,7 @@ import { useDeleteTask, useUpdateTaskStatus } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { ApiError } from "@/lib/api";
 import { formatCurrency } from "@/lib/pay";
-import { isTaskOverdue } from "@/lib/task";
+import { isProjectClosed, isTaskOverdue } from "@/lib/task";
 import { formatDay } from "@/lib/utils";
 import { type Task, TASK_TRANSITIONS, type TaskStatus } from "@/types/task.type";
 
@@ -140,6 +140,8 @@ export function ProjectDetailView({ id }: { id: string }) {
 	const estimatedHours = tasks.reduce((sum, task) => sum + (task.estimatedHours ?? 0), 0);
 	const countOf = (status: TaskStatus) => tasks.filter((task) => task.status === status).length;
 	const visibleTasks = statusFilter ? tasks.filter((task) => task.status === statusFilter) : tasks;
+	// Closed projects take no new or reassigned tasks (backend rule)
+	const canAddTasks = can("task.create") && !isProjectClosed(project.status);
 
 	const columns: DataTableColumn<Task>[] = [
 		{
@@ -209,7 +211,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 			cell: (row) => {
 				const canEdit = can("task.update");
 				const nextStatuses = canEdit ? TASK_TRANSITIONS[row.status] : [];
-				const canAssign = can("task.assign") && row.status !== "COMPLETED";
+				const canAssign = can("task.assign") && row.status !== "COMPLETED" && !isProjectClosed(project.status);
 				const canDelete = can("task.delete") && DELETABLE.includes(row.status);
 				if (!canEdit && nextStatuses.length === 0 && !canAssign && !canDelete) return null;
 
@@ -316,7 +318,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 							Edit
 						</Button>
 					) : null}
-					{can("task.create") ? (
+					{canAddTasks ? (
 						<Button
 							onClick={() => setTaskFormOpen(true)}
 							className="h-9 bg-[#2563EB] text-sm font-semibold text-white shadow-none hover:bg-[#1D4ED8]"
@@ -400,7 +402,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 									: "Break the project into tasks and assign them to your team."
 							}
 							action={
-								!statusFilter && can("task.create") ? (
+								!statusFilter && canAddTasks ? (
 									<Button
 										onClick={() => setTaskFormOpen(true)}
 										className="h-9 bg-[#2563EB] text-sm font-semibold text-white shadow-none hover:bg-[#1D4ED8]"

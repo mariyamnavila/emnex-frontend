@@ -3,6 +3,9 @@ import { sumBy } from "./utils";
 
 const DONE: TaskStatus[] = ["APPROVED", "COMPLETED"];
 
+/** Same rule as the backend: closed projects take no new tasks or hours */
+export const isProjectClosed = (status: string) => status === "COMPLETED" || status === "CANCELLED";
+
 /** Statuses the assignee still has to act on */
 export const OPEN_TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "REJECTED"];
 

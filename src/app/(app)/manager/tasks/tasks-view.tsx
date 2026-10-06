@@ -15,7 +15,7 @@ import { BOARD_LIMIT, useTaskBoard } from "@/hooks/task.hook";
 import { useUrlFilters } from "@/hooks/use-url-filters";
 import { errorMessage } from "@/lib/api";
 import { STATUS_CHART_COLORS } from "@/lib/chart-theme";
-import { isTaskOverdue } from "@/lib/task";
+import { isProjectClosed, isTaskOverdue } from "@/lib/task";
 import { cn } from "@/lib/utils";
 import type { BoardTask, TaskPriority, TaskStatus } from "@/types/task.type";
 
@@ -310,7 +310,7 @@ export function TasksView() {
 				canUpdateStatus={canUpdateStatus}
 				ownTask={Boolean(selected && selected.employee.user.id === currentUser.id)}
 				onReassign={
-					canAssign && selected
+					canAssign && selected && selected.status !== "COMPLETED" && !isProjectClosed(selected.project.status)
 						? () => {
 								setAssigning(selected);
 								setSheetOpen(false);

@@ -3,15 +3,13 @@
 import { ArrowRight, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCan } from "@/hooks/auth.hook";
-import { nextAssigneeStep } from "@/lib/task";
+import { isProjectClosed, nextAssigneeStep } from "@/lib/task";
 import { cn } from "@/lib/utils";
 import type { MyTask, TaskStatus } from "@/types/task.type";
 
-const CLOSED_PROJECTS = ["COMPLETED", "CANCELLED"];
-
 /** Same rule as the backend: no logging on completed tasks or closed projects */
 export function canLogHours(task: MyTask) {
-	return task.status !== "COMPLETED" && !CLOSED_PROJECTS.includes(task.project.status);
+	return task.status !== "COMPLETED" && !isProjectClosed(task.project.status);
 }
 
 interface MyTaskActionsProps {

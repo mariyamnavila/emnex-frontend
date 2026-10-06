@@ -1,7 +1,7 @@
 "use client";
 import { focusNextOnEnter } from "@/lib/form";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
@@ -41,12 +41,15 @@ export function RoleFormDialog({ open, onOpenChange, role, onCreated }: RoleForm
 	const [step, setStep] = useState<1 | 2>(1);
 	const [selected, setSelected] = useState<Set<string>>(new Set());
 
-	useEffect(() => {
+	// Start fresh each time the dialog opens
+	const [wasOpen, setWasOpen] = useState(open);
+	if (open !== wasOpen) {
+		setWasOpen(open);
 		if (open) {
 			setStep(1);
 			setSelected(new Set());
 		}
-	}, [open]);
+	}
 
 	const wide = !isEdit && step === 2;
 	return (

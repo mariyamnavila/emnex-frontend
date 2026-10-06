@@ -1,5 +1,6 @@
 "use client";
 import { focusNextOnEnter } from "@/lib/form";
+import { isProjectClosed } from "@/lib/task";
 
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -150,11 +151,13 @@ function TaskForm({
 								<SelectValue placeholder={projectsLoading ? "Loading..." : "Choose a project"} />
 							</SelectTrigger>
 							<SelectContent>
-								{projects.map((project) => (
-									<SelectItem key={project.id} value={project.id}>
-										{project.name}
-									</SelectItem>
-								))}
+								{projects
+									.filter((project) => !isProjectClosed(project.status))
+									.map((project) => (
+										<SelectItem key={project.id} value={project.id}>
+											{project.name}
+										</SelectItem>
+									))}
 							</SelectContent>
 						</Select>
 					</div>
