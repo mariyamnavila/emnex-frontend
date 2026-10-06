@@ -26,7 +26,7 @@ import { fieldClass, FormField } from "@/components/shared";
 import { useDepartments } from "@/hooks/department.hook";
 import { useUpdateEmployee } from "@/hooks/employee.hook";
 import { useRoles } from "@/hooks/role.hook";
-import { useCan } from "@/hooks/auth.hook";
+import { useCan, useCurrentUser } from "@/hooks/auth.hook";
 import { ESTIMATED_HOURS_PER_MONTH, formatCurrency, getPaySummary, toAmount } from "@/lib/pay";
 import { cn, formatRoleName } from "@/lib/utils";
 import { employeeEditSchema, type EmployeeEditValues } from "@/validation/employee.validation";
@@ -55,7 +55,9 @@ export function EmployeeEditDialog({ employee, open, onOpenChange }: EmployeeEdi
 
 function EditForm({ employee, onDone }: { employee: Employee; onDone: () => void }) {
 	const { data: departments = [] } = useDepartments();
-	const canEditRole = useCan()("role.update");
+	// You can't reassign your own role (the backend rejects it), so don't offer it
+	const isSelf = useCurrentUser().id === employee.user.id;
+	const canEditRole = useCan()("role.update") && !isSelf;
 	const { data: roles = [] } = useRoles(canEditRole);
 	const update = useUpdateEmployee();
 

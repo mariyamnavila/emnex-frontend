@@ -60,7 +60,7 @@ import { EmployeeDetailSheet } from "@/components/employees/employee-detail-shee
 import { EmployeeStatusDialog } from "@/components/employees/employee-status-dialog";
 import { EmployeeEditDialog } from "@/components/employees/employee-edit-dialog";
 import { CredentialsDialog } from "@/components/employees/credentials-dialog";
-import { useCan } from "@/hooks/auth.hook";
+import { useCan, useCurrentUser } from "@/hooks/auth.hook";
 
 const STATUS_TABS: { value: EmployeeStatus | ""; label: string }[] = [
 	{ value: "", label: "All" },
@@ -107,6 +107,7 @@ export function EmployeesView() {
 	const [resent, setResent] = useState<{ employee: Employee; password: string } | null>(null);
 
 	const can = useCan();
+	const currentUser = useCurrentUser();
 
 	const search = get("search");
 	const status = get("status");
@@ -260,7 +261,7 @@ export function EmployeesView() {
 									Edit details
 								</DropdownMenuItem>
 							) : null}
-							{can("employee.update") ? (
+							{can("employee.update") && row.user.id !== currentUser.id ? (
 								<DropdownMenuItem
 									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
 									onSelect={() => openStatus(row)}
@@ -278,7 +279,7 @@ export function EmployeesView() {
 									Resend credentials
 								</DropdownMenuItem>
 							) : null}
-							{row.status !== "TERMINATED" && can("employee.delete") ? (
+							{row.status !== "TERMINATED" && can("employee.delete") && row.user.id !== currentUser.id ? (
 								<>
 									<DropdownMenuSeparator />
 									<DropdownMenuItem

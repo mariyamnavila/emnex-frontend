@@ -230,7 +230,7 @@ function PermissionStep({
 				</DialogDescription>
 			</DialogHeader>
 
-			<div className="@container max-h-[60vh] overflow-y-auto pr-1">
+			<div className="@container max-h-[60vh] overflow-y-auto pr-1 pb-1">
 				{catalog.isLoading ? (
 					<div className="grid gap-4 @2xl:grid-cols-2">
 						{Array.from({ length: 6 }).map((_, i) => (
