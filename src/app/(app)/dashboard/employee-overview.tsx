@@ -107,7 +107,65 @@ export function EmployeeOverview() {
 				/>
 			</div>
 
-			<div className="grid gap-4 lg:grid-cols-3">
+			<ChartCard
+				title="Latest payroll"
+				description={
+					latestPayroll ? `${formatMonth(latestPayroll.periodStart)} pay period` : "Your most recent payslip"
+				}
+				isLoading={payrolls.isLoading}
+				isError={payrolls.isError}
+				isEmpty={!latestPayroll}
+				emptyText="No payroll generated for you yet."
+				action={
+					<Link href="/dashboard/payroll" className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]">
+						View all
+					</Link>
+				}
+			>
+				{latestPayroll ? (
+					<div className="grid gap-6 sm:grid-cols-2 sm:items-center">
+						<DetailFigure
+							value={formatCurrency(latestPayroll.netAmount)}
+							caption={
+								<span className="inline-flex items-center gap-2">
+									Net pay <StatusBadge status={latestPayroll.status} />
+								</span>
+							}
+						/>
+						<div className="space-y-3">
+							<PayBreakdown
+								grossAmount={latestPayroll.grossAmount}
+								deductions={latestPayroll.deductions}
+								netAmount={latestPayroll.netAmount}
+							/>
+							<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
+								{payrollStatusNote(latestPayroll)}
+							</p>
+						</div>
+					</div>
+				) : null}
+			</ChartCard>
+
+			<ChartCard
+				title="Hours by month"
+				description="Approved and still waiting for review"
+				isLoading={logs.isLoading}
+				isError={logs.isError}
+				isEmpty={months.length === 0}
+				emptyText="Log hours on a task to see them here."
+			>
+				<ApexChart
+					type="bar"
+					height={280}
+					options={chartOptions}
+					series={[
+						{ name: "Approved", data: months.map((month) => hoursIn(month, "APPROVED")) },
+						{ name: "Waiting for review", data: months.map((month) => hoursIn(month, "PENDING")) },
+					]}
+				/>
+			</ChartCard>
+
+			<div className="grid items-start gap-4 lg:grid-cols-2">
 				<ChartCard
 					title="My open tasks"
 					description="Overdue first, then by due date"
@@ -115,7 +173,6 @@ export function EmployeeOverview() {
 					isError={tasks.isError}
 					isEmpty={openTasks.length === 0}
 					emptyText="Nothing on your plate right now."
-					className="lg:col-span-2"
 					action={
 						<Link href="/dashboard/tasks" className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]">
 							View all
@@ -141,65 +198,6 @@ export function EmployeeOverview() {
 					{openTasks.length > 5 ? (
 						<p className="mt-3 text-xs text-[#64748B] dark:text-[#94A3B8]">+{openTasks.length - 5} more open tasks</p>
 					) : null}
-				</ChartCard>
-
-				<ChartCard
-					title="Latest payroll"
-					description={
-						latestPayroll ? `${formatMonth(latestPayroll.periodStart)} pay period` : "Your most recent payslip"
-					}
-					isLoading={payrolls.isLoading}
-					isError={payrolls.isError}
-					isEmpty={!latestPayroll}
-					emptyText="No payroll generated for you yet."
-					action={
-						<Link href="/dashboard/payroll" className="text-xs font-medium text-[#2563EB] hover:underline dark:text-[#60A5FA]">
-							View all
-						</Link>
-					}
-				>
-					{latestPayroll ? (
-						<div className="space-y-4">
-							<DetailFigure
-								value={formatCurrency(latestPayroll.netAmount)}
-								caption={
-									<span className="inline-flex items-center gap-2">
-										Net pay <StatusBadge status={latestPayroll.status} />
-									</span>
-								}
-							/>
-							<PayBreakdown
-								grossAmount={latestPayroll.grossAmount}
-								deductions={latestPayroll.deductions}
-								netAmount={latestPayroll.netAmount}
-							/>
-							<p className="text-xs text-[#64748B] dark:text-[#94A3B8]">
-								{payrollStatusNote(latestPayroll)}
-							</p>
-						</div>
-					) : null}
-				</ChartCard>
-			</div>
-
-			<div className="grid gap-4 lg:grid-cols-3">
-				<ChartCard
-					title="Hours by month"
-					description="Approved and still waiting for review"
-					isLoading={logs.isLoading}
-					isError={logs.isError}
-					isEmpty={months.length === 0}
-					emptyText="Log hours on a task to see them here."
-					className="lg:col-span-2"
-				>
-					<ApexChart
-						type="bar"
-						height={280}
-						options={chartOptions}
-						series={[
-							{ name: "Approved", data: months.map((month) => hoursIn(month, "APPROVED")) },
-							{ name: "Waiting for review", data: months.map((month) => hoursIn(month, "PENDING")) },
-						]}
-					/>
 				</ChartCard>
 
 				<ChartCard

@@ -49,8 +49,8 @@ export function ManagerOverview() {
 				/>
 			</div>
 
-			<div className="grid gap-4 lg:grid-cols-3">
-				<ReviewQueue className="lg:col-span-2" />
+			<div className="grid items-start gap-4 lg:grid-cols-3">
+				<HeadcountChart className="lg:col-span-2" />
 
 				<ChartCard
 					title="Team by status"
@@ -70,9 +70,9 @@ export function ManagerOverview() {
 						series={team.map((item) => item._count)}
 					/>
 				</ChartCard>
-
-				<HeadcountChart className="lg:col-span-3" />
 			</div>
+
+			<ReviewQueue />
 		</div>
 	);
 }

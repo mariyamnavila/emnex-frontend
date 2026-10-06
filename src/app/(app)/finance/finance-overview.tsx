@@ -54,12 +54,10 @@ export function FinanceOverview() {
 				/>
 			</div>
 
-			<div className="grid gap-4 lg:grid-cols-3">
-				<PayrollTrendChart className="lg:col-span-2" />
-				<PayrollStatusChart />
-			</div>
+			<PayrollTrendChart />
 
-			<div className="grid gap-4 lg:grid-cols-3">
+			<div className="grid items-start gap-4 lg:grid-cols-2">
+				<PayrollStatusChart />
 				<ChartCard
 					title="Payments by status"
 					description={failed > 0 ? `${failed} failed — retry them from Payroll` : "Stripe payments by outcome"}
@@ -78,8 +76,9 @@ export function FinanceOverview() {
 						series={paymentStatuses.map((item) => item._count)}
 					/>
 				</ChartCard>
-				<RecentPayments className="lg:col-span-2" />
 			</div>
+
+			<RecentPayments />
 		</div>
 	);
 }

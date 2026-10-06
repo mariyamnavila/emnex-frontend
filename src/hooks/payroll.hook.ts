@@ -61,7 +61,7 @@ export function useGeneratePayroll() {
 				employeeId: values.employeeId,
 				...monthToRange(values.period),
 				deductions: values.deductions ? Number(values.deductions) : undefined,
-				grossAmount: values.grossAmount ? Number(values.grossAmount) : undefined,
+				extraAmount: values.extraAmount ? Number(values.extraAmount) : undefined,
 			}),
 		onSuccess: ({ data }) => {
 			toast.success(`Payroll drafted for ${data.employee.user.name}`);

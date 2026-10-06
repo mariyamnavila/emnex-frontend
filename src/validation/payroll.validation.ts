@@ -11,9 +11,9 @@ export const generatePayrollSchema = z.object({
 	deductions: z.string().refine((value) => value === "" || Number(value) >= 0, {
 		message: "Deductions can't be negative",
 	}),
-	// Optional manual gross override (PTO, bonus, 0-hours special cases)
-	grossAmount: z.string().refine((value) => value === "" || Number(value) > 0, {
-		message: "Manual amount must be positive",
+	// Optional extra added on top of the calculated pay (bonus, PTO, 0-hours)
+	extraAmount: z.string().refine((value) => value === "" || Number(value) > 0, {
+		message: "Extra amount must be positive",
 	}),
 });
 

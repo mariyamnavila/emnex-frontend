@@ -69,8 +69,8 @@ export function AdminOverview() {
 				<PayrollStatusChart />
 			</div>
 
-			<div className="grid gap-4 lg:grid-cols-3">
-				<HeadcountChart />
+			<div className="grid items-start gap-4 lg:grid-cols-3">
+				<HeadcountChart className="lg:col-span-2" />
 
 				<ChartCard
 					title="Projects by status"
@@ -89,9 +89,9 @@ export function AdminOverview() {
 						series={projectStatuses.map((item) => item._count)}
 					/>
 				</ChartCard>
-
-				<RecentActivity />
 			</div>
+
+			<RecentActivity />
 		</div>
 	);
 }
