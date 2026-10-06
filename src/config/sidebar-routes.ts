@@ -85,8 +85,8 @@ const MANAGEMENT_PERMS = new Set([
   "employee.view", "employee.create", "employee.update", "employee.delete",
   "department.view", "department.create", "department.update", "department.delete",
   "project.view", "project.create", "project.update", "project.delete",
-  "task.create", "task.assign", "task.delete",
-  "submission.approve", "submission.reject",
+  "task.view", "task.create", "task.assign", "task.update", "task.delete",
+  "submission.view", "submission.approve", "submission.reject",
   "payroll.view", "payroll.generate", "payroll.approve", "payroll.reject",
   "payment.view", "payment.create", "payment.refund",
   "role.view", "role.create", "role.update", "role.delete",
@@ -123,7 +123,6 @@ export function getSidebarRoutes(
   permissions: string[] | null = null,
   isEmployee = false,
 ): SidebarItems {
-  if (role === "EMPLOYEE") return employeeRoutes;
   if (permissions !== null && !hasManagementPermission(permissions)) return employeeRoutes;
 
   // Management users who ALSO have an employee record (their own work data) get
@@ -131,7 +130,7 @@ export function getSidebarRoutes(
   // item still gates on its endpoint's permission, and empty groups are dropped.
   const myWork = isEmployee ? [{ title: "My Work", items: MY_WORK_ITEMS }] : [];
   const dashboard = SYSTEM_ROLE_HOME[role];
-  if (dashboard && dashboard !== "/dashboard") {
+  if (dashboard) {
     return [
       { title: "Overview", items: [{ title: "Dashboard", url: dashboard, icon: LayoutDashboard }] },
       ...managementRoutes,

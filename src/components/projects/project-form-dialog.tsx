@@ -25,10 +25,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker, formatStatus } from "@/components/shared";
 import { useCreateProject, useUpdateProject } from "@/hooks/project.hook";
-import type { Project, ProjectStatus } from "@/types/project.type";
+import type { Project } from "@/types/project.type";
+import { PROJECT_STATUSES } from "./project-status-menu";
 import { projectSchema, type ProjectFormValues } from "@/validation/project.validation";
 
-const STATUSES: ProjectStatus[] = ["PLANNED", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"];
 
 const fieldClass =
 	"border-[#CBD5E1] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus-visible:border-[#2563EB] focus-visible:ring-1 focus-visible:ring-[#2563EB] dark:border-[#1E293B] dark:bg-[#0B1120] dark:text-white";
@@ -204,7 +204,7 @@ function ProjectForm({ project, onDone }: { project: Project | null; onDone: () 
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										{STATUSES.map((status) => (
+										{PROJECT_STATUSES.map((status) => (
 											<SelectItem key={status} value={status}>
 												{formatStatus(status)}
 											</SelectItem>

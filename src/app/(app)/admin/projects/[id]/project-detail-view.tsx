@@ -47,6 +47,7 @@ import {
 } from "@/components/shared";
 import { AssignTaskDialog } from "@/components/projects/assign-task-dialog";
 import { ProjectFormDialog } from "@/components/projects/project-form-dialog";
+import { ProjectStatusButton } from "@/components/projects/project-status-menu";
 import { TaskFormDialog } from "@/components/projects/task-form-dialog";
 import { useCan } from "@/hooks/auth.hook";
 import { useProject } from "@/hooks/project.hook";
@@ -309,14 +310,17 @@ export function ProjectDetailView({ id }: { id: string }) {
 				</div>
 				<div className="flex shrink-0 flex-wrap gap-2.5">
 					{can("project.update") ? (
-						<Button
-							variant="outline"
-							onClick={() => setEditOpen(true)}
-							className="h-9 border-[#E2E8F0] text-sm text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
-						>
-							<Pencil className="size-4" />
-							Edit
-						</Button>
+						<>
+							<ProjectStatusButton project={project} />
+							<Button
+								variant="outline"
+								onClick={() => setEditOpen(true)}
+								className="h-9 border-[#E2E8F0] text-sm text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
+							>
+								<Pencil className="size-4" />
+								Edit
+							</Button>
+						</>
 					) : null}
 					{canAddTasks ? (
 						<Button

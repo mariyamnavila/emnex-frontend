@@ -11,7 +11,7 @@ Admins run projects, employees log hours, HR reviews them, and finance pays sala
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![TanStack Query](https://img.shields.io/badge/TanStack_Query-5-FF4154?logo=reactquery&logoColor=white)](https://tanstack.com/query)
 
-**Live app:** [emnex-beta.vercel.app](https://emnex-beta.vercel.app) · **Backend:** [emnex-backend](https://github.com/mariyamnavila/emnex-backend) · API `https://emnex-api.vercel.app/api/v1`
+**Live app:** [emnex-frontend.vercel.app](https://emnex-frontend.vercel.app) · **Backend:** [emnex-backend](https://github.com/mariyamnavila/emnex-backend) · API `https://emnex-api.vercel.app/api/v1`
 
 </div>
 
@@ -207,7 +207,7 @@ Then set the backend's `APP_URL` (Stripe redirects) and `FRONTEND_URL` to this a
 **Why the API is forwarded.** `next.config.ts` rewrites `/api/v1/*` to `BACKEND_URL`, so the browser only ever talks to this app's domain:
 
 ```text
-browser ──► emnex-beta.vercel.app/api/v1/auth/login ──(rewrite)──► emnex-api.vercel.app/api/v1/auth/login
+browser ──► emnex-frontend.vercel.app/api/v1/auth/login ──(rewrite)──► emnex-api.vercel.app/api/v1/auth/login
 ```
 
 The login cookies the API returns are therefore stored under **this app's** domain, where `proxy.ts` can read them, and there's no cross-site request for CORS or third-party-cookie blocking to interfere with. If the browser called the API's own `*.vercel.app` domain directly, the cookie would be filed under the API's domain and every signed-in page would bounce back to `/login`.

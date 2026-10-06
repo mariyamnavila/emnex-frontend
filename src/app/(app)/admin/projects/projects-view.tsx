@@ -43,6 +43,7 @@ import {
 	TablePagination,
 } from "@/components/shared";
 import { ProjectFormDialog } from "@/components/projects/project-form-dialog";
+import { ProjectStatusSubmenu } from "@/components/projects/project-status-menu";
 import { useProjectAnalytics } from "@/hooks/analytics.hook";
 import { useCan } from "@/hooks/auth.hook";
 import { useDeleteProject, useProjects } from "@/hooks/project.hook";
@@ -210,13 +211,16 @@ export function ProjectsView() {
 								</Link>
 							</DropdownMenuItem>
 							{can("project.update") ? (
-								<DropdownMenuItem
-									className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
-									onSelect={() => openEdit(row)}
-								>
-									<Pencil className="size-4" />
-									Edit
-								</DropdownMenuItem>
+								<>
+									<DropdownMenuItem
+										className="gap-2 text-[#334155] focus:bg-[#F8FAFC] dark:text-[#CBD5E1] dark:focus:bg-[#1E293B]"
+										onSelect={() => openEdit(row)}
+									>
+										<Pencil className="size-4" />
+										Edit
+									</DropdownMenuItem>
+									<ProjectStatusSubmenu project={row} />
+								</>
 							) : null}
 							{can("project.delete") ? (
 								<>

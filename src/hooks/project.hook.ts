@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import { toIsoDay } from "@/lib/utils";
 import { api, errorMessage, toQuery } from "@/lib/api";
 import { toAmount } from "@/lib/pay";
+import { formatStatus } from "@/components/shared/status-badge";
 import type {
 	ApiProject,
 	ApiProjectDetail,
 	Project,
 	ProjectDetail,
 	ProjectOption,
+	ProjectStatus,
 } from "@/types/project.type";
 import type { ProjectFormValues } from "@/validation/project.validation";
 
@@ -117,6 +119,23 @@ export function useUpdateProject() {
 			invalidate();
 		},
 		onError: (error) => toast.error(errorMessage(error, "Failed to update project")),
+	});
+}
+
+// Status only — closing or reopening a project also changes whether its tasks take new work
+export function useUpdateProjectStatus() {
+	const invalidate = useInvalidateProjects();
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, status }: { id: string; status: ProjectStatus }) =>
+			api.patch<ApiProject>(`/projects/${id}`, { status }),
+		onSuccess: ({ data }) => {
+			toast.success(`${data.name} is now ${formatStatus(data.status).toLowerCase()}`);
+			invalidate();
+			void queryClient.invalidateQueries({ queryKey: ["tasks"] });
+		},
+		onError: (error) => toast.error(errorMessage(error, "Failed to change the project status")),
 	});
 }
 

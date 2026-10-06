@@ -134,6 +134,10 @@ interface PermissionGridProps {
 	savedSet?: Set<string>;
 }
 
+// Act only on your own records (log / edit your own hours) despite not ending in
+// _own — mirrors the backend's selfServicePermissions
+const OWN_ONLY_ACTIONS = new Set(["submission.create", "submission.update"]);
+
 // The permission checkbox matrix with the "action requires view" dependency
 // rules. Controlled, so it's reused for both editing a role and creating one.
 export function PermissionGrid({ catalog, selected, onChange, readOnly = false, savedSet }: PermissionGridProps) {
@@ -147,8 +151,14 @@ export function PermissionGrid({ catalog, selected, onChange, readOnly = false, 
 		for (const permission of catalog) {
 			const [moduleName, action] = permission.name.split(".");
 			if (action === "view") viewIds.add(permission.id);
-			// *_own and view/view_own are self-service — they don't require the all-view
-			if (action && action !== "view" && action !== "view_own" && !action.endsWith("_own")) {
+			// Self-service perms (view/view_own, *_own, own-only actions) don't require the all-view
+			if (
+				action &&
+				action !== "view" &&
+				action !== "view_own" &&
+				!action.endsWith("_own") &&
+				!OWN_ONLY_ACTIONS.has(permission.name)
+			) {
 				const viewId = idByName.get(`${moduleName}.view`);
 				if (viewId) {
 					requiredView.set(permission.id, viewId);
