@@ -58,16 +58,16 @@ export function HeroSection() {
         </div>
 
         {/* Micro trust notes */}
-        <div className="mt-4 flex items-center justify-center gap-4 text-xs text-[#64748B] dark:text-[#94A3B8]">
-          <span className="inline-flex items-center gap-1.5">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-xs text-[#64748B] dark:text-[#94A3B8]">
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
             <Check className="size-3 text-[#16A34A]" /> No credit card required
           </span>
-          <span>&bull;</span>
-          <span className="inline-flex items-center gap-1.5">
+          <span className="hidden sm:inline">&bull;</span>
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
             <Check className="size-3 text-[#16A34A]" /> Instant pre-seeded accounts
           </span>
-          <span>&bull;</span>
-          <span className="inline-flex items-center gap-1.5">
+          <span className="hidden sm:inline">&bull;</span>
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
             <Check className="size-3 text-[#16A34A]" /> Stripe test mode included
           </span>
         </div>
