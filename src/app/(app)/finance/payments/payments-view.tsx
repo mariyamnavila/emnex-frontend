@@ -194,7 +194,7 @@ export function PaymentsView() {
 			</div>
 
 			{approved.count > 0 ? (
-				<div className="flex flex-col gap-3 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-[#1E3A5F] dark:bg-[#0B1120]">
+				<div className="flex flex-col gap-3 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 @2xl:flex-row @2xl:items-center @2xl:justify-between dark:border-[#1E3A5F] dark:bg-[#0B1120]">
 					<p className="text-sm text-[#1E3A8A] dark:text-[#BFDBFE]">
 						{approved.count} approved payroll{approved.count === 1 ? " is" : "s are"} waiting to be paid.
 					</p>

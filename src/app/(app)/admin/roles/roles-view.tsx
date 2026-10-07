@@ -149,7 +149,7 @@ export function RolesView() {
 					</nav>
 
 					<div ref={editorRef} className="@container min-w-0 scroll-mt-20 space-y-4">
-						<div className="flex flex-col gap-4 rounded-lg border border-[#E2E8F0] bg-white p-4 shadow-2xs sm:flex-row sm:items-start sm:justify-between sm:p-5 dark:border-[#1E293B] dark:bg-[#0F172A]">
+						<div className="flex flex-col gap-4 rounded-lg border border-[#E2E8F0] bg-white p-4 shadow-2xs @2xl:flex-row @2xl:items-start @2xl:justify-between sm:p-5 dark:border-[#1E293B] dark:bg-[#0F172A]">
 							<div className="min-w-0">
 								<div className="flex flex-wrap items-center gap-2">
 									<ShieldCheck className="size-5 text-[#2563EB]" aria-hidden="true" />

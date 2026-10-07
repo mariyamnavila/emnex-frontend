@@ -73,8 +73,13 @@ function Timeline({ project }: { project: Project }) {
 	return (
 		<div className="whitespace-nowrap tabular-nums">
 			<p className="text-[#0F172A] dark:text-white">
-				{project.startDate ? formatDay(project.startDate) : "—"} –{" "}
-				{project.endDate ? formatDay(project.endDate) : "—"}
+				{project.startDate && project.endDate
+					? `${formatDay(project.startDate)} – ${formatDay(project.endDate)}`
+					: project.startDate
+						? `From ${formatDay(project.startDate)}`
+						: project.endDate
+							? `Until ${formatDay(project.endDate)}`
+							: null}
 			</p>
 			{isOverdue(project) ? (
 				<p className="text-xs font-medium text-[#DC2626]">Past end date</p>

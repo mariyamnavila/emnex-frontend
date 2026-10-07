@@ -47,7 +47,7 @@ const ARCHITECTURAL_ENGINES = [
     icon: ShieldCheck,
     badge: "Engine 04",
     title: "Institutional RBAC & Audit Trails",
-    desc: "43 granular permissions mapped across 4 corporate default tiers plus unlimited custom roles. Immutable audit logs tracking all actions across the system.",
+    desc: "44 granular permissions mapped across 4 corporate default tiers plus unlimited custom roles. Immutable audit logs tracking all actions across the system.",
     highlights: [
       "Full API & middleware route enforcement",
       "Custom organization role builder",

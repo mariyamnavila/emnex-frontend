@@ -33,7 +33,7 @@ const PRINCIPLES = [
   {
     icon: Shield,
     title: "Defense-Grade Security",
-    desc: "Permission checking is enforced at the database query and API controller boundary, not merely masked in the UI. 43 permissions govern every possible mutation.",
+    desc: "Permission checking is enforced at the database query and API controller boundary, not merely masked in the UI. 44 permissions govern every possible mutation.",
   },
   {
     icon: Zap,
@@ -70,7 +70,7 @@ const ARCHITECTURE_PILLARS = [
   },
   {
     icon: Lock,
-    title: "43-Permission RBAC Matrix",
+    title: "44-Permission RBAC Matrix",
     desc: "Fine-grained capability evaluation across Executive Admins, Field Managers, Finance Officers, and Field Specialists.",
   },
 ];
@@ -106,7 +106,7 @@ const MILESTONES = [
   },
   {
     year: "2025",
-    title: "43-Permission RBAC & Stripe Engine",
+    title: "44-Permission RBAC & Stripe Engine",
     desc: "Rolled out granular permission masking, multi-stage deliverable approvals, and integrated Stripe Checkout settlement pipelines.",
   },
   {

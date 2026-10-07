@@ -50,7 +50,7 @@ export default function DashboardShell({
               />
               <Breadcrumbs />
             </header>
-            <div className="mx-auto w-full max-w-350 flex-1 p-4 md:p-6 lg:p-8">
+            <div className="@container mx-auto w-full max-w-350 flex-1 p-4 md:p-6 lg:p-8">
               <RoutePermissionGuard>{children}</RoutePermissionGuard>
             </div>
           </SidebarInset>

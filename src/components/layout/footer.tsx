@@ -11,7 +11,7 @@ const FOOTER_SECTIONS = [
       { href: "/features#projects", label: "Project & Task Dispatch" },
       { href: "/features#submissions", label: "Deliverable Approvals" },
       { href: "/features#payroll", label: "Automated Stripe Payroll" },
-      { href: "/features#rbac", label: "43-Permission RBAC" },
+      { href: "/features#rbac", label: "44-Permission RBAC" },
     ],
   },
   {

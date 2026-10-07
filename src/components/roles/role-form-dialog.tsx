@@ -249,10 +249,10 @@ function PermissionStep({
 				)}
 			</div>
 
-			<DialogFooter className="items-center gap-2 sm:justify-between">
+			<DialogFooter className="flex-col gap-3 sm:flex-row sm:items-center">
 				<span
 					className={cn(
-						"mr-auto text-xs",
+						"text-center text-xs sm:mr-auto sm:text-left",
 						selected.size === 0 ? "text-[#DC2626]" : "text-[#64748B] dark:text-[#94A3B8]",
 					)}
 				>
@@ -260,24 +260,26 @@ function PermissionStep({
 						? "Select at least one permission"
 						: `${plural(selected.size, "permission")} selected`}
 				</span>
-				<Button
-					type="button"
-					variant="outline"
-					onClick={onBack}
-					disabled={isSaving}
-					className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
-				>
-					Back
-				</Button>
-				<Button
-					type="button"
-					onClick={onCreate}
-					disabled={isSaving || selected.size === 0}
-					className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
-				>
-					{isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
-					Create role
-				</Button>
+				<div className="grid grid-cols-2 gap-2 sm:flex">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onBack}
+						disabled={isSaving}
+						className="border-[#E2E8F0] text-[#334155] dark:border-[#1E293B] dark:text-[#CBD5E1]"
+					>
+						Back
+					</Button>
+					<Button
+						type="button"
+						onClick={onCreate}
+						disabled={isSaving || selected.size === 0}
+						className="bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8]"
+					>
+						{isSaving ? <Loader2 className="size-4 animate-spin" /> : null}
+						Create role
+					</Button>
+				</div>
 			</DialogFooter>
 		</div>
 	);

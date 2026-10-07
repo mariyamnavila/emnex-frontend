@@ -14,7 +14,7 @@ const ROLE_TIERS = [
       "Global operational dashboard & KPI charts",
       "Company-wide payroll generation & approval",
       "Department and employee roster administration",
-      "Full RBAC matrix editor (43 permissions)",
+      "Full RBAC matrix editor (44 permissions)",
       "System-wide immutable audit trail inspection",
     ],
   },

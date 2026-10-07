@@ -22,7 +22,7 @@ export function DetailSheet({ open, onOpenChange, title, description, footer, ch
 			<SheetContent
 				side="right"
 				onOpenAutoFocus={(event) => event.preventDefault()}
-				className="w-full gap-0 overflow-y-auto border-[#E2E8F0] bg-white outline-none sm:max-w-md dark:border-[#1E293B] dark:bg-[#0F172A]"
+				className="gap-0 overflow-y-auto border-[#E2E8F0] bg-white outline-none data-[side=right]:w-full data-[side=right]:sm:max-w-md dark:border-[#1E293B] dark:bg-[#0F172A]"
 			>
 				<SheetHeader className="border-b border-[#E2E8F0] pb-4 dark:border-[#1E293B]">
 					<SheetTitle className="text-base text-[#0F172A] dark:text-white">{title}</SheetTitle>

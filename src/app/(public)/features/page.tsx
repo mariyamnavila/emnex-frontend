@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PlanCards } from "@/components/public/plan-cards";
 
 export const metadata: Metadata = {
   title: "Platform Capabilities & Modules | EmNex Enterprise",
@@ -117,8 +118,8 @@ const MODULES = [
     id: "rbac",
     icon: Shield,
     moduleNum: "MOD-07",
-    title: "43-Permission RBAC Matrix & Custom Roles",
-    desc: "Enterprise authorization enforcing 43 granular permissions across 4 standard roles, with an organization builder for bespoke roles.",
+    title: "44-Permission RBAC Matrix & Custom Roles",
+    desc: "Enterprise authorization enforcing 44 granular permissions across 4 standard roles, with an organization builder for bespoke roles.",
     capabilities: [
       "Default role tiers: Admin, HR Manager, Finance Manager, Employee",
       "Custom role builder allowing exact permission cherry-picking per organization",
@@ -222,7 +223,7 @@ export default function FeaturesPage() {
                 <div
                   key={m.id}
                   id={m.id}
-                  className="flex flex-col justify-between rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-2xs scroll-mt-24 dark:border-[#1E293B] dark:bg-[#0F172A]"
+                  className="flex flex-col justify-between rounded-lg border border-[#E2E8F0] bg-white p-6 shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]"
                 >
                   <div>
                     {/* Header */}
@@ -297,7 +298,11 @@ export default function FeaturesPage() {
           </div>
 
           <div className="mt-12 overflow-x-auto rounded-lg border border-[#E2E8F0] bg-white shadow-2xs dark:border-[#1E293B] dark:bg-[#0F172A]">
-            <table className="w-full text-left text-xs">
+            <PlanCards
+              className="sm:hidden"
+              rows={COMPARISON_ROWS.map((row) => ({ label: row.feature, starter: row.starter, pro: row.pro, enterprise: row.enterprise }))}
+            />
+            <table className="hidden w-full text-left text-xs sm:table">
               <thead>
                 <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC] dark:border-[#1E293B] dark:bg-[#0B1120]">
                   <th className="px-5 py-4 font-bold text-[#0F172A] dark:text-white">Platform Capability</th>

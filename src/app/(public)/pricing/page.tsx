@@ -17,6 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PricingCalculator } from "@/components/public/pricing-calculator";
+import { PlanCards } from "@/components/public/plan-cards";
 
 export const metadata: Metadata = {
   title: "Pricing & Corporate Plans | EmNex Enterprise",
@@ -188,9 +189,6 @@ export default function PricingPage() {
             <p className="mx-auto mt-2 max-w-xl text-sm text-[#64748B] dark:text-[#94A3B8]">
               Detailed breakdown of functionality, quotas, and governance across all tiers.
             </p>
-            <p className="mt-3 text-xs font-medium text-[#2563EB] sm:hidden">
-              Swipe the tables sideways to compare all plans →
-            </p>
           </div>
 
           <div className="mt-12 space-y-10">
@@ -204,7 +202,11 @@ export default function PricingPage() {
                     {category.category}
                   </h3>
                 </div>
-                <div className="overflow-x-auto">
+                <PlanCards
+                  className="sm:hidden"
+                  rows={category.rows.map((row) => ({ label: row.name, starter: row.starter, pro: row.pro, enterprise: row.enterprise }))}
+                />
+                <div className="hidden overflow-x-auto sm:block">
                 <table className="w-full min-w-xl text-left text-xs">
                   <thead>
                     <tr className="border-b border-[#E2E8F0] text-[11px] font-semibold tracking-wider text-[#64748B] uppercase dark:border-[#1E293B] dark:text-[#94A3B8]">

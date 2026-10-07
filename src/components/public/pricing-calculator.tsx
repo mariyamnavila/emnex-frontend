@@ -88,7 +88,7 @@ const PLANS: PricingPlan[] = [
     ctaHref: "/contact",
     features: [
       "Unlimited workforce headcount",
-      "Custom role builder (all 43 permissions)",
+      "Custom role builder (all 44 permissions)",
       "High-density executive analytics suite",
       "Dedicated solutions engineer & account lead",
       "Institutional SLA (99.99% uptime guarantee)",

@@ -8,7 +8,7 @@ const SECURITY_STANDARDS = [
     desc: "Strict logical separation of tenant data, encryption at rest with AES-256, and verified data integrity.",
   },
   {
-    title: "Granular 43-Permission RBAC",
+    title: "Granular 44-Permission RBAC",
     desc: "Every database query and API mutation is validated against user permission masks at middleware & controller boundaries.",
   },
   {

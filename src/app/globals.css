@@ -138,6 +138,8 @@
   }
   html {
     @apply font-sans;
+    /* Anchor jumps (#team, #faq…) land below the sticky top bar */
+    scroll-padding-top: 6rem;
   }
 }
 

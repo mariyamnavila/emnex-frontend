@@ -307,7 +307,7 @@ function PermissionMatrix({ roleId, saved, catalog, userCount, readOnlyReason }:
 			/>
 
 			{changes > 0 ? (
-				<div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-lg border border-[#E2E8F0] bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between dark:border-[#1E293B] dark:bg-[#0F172A]/95">
+				<div className="sticky bottom-4 z-10 flex flex-col gap-3 rounded-lg border border-[#E2E8F0] bg-white/95 p-3 shadow-lg backdrop-blur @2xl:flex-row @2xl:items-center @2xl:justify-between dark:border-[#1E293B] dark:bg-[#0F172A]/95">
 					<p className="text-sm text-[#334155] dark:text-[#CBD5E1]">
 						<span className="font-semibold text-[#0F172A] dark:text-white">
 							{plural(changes, "unsaved change")}

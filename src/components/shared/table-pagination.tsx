@@ -43,7 +43,7 @@ export function TablePagination({
   const hasNext = page < pages;
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 px-1 py-2 sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 px-1 py-2 @2xl:flex-row">
       {typeof total === "number" ? (
         <p className="text-xs text-[#64748B] tabular-nums dark:text-[#94A3B8]">
           Showing <span className="font-semibold text-[#0F172A] dark:text-white">{total}</span> result

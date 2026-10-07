@@ -11,7 +11,7 @@ export function PageHeader({ title, description, actions, className }: PageHeade
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 border-b border-[#E2E8F0] pb-5 sm:flex-row sm:items-center sm:justify-between dark:border-[#1E293B]",
+        "flex flex-col gap-4 border-b border-[#E2E8F0] pb-5 @2xl:flex-row @2xl:items-center @2xl:justify-between dark:border-[#1E293B]",
         className
       )}
     >

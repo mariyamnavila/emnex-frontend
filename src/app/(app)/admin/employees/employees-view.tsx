@@ -363,7 +363,7 @@ export function EmployeesView() {
 						onChange={(value) => apply({ status: value || null })}
 					/>
 
-					<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+					<div className="flex flex-col gap-2 @2xl:flex-row @2xl:items-center">
 						<SearchInput placeholder="Search name, email, code..." />
 						<FilterSelect
 							label="Filter by department"

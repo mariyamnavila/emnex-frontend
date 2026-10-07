@@ -296,7 +296,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 				Projects
 			</Link>
 
-			<div className="flex flex-col gap-4 border-b border-[#E2E8F0] pb-5 sm:flex-row sm:items-start sm:justify-between dark:border-[#1E293B]">
+			<div className="flex flex-col gap-4 border-b border-[#E2E8F0] pb-5 @2xl:flex-row @2xl:items-start @2xl:justify-between dark:border-[#1E293B]">
 				<div className="min-w-0 space-y-1.5">
 					<div className="flex flex-wrap items-center gap-3">
 						<h1 className="text-2xl font-bold tracking-tight text-[#0F172A] dark:text-white">
@@ -353,7 +353,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 						project.endDate
 							? formatDay(project.endDate)
 							: project.startDate
-								? "Open-ended"
+								? formatDay(project.startDate)
 								: "Not scheduled"
 					}
 					icon={CalendarRange}
@@ -361,7 +361,7 @@ export function ProjectDetailView({ id }: { id: string }) {
 						project.startDate && project.endDate
 							? `From ${formatDay(project.startDate)} · ${timelineHint(project.endDate)}`
 							: project.startDate
-								? `Started ${formatDay(project.startDate)}`
+								? "Start date · no end date yet"
 								: project.endDate
 									? timelineHint(project.endDate)
 									: "No dates set — add them with Edit"

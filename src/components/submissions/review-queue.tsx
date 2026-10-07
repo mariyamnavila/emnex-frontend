@@ -62,8 +62,8 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 						const isOwn = submission.employee.user.id === currentUser.id;
 						const isApproving = approve.isPending && approve.variables?.id === submission.id;
 						return (
-							<li key={submission.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start">
-								<UserAvatar name={submission.employee.user.name} src={submission.employee.user.avatar} size="sm" className="mt-0.5 hidden sm:flex" />
+							<li key={submission.id} className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 @2xl:flex-row @2xl:items-start">
+								<UserAvatar name={submission.employee.user.name} src={submission.employee.user.avatar} size="sm" className="mt-0.5 hidden @2xl:flex" />
 								<div className="min-w-0 flex-1 space-y-1">
 									<div className="flex items-baseline justify-between gap-3">
 										<p className="truncate text-sm font-medium text-[#0F172A] dark:text-white">
@@ -92,14 +92,14 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 										</time>
 									</p>
 								</div>
-								<div className="flex shrink-0 gap-2 sm:flex-col">
+								<div className="flex shrink-0 gap-2 @2xl:flex-col">
 									{canApprove ? (
 										<Button
 											size="sm"
 											disabled={isOwn || approve.isPending}
 											title={isOwn ? "You can't review your own work" : undefined}
 											onClick={() => approve.mutate(submission)}
-											className="flex-1 bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8] sm:w-24 sm:flex-none"
+											className="flex-1 bg-[#2563EB] text-white shadow-none hover:bg-[#1D4ED8] @2xl:w-24 @2xl:flex-none"
 										>
 											{isApproving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
 											Approve
@@ -115,7 +115,7 @@ export function ReviewQueue({ limit = 5, className }: ReviewQueueProps) {
 												setRejecting(submission);
 												setRejectOpen(true);
 											}}
-											className="flex-1 border-[#E2E8F0] text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C] sm:w-24 sm:flex-none dark:border-[#1E293B]"
+											className="flex-1 border-[#E2E8F0] text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C] @2xl:w-24 @2xl:flex-none dark:border-[#1E293B]"
 										>
 											<X className="size-3.5" />
 											Reject
